@@ -7,8 +7,7 @@ supply-chain attack patterns. It fetches package metadata from the public npm
 registry, runs static analysis rules against the metadata and README content,
 caches results in a local SQLite database, and exposes a typed API for
 querying, watching, and refreshing security assessments. The engine is
-designed to operate as a library rather than a standalone service; a web UI
-and a persistent daemon are reserved for a subsequent phase.
+designed to operate as a library rather than a standalone service.
 
 **Status: Phase 1 — Engine Core (complete).** 13 source files, zero TypeScript
 errors, smoke-tested end to end.
@@ -158,10 +157,6 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 will extend the
 project in the following directions:
 
-- **Web API layer.** A Koa, Fastify, or Express server that wraps the engine
-  behind HTTP endpoints, enabling remote clients and a future UI.
-- **Persistent daemon mode.** A long-lived process that runs the auto-refresh
-  scheduler and exposes health-check and metrics endpoints.
 - **LLM-based scan provider.** Integrate the translator layer with an LLM
   (local or remote) for semantic analysis of package behavior and
   functionality-mismatch detection.

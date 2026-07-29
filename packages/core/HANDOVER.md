@@ -100,19 +100,17 @@ The following capabilities were deliberately deferred. They are listed in rough 
 
 4. **CLI binary.** No command-line interface exists. The engine is a library only. Phase 2 should add `commander` or `yargs` as a dependency and create a `bin/` entry point.
 
-5. **HTTP daemon / API server.** No Fastify, Express, or Koa server is wired. The engine cannot be used as a remote service.
+5. **Web UI.** No frontend exists.
 
-6. **Web UI.** No frontend exists.
+6. **Multi-package batch API beyond refreshAll.** `refreshAll()` refreshes stale packages sequentially. There is no batch `checkPackage` for multiple names, no bulk search, and no batch report export.
 
-7. **Multi-package batch API beyond refreshAll.** `refreshAll()` refreshes stale packages sequentially. There is no batch `checkPackage` for multiple names, no bulk search, and no batch report export.
+7. **Telemetry and analytics.** No usage tracking, no metrics collection, no structured logging beyond the event emitter.
 
-8. **Telemetry and analytics.** No usage tracking, no metrics collection, no structured logging beyond the event emitter.
+8. **Plugin system for custom rules.** The `StaticAnalyzer` constructor accepts an optional `ScanRule[]` array, but there is no dynamic discovery, registration API, or configuration file for third-party rules.
 
-9. **Plugin system for custom rules.** The `StaticAnalyzer` constructor accepts an optional `ScanRule[]` array, but there is no dynamic discovery, registration API, or configuration file for third-party rules.
+9. **CI/CD pipeline.** No GitHub Actions, no npm publish configuration, no version bumping workflow.
 
-10. **CI/CD pipeline.** No GitHub Actions, no npm publish configuration, no version bumping workflow.
-
-11. **npm publisher configuration.** The package is `"private": true` in `package.json`. No `.npmignore`, no `publishConfig`, no provenance setup.
+10. **npm publisher configuration.** The package is `"private": true` in `package.json`. No `.npmignore`, no `publishConfig`, no provenance setup.
 
 ---
 
@@ -152,7 +150,7 @@ The `dist/` directory is not in version control. Running `tsc` to produce the bu
 
 ### 3.6 `undici` dependency unused
 
-The `package.json` lists `undici` ^7.0.0 as a dependency. It is not imported anywhere in Phase 1 source files. This was added as scaffolding for potential Phase 2 HTTP server work. Consider removing it or using it in the Phase 2 CLI/daemon.
+The `package.json` lists `undici` ^7.0.0 as a dependency. It is not imported anywhere in Phase 1 source files. Consider removing it if it remains unused in Phase 2.
 
 ### 3.7 `type-fest` dependency unused
 
@@ -268,12 +266,8 @@ This order minimises risk by building confidence from the bottom up.
 |---|---|---|
 | 1 | **Write unit tests for all modules** | Phase 1 has zero tests. Without tests, every subsequent change is blind. Start with pure modules (`validator.ts`, `static-rules.ts`), then move to modules with side effects (`client.ts` with mock fetch, `database.ts` with in-memory SQLite, `cache-manager.ts`, `rate-limiter.ts`, `refresh-scheduler.ts`). Finish with integration tests for `index.ts`. |
 | 2 | **Fix the `ReadonlySet` cosmetic error** | Correct `validator.ts` line 52. One-line fix, removes the only tsc diagnostic. |
-| 3 | **Wire an API server** | Add Fastify or Express as a dependency, create an `api/` directory under `src/`, expose `GET /api/v1/check/:name`, `GET /api/v1/watchlist`, `POST /api/v1/watchlist`, `GET /api/v1/settings/:key`. This provides the first practical consumer of the engine API. |
-| 4 | **Build a CLI binary** | Add commander or yargs, create `bin/npm-safe.ts`, implement commands for `check`, `search`, `watch`, `refresh`, `settings`. Use `meow` or `clack` for a polished user experience. This makes the tool usable from the terminal without writing code. |
-| 5 | **Implement daemon mode** | Add a `serve` or `daemon` CLI command that starts the API server and the auto-refresh scheduler in the same process, with health-check and metrics endpoints. |
-| 6 | **Implement the LLM scan provider** | Wire the `translator/provider.ts` skeletons into actual API calls. Integrate the `LlmScanReport` into `checkPackage` and the scheduler. |
-| 7 | **Add the plugin framework** | Design a configuration-based or directory-based plugin discovery system for custom `ScanRule` registrations. |
-| 8 | **Telemetry and analytics** | Add structured logging (pino or winston), optional usage reporting, and Prometheus metrics export. |
-| 9 | **CI/CD and publishing** | Set up GitHub Actions for lint, type check, and test. Configure npm provenance publishing. |
-
-Steps 3 and 4 are interchangeable depending on whether the first consumer should be a CLI or an API server. The test-first approach (step 1) is non-negotiable before touching any other code.
+| 3 | **Build a CLI binary** | Add commander or yargs, create `bin/npm-safe.ts`, implement commands for `check`, `search`, `watch`, `refresh`, `settings`. This makes the tool usable from the terminal without writing code. |
+| 4 | **Implement the LLM scan provider** | Wire the `translator/provider.ts` skeletons into actual API calls. Integrate the `LlmScanReport` into `checkPackage` and the scheduler. |
+| 5 | **Add the plugin framework** | Design a configuration-based or directory-based plugin discovery system for custom `ScanRule` registrations. |
+| 6 | **Telemetry and analytics** | Add structured logging (pino or winston), optional usage reporting, and Prometheus metrics export. |
+| 7 | **CI/CD and publishing** | Set up GitHub Actions for lint, type check, and test. Configure npm provenance publishing. |
