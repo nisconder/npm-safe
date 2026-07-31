@@ -4,6 +4,8 @@
 **包名：** @npm-safe/core v0.1.0
 **状态：** 第一阶段已完成（引擎核心）。13 个源文件，零 TypeScript 错误，端到端冒烟测试通过。
 
+> **更新（2026-07-31）：** 第二阶段第 1-3 项已完成。完整测试套件（193 个测试全部通过）覆盖每个模块；`ReadonlySet` 问题已验证为不存在；CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`）已实现，并支持代理和中英文切换。
+
 [English](HANDOVER.md)
 
 ---

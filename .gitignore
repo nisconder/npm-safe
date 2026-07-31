@@ -6,6 +6,13 @@ dist/
 
 # Runtime data
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+npm-debug.log*
 
 # IDE
 .vscode/

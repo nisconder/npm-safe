@@ -4,7 +4,7 @@
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
-**当前状态：第一阶段 — 引擎核心（已完成）。** 13 个源文件，零 TypeScript 错误，端到端冒烟测试通过。
+**当前状态：第一阶段已完成（引擎核心）+ 第二阶段进行中。** 引擎核心交付，13 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（193 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang` 命令），以及受限网络下的代理支持。
 
 ---
 
@@ -26,6 +26,79 @@ TypeScript 编译器（`tsc`）作为每个包的 devDependency 安装在 pnpm �
 
 ---
 
+## 命令行工具
+
+编译并全局链接 CLI（或直接用 `node packages/core/dist/cli/cli.js`）：
+
+```bash
+pnpm -F @npm-safe/core run build
+cd packages/core && npm link
+```
+
+### 命令
+
+```bash
+npm-safe <package>                 # check 的简写
+npm-safe check <package>           # 检查包的安全性
+npm-safe search <query>            # 搜索 npm 注册表
+npm-safe watch list                # 查看监控列表
+npm-safe watch add <package>       # 添加监控
+npm-safe watch remove <package>    # 移除监控
+npm-safe refresh [package]         # 刷新单个（或全部监控）包
+npm-safe settings get <key>        # 读取设置
+npm-safe settings set <key> <val>  # 写入设置
+npm-safe lang [en|zh]              # 查看或设置输出语言
+```
+
+全局选项：
+
+- `-d, --db <path>` — 自定义 SQLite 数据库路径（默认 `~/.npm-safe/npm-safe.db`）
+- `-p, --proxy <url>` — 注册表请求的 HTTP 代理
+- `-j, --json` — JSON 输出
+- `-v, --version` — 版本号
+
+示例：
+
+```bash
+npm-safe check lodash
+# 包名: lodash
+# 最新版本: 4.18.1
+# 安全等级: suspicious
+# 分数: 65/100
+# 发现项: 5
+# ...
+```
+
+### 代理配置
+
+在受限网络中，注册表可能只能通过代理访问。代理解析优先级：`--proxy` 参数 > 持久化的 `proxy` 设置 > `HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` 环境变量。`NO_PROXY` 变量（精确匹配、`.后缀` 匹配或 `*`）可绕过代理。
+
+```bash
+# 持久化代理（推荐）
+npm-safe settings set proxy http://127.0.0.1:7897
+
+# 或每次调用时传入
+npm-safe --proxy http://127.0.0.1:7897 check react
+```
+
+### 语言切换
+
+```bash
+npm-safe lang          # 查看当前语言
+npm-safe lang zh       # 切换为中文（持久化）
+npm-safe lang en       # 切换为英文（持久化）
+```
+
+### 测试
+
+```bash
+pnpm -F @npm-safe/core test
+```
+
+193 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层以及 CLI 本身。
+
+---
+
 ## 文档
 
 引擎的详细文档位于 `packages/core/` 目录下：
@@ -33,7 +106,7 @@ TypeScript 编译器（`tsc`）作为每个包的 devDependency 安装在 pnpm �
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- 分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
 - **[API.md](packages/core/API.md)** -- 完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 12 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- 所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
-- **[HANDOVER.md](packages/core/HANDOVER.md)** -- 第一阶段到第二阶段的交接文档。涵盖已构建的内容、被推迟的内容、已知问题、开发注意事项，以及建议的第二阶段实施顺序。
+- **[HANDOVER.md](packages/core/HANDOVER.md)** -- 第一阶段到第二阶段的交接文档。涵盖已构建的内容、被推迟的内容、已知问题、开发注意事项，以及建议的第二阶段实施顺序。另有中文版 **[HANDOVER_zh.md](packages/core/HANDOVER_zh.md)**。
 - **[README_zh.md](README_zh.md)** -- 本项目的简体中文版 README。
 
 ---
@@ -53,10 +126,20 @@ npm-store/
       tsconfig.json            # extends ../../tsconfig.base.json
       src/
         index.ts               # NpmSafeEngine 门面 — 统一公共 API
+        cli/
+          cli.ts               # CLI 入口 — commander 程序 + check 简写
+          check.ts             # check 命令（与简写共用）
+          search.ts            # search 命令
+          watch.ts             # 监控列表命令（list/add/remove）
+          refresh.ts           # refresh 命令
+          settings.ts          # settings get/set 命令
+          lang.ts              # lang 命令（en/zh，持久化）
+          i18n.ts              # 中英文双语模块
+          shared.ts            # 引擎工厂 + 默认数据库路径
         registry/
           types.ts             # PackageMetadata, AbbreviatedVersion, SearchResult, NpmRegistryError
           validator.ts         # validatePackageName, validateVersion, validateDomain, isKnownRegistryDomain
-          client.ts            # NpmRegistryClient — HTTP 请求，含重试与退避策略
+          client.ts            # NpmRegistryClient — HTTP 请求，含重试、退避与代理支持
         scanner/
           types.ts             # SecurityLevel, Severity, ScanFinding, ScanRule, StaticScanReport
           static-rules.ts      # StaticAnalyzer — 10 条内置分析规则
@@ -70,6 +153,15 @@ npm-store/
         translator/
           types.ts             # TranslationProvider 接口, 目标语言配置
           provider.ts          # 内置翻译提供者实现
+      test/
+        validator.test.ts      # 包名/版本/域名校验测试
+        static-rules.test.ts   # 10 条规则 + 评分/等级测试
+        rate-limiter.test.ts   # 令牌桶测试
+        store.test.ts          # 数据库 + 缓存管理器测试
+        client.test.ts         # 注册表客户端测试（mock fetch、代理）
+        refresh-scheduler.test.ts # 调度器事件测试
+        engine.test.ts         # NpmSafeEngine 集成测试
+        cli.test.ts            # CLI 测试（命令、语言、简写）
 ```
 
 ---
@@ -138,7 +230,7 @@ npm-store/
 
 ## 下一步计划（第二阶段）
 
-第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段将沿以下方向扩展项目：
+第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试和 CLI，剩余工作沿以下方向扩展项目：
 
 - **基于大语言模型的扫描提供者。** 将翻译器层与大语言模型（本地或远程）集成，用于包行为的语义分析和功能不匹配检测。
 - **仪表板 UI。** 基于浏览器的界面，用于查看扫描结果、管理监控列表和配置引擎设置。
