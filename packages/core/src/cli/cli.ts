@@ -16,7 +16,8 @@ import { registerSearchCommand } from "./search.js";
 import { registerWatchCommand } from "./watch.js";
 import { registerRefreshCommand } from "./refresh.js";
 import { registerSettingsCommand } from "./settings.js";
-import { setLocale, autoDetectLocale, type Locale } from "./i18n.js";
+import { setLocale, autoDetectLocale, type Locale, t } from "./i18n.js";
+import { createEngine } from "./shared.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
@@ -45,7 +46,15 @@ program
   .description("CLI for the @npm-safe/core local npm security engine")
   .version(packageJson.version, "-v, --version")
   .option("-d, --db <path>", "Path to the SQLite cache database")
-  .option("-l, --lang <locale>", "Locale for output messages (en, zh)");
+  .option("-l, --lang <locale>", "Locale for output messages (en, zh)")
+  .option("-j, --json", "Output raw JSON")
+  .argument("[package-name]", "Check a package (shorthand for `check`)")
+  .action(async (packageName: string | undefined) => {
+    if (!packageName) return;
+    const { runCheck } = await import("./check.js");
+    await runCheck(packageName, program.opts<{ db?: string; json?: boolean }>());
+    process.exit(process.exitCode ?? 0);
+  });
 
 registerCheckCommand(program);
 registerSearchCommand(program);

@@ -42,6 +42,19 @@ describe("CLI", () => {
     assert.ok(stdout.trim().startsWith("0."));
   });
 
+  it("shorthand: npm-safe <package> runs check", async () => {
+    const { stdout, status } = runCli(["lodash"]);
+    assert.strictEqual(status, 0);
+    assert.ok(stdout.includes("Package: lodash"));
+    assert.ok(stdout.includes("Security level"));
+  });
+
+  it("npm-safe check <package> still works", async () => {
+    const { stdout, status } = runCli(["check", "lodash"]);
+    assert.strictEqual(status, 0);
+    assert.ok(stdout.includes("Package: lodash"));
+  });
+
   it("watch list shows empty list in English", () => {
     const db = path.resolve("test-cli-watch.db");
     const { stdout, status } = runCli(["--db", db, "watch", "list"]);
