@@ -9,8 +9,11 @@ caches results in a local SQLite database, and exposes a typed API for
 querying, watching, and refreshing security assessments. The engine is
 designed to operate as a library rather than a standalone service.
 
-**Status: Phase 1 — Engine Core (complete).** 13 source files, zero TypeScript
-errors, smoke-tested end to end.
+**Status: Phase 1 complete (engine core) + Phase 2 in progress.** Engine core
+delivered with 13 source files and zero TypeScript errors. Phase 2 has added a
+full test suite (193 tests, all passing), a CLI binary with commands for
+`check`, `search`, `watch`, `refresh`, `settings`, and `lang`, plus proxy
+support for restricted networks.
 
 ---
 
@@ -37,6 +40,85 @@ per-package CLI tool.
 
 ---
 
+## Command Line Interface
+
+Build the CLI and link it globally (or run `node packages/core/dist/cli/cli.js`
+directly):
+
+```bash
+pnpm -F @npm-safe/core run build
+cd packages/core && npm link
+```
+
+### Commands
+
+```bash
+npm-safe <package>                 # Shorthand for check
+npm-safe check <package>           # Check a package's security posture
+npm-safe search <query>            # Search the npm registry
+npm-safe watch list                # List watched packages
+npm-safe watch add <package>       # Add a package to the watchlist
+npm-safe watch remove <package>    # Remove a package from the watchlist
+npm-safe refresh [package]         # Refresh one (or all watched) packages
+npm-safe settings get <key>        # Read a setting
+npm-safe settings set <key> <val>  # Write a setting
+npm-safe lang [en|zh]              # Get or set the output language
+```
+
+Global options:
+
+- `-d, --db <path>` — custom SQLite database path (default `~/.npm-safe/npm-safe.db`)
+- `-p, --proxy <url>` — HTTP proxy for registry requests
+- `-j, --json` — JSON output
+- `-v, --version` — print version
+
+Example:
+
+```bash
+npm-safe check lodash
+# Package: lodash
+# Latest version: 4.18.1
+# Security level: suspicious
+# Score: 65/100
+# Findings: 5
+# ...
+```
+
+### Proxy configuration
+
+On restricted networks the registry may only be reachable through a proxy.
+Proxy resolution order: `--proxy` flag > persisted `proxy` setting >
+`HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` environment variables. The
+`NO_PROXY` variable (exact match, `.suffix` match, or `*`) bypasses the proxy.
+
+```bash
+# Persist a proxy (recommended)
+npm-safe settings set proxy http://127.0.0.1:7897
+
+# Or pass it per invocation
+npm-safe --proxy http://127.0.0.1:7897 check react
+```
+
+### Language
+
+```bash
+npm-safe lang          # Show the current language
+npm-safe lang zh       # Switch to Chinese (persisted)
+npm-safe lang en       # Switch to English (persisted)
+```
+
+### Tests
+
+```bash
+pnpm -F @npm-safe/core test
+```
+
+193 tests cover every module: validators, static rules, rate limiter, store
+layer, registry client (with mocked fetch), refresh scheduler, the engine
+integration surface, and the CLI itself.
+
+---
+
 ## Documentation
 
 Detailed documentation for the engine is available under `packages/core/`:
@@ -44,7 +126,7 @@ Detailed documentation for the engine is available under `packages/core/`:
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- Layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.
 - **[API.md](packages/core/API.md)** -- Complete public API reference covering the `NpmSafeEngine` class (all 12 methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- Comprehensive reference for all 10 built-in static analysis rules. Each rule documents its category, severity, detection logic (regex patterns), and mitigation recommendations.
-- **[HANDOVER.md](packages/core/HANDOVER.md)** -- Phase 1 to Phase 2 handover document. Covers what was built, what was deferred, known issues, development gotchas, and a recommended Phase 2 implementation order.
+- **[HANDOVER.md](packages/core/HANDOVER.md)** -- Phase 1 to Phase 2 handover document. Covers what was built, what was deferred, known issues, development gotchas, and a recommended Phase 2 implementation order. Also available in Chinese: **[HANDOVER_zh.md](packages/core/HANDOVER_zh.md)**.
 - **[README_zh.md](README_zh.md)** -- Chinese translation of the project README.
 
 ---
@@ -64,10 +146,20 @@ npm-store/
       tsconfig.json            # extends ../../tsconfig.base.json
       src/
         index.ts               # NpmSafeEngine facade — unified public API
+        cli/
+          cli.ts               # CLI entry — commander program + shorthand check
+          check.ts             # check command (shared with shorthand)
+          search.ts            # search command
+          watch.ts             # watchlist commands (list/add/remove)
+          refresh.ts           # refresh command
+          settings.ts          # settings get/set commands
+          lang.ts              # lang command (en/zh, persisted)
+          i18n.ts              # en/zh localization module
+          shared.ts            # engine factory + default DB path
         registry/
           types.ts             # PackageMetadata, AbbreviatedVersion, SearchResult, NpmRegistryError
           validator.ts         # validatePackageName, validateVersion, validateDomain, isKnownRegistryDomain
-          client.ts            # NpmRegistryClient — HTTP fetch with retry & backoff
+          client.ts            # NpmRegistryClient — HTTP fetch with retry, backoff & proxy support
         scanner/
           types.ts             # SecurityLevel, Severity, ScanFinding, ScanRule, StaticScanReport
           static-rules.ts      # StaticAnalyzer — 10 built-in analysis rules
@@ -81,6 +173,15 @@ npm-store/
         translator/
           types.ts             # TranslationProvider interface, target-language config
           provider.ts          # Built-in translation provider implementation
+      test/
+        validator.test.ts      # package name/version/domain validation tests
+        static-rules.test.ts   # 10 rules + scoring/level tests
+        rate-limiter.test.ts   # token bucket tests
+        store.test.ts          # database + cache manager tests
+        client.test.ts         # registry client tests (mock fetch, proxy)
+        refresh-scheduler.test.ts # scheduler event tests
+        engine.test.ts         # NpmSafeEngine integration tests
+        cli.test.ts            # CLI tests (commands, lang, shorthand)
 ```
 
 ---
@@ -154,8 +255,8 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 
 ## What Is Next (Phase 2)
 
-Phase 1 delivered a working, tsc-clean engine core. Phase 2 will extend the
-project in the following directions:
+Phase 1 delivered a working, tsc-clean engine core. Phase 2 progress so far:
+tests and CLI are done. Remaining work:
 
 - **LLM-based scan provider.** Integrate the translator layer with an LLM
   (local or remote) for semantic analysis of package behavior and

@@ -4,6 +4,8 @@
 **Package:** @npm-safe/core v0.1.0
 **Status:** Phase 1 complete (engine core). 13 source files, zero TypeScript errors, smoke-tested end to end.
 
+> **Update (2026-07-31):** Phase 2 items 1-3 are done. A full test suite (193 tests, all passing) covers every module; the `ReadonlySet` concern was verified as a non-issue; and a CLI binary (`check`, `search`, `watch`, `refresh`, `settings`, `lang`) is implemented, with proxy support and en/zh localization.
+
 [中文版](HANDOVER_zh.md)
 
 ---
