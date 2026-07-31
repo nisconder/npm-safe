@@ -36,13 +36,17 @@ describe("CLI", () => {
   });
 
   it("shorthand: npm-safe <package> runs check", () => {
-    const { stdout, status } = runCli(["lodash"]);
+    const db = path.resolve("test-cli-check.db");
+    runCli(["--db", db, "lang", "en"]);
+    const { stdout, status } = runCli(["--db", db, "lodash"]);
     assert.strictEqual(status, 0);
     assert.ok(stdout.includes("Package: lodash"));
   });
 
   it("npm-safe check <package> still works", () => {
-    const { stdout, status } = runCli(["check", "lodash"]);
+    const db = path.resolve("test-cli-check2.db");
+    runCli(["--db", db, "lang", "en"]);
+    const { stdout, status } = runCli(["--db", db, "check", "lodash"]);
     assert.strictEqual(status, 0);
     assert.ok(stdout.includes("Package: lodash"));
   });

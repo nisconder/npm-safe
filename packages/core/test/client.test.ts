@@ -5,6 +5,7 @@ import { NpmRegistryError } from "../src/registry/types.js";
 import type { PackageMetadata } from "../src/registry/types.js";
 
 const ORIGINAL_FETCH = globalThis.fetch;
+const ORIGINAL_ENV = { ...process.env };
 
 const mockPackageMeta: PackageMetadata = {
   name: "test-pkg",
@@ -44,6 +45,7 @@ function mockFetchReject(error: Error): void {
 describe("NpmRegistryClient", () => {
   afterEach(() => {
     globalThis.fetch = ORIGINAL_FETCH;
+    process.env = { ...ORIGINAL_ENV };
   });
 
   describe("constructor", () => {
@@ -197,6 +199,103 @@ describe("NpmRegistryClient", () => {
       const results = await client.searchPackages("test");
 
       assert.strictEqual(results[0].searchScore, 0.75);
+    });
+  });
+
+  describe("proxy support", () => {
+    it("passes a dispatcher when proxy env var is set", async () => {
+      process.env.HTTPS_PROXY = "http://127.0.0.1:7897";
+      process.env.NO_PROXY = "";
+
+      let capturedInit: RequestInit | undefined;
+      globalThis.fetch = ((_url: unknown, init?: RequestInit) => {
+        capturedInit = init;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: () => Promise.resolve(mockPackageMeta),
+        });
+      }) as typeof fetch;
+
+      const client = new NpmRegistryClient();
+      await client.getPackageMetadata("test-pkg");
+
+      const dispatcher = (capturedInit as { dispatcher?: unknown } | undefined)?.dispatcher;
+      assert.ok(dispatcher, "expected a proxy dispatcher in fetch init");
+    });
+
+    it("bypasses proxy for hosts listed in NO_PROXY", async () => {
+      process.env.HTTPS_PROXY = "http://127.0.0.1:7897";
+      process.env.NO_PROXY = "registry.npmjs.org";
+
+      let capturedInit: RequestInit | undefined;
+      globalThis.fetch = ((_url: unknown, init?: RequestInit) => {
+        capturedInit = init;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: () => Promise.resolve(mockPackageMeta),
+        });
+      }) as typeof fetch;
+
+      const client = new NpmRegistryClient();
+      await client.getPackageMetadata("test-pkg");
+
+      const dispatcher = (capturedInit as { dispatcher?: unknown } | undefined)?.dispatcher;
+      assert.strictEqual(dispatcher, undefined);
+    });
+
+    it("respects explicit proxy option over env vars", async () => {
+      process.env.HTTPS_PROXY = "http://env-proxy:8080";
+      process.env.NO_PROXY = "";
+
+      let capturedInit: RequestInit | undefined;
+      globalThis.fetch = ((_url: unknown, init?: RequestInit) => {
+        capturedInit = init;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: () => Promise.resolve(mockPackageMeta),
+        });
+      }) as typeof fetch;
+
+      const client = new NpmRegistryClient({
+        proxy: "http://explicit-proxy:3128",
+      });
+      await client.getPackageMetadata("test-pkg");
+
+      const dispatcher = (capturedInit as { dispatcher?: unknown } | undefined)?.dispatcher;
+      assert.ok(dispatcher, "expected proxy dispatcher");
+    });
+
+    it("uses no dispatcher when no proxy is configured", async () => {
+      delete process.env.HTTPS_PROXY;
+      delete process.env.HTTP_PROXY;
+      delete process.env.ALL_PROXY;
+      delete process.env.https_proxy;
+      delete process.env.http_proxy;
+      delete process.env.all_proxy;
+      process.env.NO_PROXY = "";
+
+      let capturedInit: RequestInit | undefined;
+      globalThis.fetch = ((_url: unknown, init?: RequestInit) => {
+        capturedInit = init;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: () => Promise.resolve(mockPackageMeta),
+        });
+      }) as typeof fetch;
+
+      const client = new NpmRegistryClient();
+      await client.getPackageMetadata("test-pkg");
+
+      const dispatcher = (capturedInit as { dispatcher?: unknown } | undefined)?.dispatcher;
+      assert.strictEqual(dispatcher, undefined);
     });
   });
 });

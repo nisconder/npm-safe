@@ -28,6 +28,8 @@ import type {
   SearchResult,
 } from './types.js';
 import { NpmRegistryError } from './types.js';
+import { ProxyAgent } from 'undici';
+import type { Dispatcher } from 'undici';
 
 /**
  * Default registry base URL used when no `baseUrl` is supplied to the
@@ -60,6 +62,55 @@ const MAX_ATTEMPTS = 3;
  * corresponding entry in this array before retrying.
  */
 const RETRY_BACKOFF_MS: ReadonlyArray<number> = [1_000, 2_000, 4_000];
+
+/**
+ * Resolve a proxy URL from the environment. Conventional proxy variables
+ * are checked in a case-insensitive manner. Returns `undefined` when no
+ * proxy is configured.
+ */
+function envProxyUrl(): string | undefined {
+  const candidates = [
+    process.env.HTTPS_PROXY,
+    process.env.https_proxy,
+    process.env.HTTP_PROXY,
+    process.env.http_proxy,
+    process.env.ALL_PROXY,
+    process.env.all_proxy,
+  ];
+  for (const candidate of candidates) {
+    if (candidate && candidate.trim().length > 0) return candidate;
+  }
+  return undefined;
+}
+
+/**
+ * Parse the `NO_PROXY` environment variable into a set of lowercased
+ * hostnames (and optional `*` wildcard). Empty entries are ignored.
+ */
+function parseNoProxy(): ReadonlySet<string> {
+  const raw = process.env.NO_PROXY ?? process.env.no_proxy ?? '';
+  return new Set(
+    raw
+      .split(',')
+      .map((entry) => entry.trim().toLowerCase())
+      .filter((entry) => entry.length > 0),
+  );
+}
+
+/**
+ * Determine whether a hostname should bypass the configured proxy per the
+ * `NO_PROXY` list. Exact matches, suffix matches (`.example.com` covers
+ * `api.example.com`), and the `*` wildcard all bypass.
+ */
+function isNoProxyHost(host: string, noProxy: ReadonlySet<string>): boolean {
+  if (noProxy.has('*')) return true;
+  for (const entry of noProxy) {
+    const normalized = entry.startsWith('.') ? entry.slice(1) : entry;
+    if (host === normalized) return true;
+    if (host.endsWith(`.${normalized}`)) return true;
+  }
+  return false;
+}
 
 /**
  * Shape of the raw JSON returned by the registry's `GET /-/v1/search`
@@ -106,6 +157,12 @@ export class NpmRegistryClient {
   private readonly baseUrl: string;
   /** User-Agent header value sent on every request. */
   private readonly userAgent: string;
+  /** Explicit proxy URL from constructor options (highest priority). */
+  private readonly proxyUrl?: string;
+  /** Proxy dispatchers keyed by proxy URL, lazily created. */
+  private readonly proxyAgents = new Map<string, Dispatcher>();
+  /** Hosts that must bypass the proxy. */
+  private readonly noProxyHosts: ReadonlySet<string>;
 
   /**
    * @param options - Optional configuration overriding the defaults.
@@ -113,16 +170,50 @@ export class NpmRegistryClient {
    *   `https://registry.npmjs.org`. A trailing slash is stripped.
    * @param options.userAgent - User-Agent header value. Defaults to a
    *   string identifying `@npm-safe/core`.
+   * @param options.proxy - Proxy URL (e.g. `http://127.0.0.1:7897`). When
+   *   omitted, the conventional environment variables are consulted.
    */
   constructor(options?: {
     readonly baseUrl?: string;
     readonly userAgent?: string;
+    readonly proxy?: string;
   }) {
     const baseUrl = options?.baseUrl ?? DEFAULT_BASE_URL;
     // Strip a single trailing slash so callers may pass either form.
     this.baseUrl =
       baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     this.userAgent = options?.userAgent ?? DEFAULT_USER_AGENT;
+    this.proxyUrl = options?.proxy ?? envProxyUrl();
+    this.noProxyHosts = parseNoProxy();
+  }
+
+  /**
+   * Resolve the fetch `dispatcher` to use for a request URL.
+   *
+   * Returns `undefined` when no proxy is configured or the hostname is in
+   * the `NO_PROXY` list; otherwise returns a lazily created
+   * {@link Dispatcher} for the active proxy.
+   *
+   * @param url - Fully-qualified request URL.
+   * @returns A proxy dispatcher, or `undefined` to use the default fetch.
+   */
+  private getDispatcher(url: string): Dispatcher | undefined {
+    let host = '';
+    try {
+      host = new URL(url).hostname.toLowerCase();
+    } catch {
+      return undefined;
+    }
+    if (isNoProxyHost(host, this.noProxyHosts)) return undefined;
+    const proxy = this.proxyUrl;
+    if (!proxy) return undefined;
+
+    let agent = this.proxyAgents.get(proxy);
+    if (!agent) {
+      agent = new ProxyAgent(proxy);
+      this.proxyAgents.set(proxy, agent);
+    }
+    return agent;
   }
 
   /**
@@ -227,7 +318,8 @@ export class NpmRegistryClient {
       );
 
       try {
-        const response = await fetch(url, {
+        const dispatcher = this.getDispatcher(url);
+        const init: RequestInit = {
           method: 'GET',
           headers: {
             Accept: 'application/json',
@@ -235,7 +327,14 @@ export class NpmRegistryClient {
             'User-Agent': this.userAgent,
           },
           signal: controller.signal,
-        });
+        };
+        if (dispatcher) {
+          // undici's fetch accepts a `dispatcher` option to route the request
+          // through a custom agent (e.g. a proxy).
+          (init as { dispatcher?: Dispatcher }).dispatcher = dispatcher;
+        }
+
+        const response = await fetch(url, init);
 
         if (!response.ok) {
           const statusText = response.statusText;

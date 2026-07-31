@@ -7,7 +7,8 @@ export function registerLangCommand(program: Command): void {
     .command("lang [locale]")
     .description("Get or set the output language (en, zh)")
     .action(async (locale?: string) => {
-      const engine = await createEngine(program.opts<{ db?: string }>().db);
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
       try {
         if (!locale) {
           console.log(t("lang.current", { lang: getLocale() }));

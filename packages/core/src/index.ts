@@ -56,6 +56,13 @@ export interface NpmSafeEngineOptions {
    * @default 3600000 (1 hour)
    */
   readonly cacheTtlMs?: number;
+
+  /**
+   * HTTP proxy URL used for registry requests (e.g.
+   * `http://127.0.0.1:7897`). When omitted, the conventional environment
+   * variables (`HTTPS_PROXY`, `HTTP_PROXY`, `ALL_PROXY`) are consulted.
+   */
+  readonly proxy?: string;
 }
 
 /**
@@ -145,6 +152,7 @@ export class NpmSafeEngine {
     });
     this.client = new NpmRegistryClient({
       baseUrl: options?.registryUrl,
+      proxy: options?.proxy,
     });
     this.limiter = new TokenBucket(
       options?.rateLimit ?? 5,

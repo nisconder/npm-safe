@@ -7,7 +7,8 @@ export function registerRefreshCommand(program: Command): void {
     .command("refresh [package-name]")
     .description("Refresh one or all watched packages from the registry")
     .action(async (packageName: string | undefined) => {
-      const engine = await createEngine(program.opts<{ db?: string }>().db);
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
       try {
         if (packageName) {
           await engine.refreshPackage(packageName);

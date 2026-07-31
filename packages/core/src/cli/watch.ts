@@ -9,7 +9,8 @@ export function registerWatchCommand(program: Command): void {
     .command("list")
     .description("List all watched packages")
     .action(async () => {
-      const engine = await createEngine(program.opts<{ db?: string }>().db);
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
       try {
         const list = await engine.getWatchlist();
         if (list.length === 0) {
@@ -29,7 +30,8 @@ export function registerWatchCommand(program: Command): void {
     .command("add <package-name>")
     .description("Add a package to the watchlist")
     .action(async (packageName: string) => {
-      const engine = await createEngine(program.opts<{ db?: string }>().db);
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
       try {
         await engine.checkPackage(packageName);
         await engine.addToWatchlist(packageName);
@@ -43,7 +45,8 @@ export function registerWatchCommand(program: Command): void {
     .command("remove <package-name>")
     .description("Remove a package from the watchlist")
     .action(async (packageName: string) => {
-      const engine = await createEngine(program.opts<{ db?: string }>().db);
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
       try {
         await engine.removeFromWatchlist(packageName);
         console.log(t("watch.remove.removed", { name: packageName }));

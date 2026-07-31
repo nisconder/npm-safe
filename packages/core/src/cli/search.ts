@@ -9,7 +9,8 @@ export function registerSearchCommand(program: Command): void {
     .option("-j, --json", "Output raw JSON")
     .option("-s, --size <number>", "Maximum number of results", "20")
     .action(async (query: string, options: { json?: boolean; size?: string }) => {
-      const engine = await createEngine(program.opts<{ db?: string }>().db);
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
       try {
         const size = parseInt(options.size ?? "20", 10);
         const results = await engine.searchPackages(query, size);

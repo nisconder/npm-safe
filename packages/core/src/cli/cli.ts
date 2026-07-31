@@ -21,11 +21,13 @@ program
   .description("CLI for the @npm-safe/core local npm security engine")
   .version(packageJson.version, "-v, --version")
   .option("-d, --db <path>", "Path to the SQLite cache database")
+  .option("-p, --proxy <url>", "HTTP proxy URL for registry requests")
   .option("-j, --json", "Output raw JSON")
   .argument("[package-name]", "Check a package (shorthand for `check`)")
   .action(async (packageName: string | undefined) => {
     if (!packageName) return;
-    await runCheck(packageName, program.opts<{ db?: string; json?: boolean }>());
+    const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
+    await runCheck(packageName, opts);
     process.exit(process.exitCode ?? 0);
   });
 

@@ -9,7 +9,8 @@ export function registerSettingsCommand(program: Command): void {
     .command("get <key>")
     .description("Read a setting value")
     .action(async (key: string) => {
-      const engine = await createEngine(program.opts<{ db?: string }>().db);
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
       try {
         const value = await engine.getSetting(key);
         if (value === null) {
@@ -27,7 +28,8 @@ export function registerSettingsCommand(program: Command): void {
     .command("set <key> <value>")
     .description("Write a setting value")
     .action(async (key: string, value: string) => {
-      const engine = await createEngine(program.opts<{ db?: string }>().db);
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
       try {
         await engine.setSetting(key, value);
         console.log(t("settings.set", { key, value }));

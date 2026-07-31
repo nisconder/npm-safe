@@ -7,6 +7,7 @@ export interface RunCheckOptions {
   readonly json?: boolean;
   readonly refresh?: boolean;
   readonly db?: string;
+  readonly proxy?: string;
 }
 
 function formatFinding(result: CheckResult, idx: number): string {
@@ -32,7 +33,7 @@ function formatFinding(result: CheckResult, idx: number): string {
 }
 
 export async function runCheck(packageName: string, options: RunCheckOptions): Promise<void> {
-  const engine = await createEngine(options.db);
+  const engine = await createEngine(options.db, options.proxy);
   try {
     if (options.refresh) {
       await engine.refreshPackage(packageName);
@@ -102,8 +103,10 @@ export function registerCheckCommand(program: Command): void {
     .option("-j, --json", "Output raw JSON")
     .option("-r, --refresh", "Force a fresh registry fetch")
     .action(async (packageName: string, options: { json?: boolean; refresh?: boolean }) => {
+      const opts = program.opts<{ db?: string; proxy?: string }>();
       await runCheck(packageName, {
-        db: program.opts<{ db?: string }>().db,
+        db: opts.db,
+        proxy: opts.proxy,
         json: options.json,
         refresh: options.refresh,
       });
