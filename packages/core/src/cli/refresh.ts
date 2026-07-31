@@ -1,9 +1,6 @@
 import { Command } from "commander";
 import { createEngine } from "./shared.js";
-
-interface RefreshOptions {
-  readonly db?: string;
-}
+import { t } from "./i18n.js";
 
 /**
  * Register the `refresh` command with the given Commander program.
@@ -12,16 +9,15 @@ export function registerRefreshCommand(program: Command): void {
   program
     .command("refresh [package-name]")
     .description("Refresh one or all watched packages from the registry")
-    .option("-d, --db <path>", "Path to the SQLite cache database")
-    .action(async (packageName: string | undefined, options: RefreshOptions) => {
-      const engine = createEngine(options.db);
+    .action(async (packageName: string | undefined) => {
+      const engine = createEngine(program.opts<{ db?: string }>().db);
       try {
         if (packageName) {
           await engine.refreshPackage(packageName);
-          console.log(`Refreshed "${packageName}".`);
+          console.log(t("refresh.single", { name: packageName }));
         } else {
           await engine.refreshAll();
-          console.log("Refreshed all watched packages.");
+          console.log(t("refresh.all"));
         }
       } finally {
         engine.close();

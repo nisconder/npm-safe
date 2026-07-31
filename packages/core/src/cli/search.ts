@@ -1,8 +1,8 @@
 import { Command } from "commander";
 import { createEngine } from "./shared.js";
+import { t } from "./i18n.js";
 
 interface SearchOptions {
-  readonly db?: string;
   readonly json?: boolean;
   readonly size?: string;
 }
@@ -14,11 +14,10 @@ export function registerSearchCommand(program: Command): void {
   program
     .command("search <query>")
     .description("Search the npm registry for packages matching a query")
-    .option("-d, --db <path>", "Path to the SQLite cache database")
     .option("-j, --json", "Output raw JSON instead of human-readable text")
     .option("-s, --size <number>", "Maximum number of results", "20")
     .action(async (query: string, options: SearchOptions) => {
-      const engine = createEngine(options.db);
+      const engine = createEngine(program.opts<{ db?: string }>().db);
       try {
         const size = parseInt(options.size ?? "20", 10);
         const results = await engine.searchPackages(query, size);
@@ -29,7 +28,7 @@ export function registerSearchCommand(program: Command): void {
         }
 
         if (results.length === 0) {
-          console.log("No packages found.");
+          console.log(t("search.noResults"));
           return;
         }
 

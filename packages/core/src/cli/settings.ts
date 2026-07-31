@@ -1,9 +1,6 @@
 import { Command } from "commander";
 import { createEngine } from "./shared.js";
-
-interface SettingsOptions {
-  readonly db?: string;
-}
+import { t } from "./i18n.js";
 
 /**
  * Register the `settings` command and its sub-commands.
@@ -16,13 +13,12 @@ export function registerSettingsCommand(program: Command): void {
   settings
     .command("get <key>")
     .description("Read a setting value")
-    .option("-d, --db <path>", "Path to the SQLite cache database")
-    .action(async (key: string, options: SettingsOptions) => {
-      const engine = createEngine(options.db);
+    .action(async (key: string) => {
+      const engine = createEngine(program.opts<{ db?: string }>().db);
       try {
         const value = await engine.getSetting(key);
         if (value === null) {
-          console.error(`Setting "${key}" is not set.`);
+          console.error(t("settings.notSet", { key }));
           process.exitCode = 1;
           return;
         }
@@ -35,12 +31,11 @@ export function registerSettingsCommand(program: Command): void {
   settings
     .command("set <key> <value>")
     .description("Write a setting value")
-    .option("-d, --db <path>", "Path to the SQLite cache database")
-    .action(async (key: string, value: string, options: SettingsOptions) => {
-      const engine = createEngine(options.db);
+    .action(async (key: string, value: string) => {
+      const engine = createEngine(program.opts<{ db?: string }>().db);
       try {
         await engine.setSetting(key, value);
-        console.log(`Set "${key}" = "${value}".`);
+        console.log(t("settings.set", { key, value }));
       } finally {
         engine.close();
       }

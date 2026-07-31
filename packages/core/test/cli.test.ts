@@ -13,9 +13,8 @@ function runCli(args: string[]): { stdout: string; stderr: string; status: numbe
     ["--import", "tsx", CLI_TS, ...args],
     {
       encoding: "utf8",
-      // tsx is installed as a devDependency of @npm-safe/core, so run from
-      // the package directory so the loader can be resolved.
       cwd: PACKAGE_DIR,
+      env: { ...process.env, LANG: "en_US.UTF-8" },
     },
   );
   return {
@@ -43,10 +42,17 @@ describe("CLI", () => {
     assert.ok(stdout.trim().startsWith("0."));
   });
 
-  it("watch list shows empty list when no packages watched", () => {
+  it("watch list shows empty list in English", () => {
     const db = path.resolve("test-cli-watch.db");
     const { stdout, status } = runCli(["--db", db, "watch", "list"]);
     assert.strictEqual(status, 0);
     assert.ok(stdout.includes("No packages on the watchlist"));
+  });
+
+  it("watch list shows empty list in Chinese", () => {
+    const db = path.resolve("test-cli-watch-zh.db");
+    const { stdout, status } = runCli(["--lang", "zh", "--db", db, "watch", "list"]);
+    assert.strictEqual(status, 0);
+    assert.ok(stdout.includes("监控列表中没有包"));
   });
 });
