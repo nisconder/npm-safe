@@ -2,23 +2,23 @@ import os from "node:os";
 import path from "node:path";
 import fs from "node:fs";
 import { NpmSafeEngine } from "../index.js";
+import { setLocale, type Locale } from "./i18n.js";
 
-/**
- * Default filesystem path for the CLI's SQLite cache database.
- *
- * Uses a per-user directory under the home directory so multiple projects do
- * not fight over the same database file.
- */
 export function getDefaultDbPath(): string {
   const dir = path.join(os.homedir(), ".npm-safe");
   fs.mkdirSync(dir, { recursive: true });
   return path.join(dir, "npm-safe.db");
 }
 
-/**
- * Create a single {@link NpmSafeEngine} instance for the lifetime of a CLI
- * command. Defaults to {@link getDefaultDbPath} when no path is supplied.
- */
-export function createEngine(dbPath?: string): NpmSafeEngine {
-  return new NpmSafeEngine({ dbPath: dbPath ?? getDefaultDbPath() });
+export async function createEngine(dbPath?: string): Promise<NpmSafeEngine> {
+  const engine = new NpmSafeEngine({ dbPath: dbPath ?? getDefaultDbPath() });
+  try {
+    const stored = await engine.getSetting("lang");
+    if (stored === "en" || stored === "zh") {
+      setLocale(stored as Locale);
+    }
+  } catch {
+    // No stored locale — keep the default (en).
+  }
+  return engine;
 }

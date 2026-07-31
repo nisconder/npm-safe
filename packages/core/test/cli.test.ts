@@ -26,6 +26,7 @@ describe("CLI", () => {
     assert.ok(stdout.includes("watch"));
     assert.ok(stdout.includes("refresh"));
     assert.ok(stdout.includes("settings"));
+    assert.ok(stdout.includes("lang"));
   });
 
   it("prints version", () => {
@@ -50,6 +51,23 @@ describe("CLI", () => {
     const db = path.resolve("test-cli-watch.db");
     const { stdout, status } = runCli(["--db", db, "watch", "list"]);
     assert.strictEqual(status, 0);
+    assert.ok(stdout.includes("No packages on the watchlist"));
+  });
+
+  it("lang command switches to Chinese", () => {
+    const db = path.resolve("test-cli-lang.db");
+    const { stdout } = runCli(["--db", db, "lang", "zh"]);
+    assert.ok(stdout.includes("zh"));
+
+    const { stdout: s2 } = runCli(["--db", db, "watch", "list"]);
+    assert.ok(s2.includes("监控列表中没有包"));
+  });
+
+  it("lang command switches back to English", () => {
+    const db = path.resolve("test-cli-lang-en.db");
+    runCli(["--db", db, "lang", "en"]);
+
+    const { stdout } = runCli(["--db", db, "watch", "list"]);
     assert.ok(stdout.includes("No packages on the watchlist"));
   });
 });

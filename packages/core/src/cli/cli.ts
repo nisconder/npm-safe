@@ -1,11 +1,4 @@
 #!/usr/bin/env node
-/**
- * Command-line interface for @npm-safe/core.
- *
- * Provides terminal access to the engine's core operations:
- * check, search, watch, refresh, and settings.
- */
-
 import { program } from "commander";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -16,6 +9,7 @@ import { registerSearchCommand } from "./search.js";
 import { registerWatchCommand } from "./watch.js";
 import { registerRefreshCommand } from "./refresh.js";
 import { registerSettingsCommand } from "./settings.js";
+import { registerLangCommand } from "./lang.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
@@ -40,6 +34,7 @@ registerSearchCommand(program);
 registerWatchCommand(program);
 registerRefreshCommand(program);
 registerSettingsCommand(program);
+registerLangCommand(program);
 
 program.parse();
 

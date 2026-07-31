@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { createEngine } from "./shared.js";
+import { t } from "./i18n.js";
 import type { CheckResult } from "../index.js";
 
 export interface RunCheckOptions {
@@ -19,19 +20,19 @@ function formatFinding(result: CheckResult, idx: number): string {
     `    ${f.message}`,
   ];
   if (f.recommendation) {
-    lines.push(`    Recommendation: ${f.recommendation}`);
+    lines.push(`    ${t("check.finding.recommendation")}: ${f.recommendation}`);
   }
   if (f.codeSnippet) {
-    lines.push(`    Snippet: ${f.codeSnippet}`);
+    lines.push(`    ${t("check.finding.snippet")}: ${f.codeSnippet}`);
   }
   if (f.lineNumber !== undefined) {
-    lines.push(`    Line: ${f.lineNumber}`);
+    lines.push(`    ${t("check.finding.line")}: ${f.lineNumber}`);
   }
   return lines.join("\n");
 }
 
 export async function runCheck(packageName: string, options: RunCheckOptions): Promise<void> {
-  const engine = createEngine(options.db);
+  const engine = await createEngine(options.db);
   try {
     if (options.refresh) {
       await engine.refreshPackage(packageName);
@@ -44,7 +45,7 @@ export async function runCheck(packageName: string, options: RunCheckOptions): P
     }
 
     if (!result.exists) {
-      console.error(`Package "${packageName}" was not found on the registry.`);
+      console.error(t("check.notFound", { name: packageName }));
       process.exitCode = 1;
       return;
     }
@@ -52,29 +53,29 @@ export async function runCheck(packageName: string, options: RunCheckOptions): P
     const report = result.security.staticScan;
     const findingCount = report?.findings.length ?? 0;
     const lines: string[] = [
-      `Package: ${result.packageName}`,
-      `Latest version: ${result.latestVersion}`,
-      `Security level: ${result.security.overallLevel}`,
-      `Score: ${result.security.overallScore}/100`,
-      `Findings: ${findingCount}`,
+      `${t("check.label.package")}: ${result.packageName}`,
+      `${t("check.label.latestVersion")}: ${result.latestVersion}`,
+      `${t("check.label.securityLevel")}: ${result.security.overallLevel}`,
+      `${t("check.label.score")}: ${result.security.overallScore}/100`,
+      `${t("check.label.findings")}: ${findingCount}`,
     ];
 
     if (result.registryInfo?.description) {
-      lines.push(`Description: ${result.registryInfo.description}`);
+      lines.push(`${t("check.label.description")}: ${result.registryInfo.description}`);
     }
     if (result.registryInfo?.homepage) {
-      lines.push(`Homepage: ${result.registryInfo.homepage}`);
+      lines.push(`${t("check.label.homepage")}: ${result.registryInfo.homepage}`);
     }
     if (result.registryInfo?.repository) {
-      lines.push(`Repository: ${result.registryInfo.repository}`);
+      lines.push(`${t("check.label.repository")}: ${result.registryInfo.repository}`);
     }
     if (result.cachedAt) {
-      lines.push(`Cached at: ${result.cachedAt}`);
+      lines.push(`${t("check.label.cachedAt")}: ${result.cachedAt}`);
     }
 
     if (findingCount > 0) {
       lines.push("");
-      lines.push("Findings:");
+      lines.push(`${t("check.label.findings")}:`);
       for (let i = 0; i < findingCount; i++) {
         const formatted = formatFinding(result, i);
         if (formatted) lines.push(formatted);
@@ -98,8 +99,8 @@ export function registerCheckCommand(program: Command): void {
   program
     .command("check <package-name>")
     .description("Check a package's security posture from the npm registry")
-    .option("-j, --json", "Output raw JSON instead of human-readable text")
-    .option("-r, --refresh", "Force a fresh registry fetch instead of using cache")
+    .option("-j, --json", "Output raw JSON")
+    .option("-r, --refresh", "Force a fresh registry fetch")
     .action(async (packageName: string, options: { json?: boolean; refresh?: boolean }) => {
       await runCheck(packageName, {
         db: program.opts<{ db?: string }>().db,
