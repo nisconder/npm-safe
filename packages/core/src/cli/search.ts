@@ -1,22 +1,13 @@
 import { Command } from "commander";
 import { createEngine } from "./shared.js";
-import { t } from "./i18n.js";
 
-interface SearchOptions {
-  readonly json?: boolean;
-  readonly size?: string;
-}
-
-/**
- * Register the `search` command with the given Commander program.
- */
 export function registerSearchCommand(program: Command): void {
   program
     .command("search <query>")
     .description("Search the npm registry for packages matching a query")
     .option("-j, --json", "Output raw JSON instead of human-readable text")
     .option("-s, --size <number>", "Maximum number of results", "20")
-    .action(async (query: string, options: SearchOptions) => {
+    .action(async (query: string, options: { json?: boolean; size?: string }) => {
       const engine = createEngine(program.opts<{ db?: string }>().db);
       try {
         const size = parseInt(options.size ?? "20", 10);
@@ -28,7 +19,7 @@ export function registerSearchCommand(program: Command): void {
         }
 
         if (results.length === 0) {
-          console.log(t("search.noResults"));
+          console.log("No packages found.");
           return;
         }
 

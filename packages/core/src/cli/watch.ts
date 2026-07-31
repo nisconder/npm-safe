@@ -1,14 +1,8 @@
 import { Command } from "commander";
 import { createEngine } from "./shared.js";
-import { t } from "./i18n.js";
 
-/**
- * Register the `watch` command and its sub-commands.
- */
 export function registerWatchCommand(program: Command): void {
-  const watch = program
-    .command("watch")
-    .description("Manage the package watchlist");
+  const watch = program.command("watch").description("Manage the package watchlist");
 
   watch
     .command("list")
@@ -18,10 +12,10 @@ export function registerWatchCommand(program: Command): void {
       try {
         const list = await engine.getWatchlist();
         if (list.length === 0) {
-          console.log(t("watch.list.empty"));
+          console.log("No packages on the watchlist.");
           return;
         }
-        console.log(`${t("watch.list.header")}:`);
+        console.log("Watched packages:");
         for (const name of list) {
           console.log(`  - ${name}`);
         }
@@ -38,7 +32,7 @@ export function registerWatchCommand(program: Command): void {
       try {
         await engine.checkPackage(packageName);
         await engine.addToWatchlist(packageName);
-        console.log(t("watch.add.added", { name: packageName }));
+        console.log(`Added "${packageName}" to the watchlist.`);
       } finally {
         engine.close();
       }
@@ -51,7 +45,7 @@ export function registerWatchCommand(program: Command): void {
       const engine = createEngine(program.opts<{ db?: string }>().db);
       try {
         await engine.removeFromWatchlist(packageName);
-        console.log(t("watch.remove.removed", { name: packageName }));
+        console.log(`Removed "${packageName}" from the watchlist.`);
       } finally {
         engine.close();
       }

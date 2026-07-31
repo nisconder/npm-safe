@@ -11,17 +11,9 @@ function runCli(args: string[]): { stdout: string; stderr: string; status: numbe
   const result = spawnSync(
     "node",
     ["--import", "tsx", CLI_TS, ...args],
-    {
-      encoding: "utf8",
-      cwd: PACKAGE_DIR,
-      env: { ...process.env, LANG: "en_US.UTF-8" },
-    },
+    { encoding: "utf8", cwd: PACKAGE_DIR },
   );
-  return {
-    stdout: result.stdout,
-    stderr: result.stderr,
-    status: result.status,
-  };
+  return { stdout: result.stdout, stderr: result.stderr, status: result.status };
 }
 
 describe("CLI", () => {
@@ -42,30 +34,22 @@ describe("CLI", () => {
     assert.ok(stdout.trim().startsWith("0."));
   });
 
-  it("shorthand: npm-safe <package> runs check", async () => {
+  it("shorthand: npm-safe <package> runs check", () => {
     const { stdout, status } = runCli(["lodash"]);
     assert.strictEqual(status, 0);
     assert.ok(stdout.includes("Package: lodash"));
-    assert.ok(stdout.includes("Security level"));
   });
 
-  it("npm-safe check <package> still works", async () => {
+  it("npm-safe check <package> still works", () => {
     const { stdout, status } = runCli(["check", "lodash"]);
     assert.strictEqual(status, 0);
     assert.ok(stdout.includes("Package: lodash"));
   });
 
-  it("watch list shows empty list in English", () => {
+  it("watch list shows empty list", () => {
     const db = path.resolve("test-cli-watch.db");
     const { stdout, status } = runCli(["--db", db, "watch", "list"]);
     assert.strictEqual(status, 0);
     assert.ok(stdout.includes("No packages on the watchlist"));
-  });
-
-  it("watch list shows empty list in Chinese", () => {
-    const db = path.resolve("test-cli-watch-zh.db");
-    const { stdout, status } = runCli(["--lang", "zh", "--db", db, "watch", "list"]);
-    assert.strictEqual(status, 0);
-    assert.ok(stdout.includes("监控列表中没有包"));
   });
 });

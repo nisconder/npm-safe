@@ -1,14 +1,8 @@
 import { Command } from "commander";
 import { createEngine } from "./shared.js";
-import { t } from "./i18n.js";
 
-/**
- * Register the `settings` command and its sub-commands.
- */
 export function registerSettingsCommand(program: Command): void {
-  const settings = program
-    .command("settings")
-    .description("Read and write engine settings");
+  const settings = program.command("settings").description("Read and write engine settings");
 
   settings
     .command("get <key>")
@@ -18,7 +12,7 @@ export function registerSettingsCommand(program: Command): void {
       try {
         const value = await engine.getSetting(key);
         if (value === null) {
-          console.error(t("settings.notSet", { key }));
+          console.error(`Setting "${key}" is not set.`);
           process.exitCode = 1;
           return;
         }
@@ -35,7 +29,7 @@ export function registerSettingsCommand(program: Command): void {
       const engine = createEngine(program.opts<{ db?: string }>().db);
       try {
         await engine.setSetting(key, value);
-        console.log(t("settings.set", { key, value }));
+        console.log(`Set "${key}" = "${value}".`);
       } finally {
         engine.close();
       }
