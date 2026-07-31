@@ -4,6 +4,8 @@
 **Package:** @npm-safe/core v0.1.0
 **Status:** Phase 1 complete (engine core). 13 source files, zero TypeScript errors, smoke-tested end to end.
 
+[中文版](HANDOVER_zh.md)
+
 ---
 
 ## 1. What Was Built
@@ -116,7 +118,7 @@ The following capabilities were deliberately deferred. They are listed in rough 
 
 ## 3. Known Issues
 
-### 3.1 `ReadonlySet` used as a value in `validator.ts` (line 52)
+### 3.1 `ReadonlySet` used as a value in `validator.ts` (line 52) — VERIFIED: NOT AN ISSUE
 
 The `KNOWN_REGISTRY_DOMAINS` constant is declared as:
 
@@ -124,9 +126,9 @@ The `KNOWN_REGISTRY_DOMAINS` constant is declared as:
 const KNOWN_REGISTRY_DOMAINS: ReadonlySet<string> = new Set<string>([...]);
 ```
 
-`ReadonlySet` is a TypeScript utility type, not a runtime value. The correct form would be `new Set<string>(...)` with the variable typed as `ReadonlySet<string>`. The current code produces a TypeScript error under strict mode.
+`ReadonlySet<string>` is a TypeScript utility type used as a type annotation; `new Set<string>(...)` is a runtime value. This is valid TypeScript and `tsc --noEmit` reports zero errors under strict mode. The initial concern was about `ReadonlySet` being used as a runtime value, but the code correctly uses it only as a type annotation.
 
-**Status:** Cosmetic. Does not block JS execution. The compilation (`tsc --noEmit`) reports this error, but the project's build process works around it (see Gotcha 4.1). The `validator.ts` file was under a must-not-modify constraint during Phase 1, so this was not fixed. Phase 2 should correct the declaration.
+**Status:** No fix needed. Verified with `pnpm -F @npm-safe/core exec tsc --noEmit` (zero errors).
 
 ### 3.2 Top-level `npx tsc` is broken
 
