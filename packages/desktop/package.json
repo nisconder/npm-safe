@@ -1,0 +1,10 @@
+{
+  "name": "@npm-safe/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop dashboard for npm-safe",
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/app.js"
+  }
+}

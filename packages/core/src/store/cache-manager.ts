@@ -21,6 +21,7 @@ import { DatabaseManager } from "./database.js";
 import type { PackageMetadata, PackageRepository } from "../registry/types.js";
 import {
   SecurityLevel,
+  type LlmScanReport,
   type StaticScanReport,
   type ScanFinding,
 } from "../scanner/types.js";
@@ -255,6 +256,78 @@ export class CacheManager {
         report.score,
         findingsJson,
         report.scannedAt,
+      );
+  }
+
+  async getLlmScanReport(pkg: string, version: string): Promise<LlmScanReport | null> {
+    const row = this.db
+      .prepare<[string, string]>(
+        "SELECT findings_json, summary, scanned_at FROM security_reports WHERE package_name = ? AND version = ? AND scan_type = 'llm'",
+      )
+      .get(pkg, version) as Pick<SecurityReportRow, "findings_json" | "summary" | "scanned_at"> | undefined;
+    if (!row) return null;
+    let findings: readonly ScanFinding[] = [];
+    try {
+      const parsed = JSON.parse(row.findings_json) as unknown;
+      if (Array.isArray(parsed)) findings = parsed as readonly ScanFinding[];
+    } catch {
+      findings = [];
+    }
+    let details: {
+      enabled?: boolean;
+      summary?: string;
+      functionalMatch?: boolean;
+      suspiciousScore?: number;
+      reason?: string;
+    } = {};
+    try {
+      const parsed = JSON.parse(row.summary) as unknown;
+      if (parsed && typeof parsed === "object") {
+        details = parsed as typeof details;
+      }
+    } catch {
+      details = { reason: row.summary };
+    }
+    return {
+      enabled: details.enabled ?? false,
+      reason: details.reason,
+      summary: details.summary,
+      functionalMatch: details.functionalMatch,
+      suspiciousScore: details.suspiciousScore,
+      findings,
+      scannedAt: row.scanned_at,
+    };
+  }
+
+  async setLlmScanReport(
+    packageName: string,
+    version: string,
+    report: LlmScanReport,
+  ): Promise<void> {
+    const summary = JSON.stringify({
+      enabled: report.enabled,
+      summary: report.summary,
+      reason: report.reason,
+      functionalMatch: report.functionalMatch,
+      suspiciousScore: report.suspiciousScore,
+    });
+    this.db
+      .prepare<[string, string, number, string, string, string]>(
+        `INSERT INTO security_reports (package_name, version, scan_type, overall_score, findings_json, summary, scanned_at)
+         VALUES (?, ?, 'llm', ?, ?, ?, ?)
+         ON CONFLICT(package_name, version, scan_type) DO UPDATE SET
+           overall_score = excluded.overall_score,
+           findings_json = excluded.findings_json,
+           summary = excluded.summary,
+           scanned_at = excluded.scanned_at`,
+      )
+      .run(
+        packageName,
+        version,
+        report.suspiciousScore ?? 0,
+        JSON.stringify(report.findings ?? []),
+        summary,
+        report.scannedAt ?? new Date().toISOString(),
       );
   }
 

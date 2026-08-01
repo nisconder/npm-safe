@@ -134,7 +134,7 @@ Remove a package from the watchlist. No-op if the name was not watched.
 #### refreshPackage
 
 ```ts
-refreshPackage(name: string): Promise<void>
+refreshPackage(name: string): Promise<boolean>
 ```
 
 Refresh a single package: fetch its latest metadata from the registry, re-run static analysis, and persist the results. Per-package failures are surfaced via the scheduler's `refresh:error` event rather than thrown; the returned promise resolves after emitting the error so a failing package does not abort a batch.
@@ -142,7 +142,7 @@ Refresh a single package: fetch its latest metadata from the registry, re-run st
 #### refreshAll
 
 ```ts
-refreshAll(): Promise<void>
+refreshAll(): Promise<boolean>
 ```
 
 Refresh every package whose cached metadata has passed its TTL. Packages are processed sequentially so the rate limiter is respected.
@@ -210,6 +210,11 @@ interface NpmSafeEngineOptions {
 | `rateLimit` | `number` | `5` | Token bucket refill rate (tokens per second). |
 | `rateLimitBurst` | `number` | `10` | Maximum burst size for the token bucket. |
 | `cacheTtlMs` | `number` | `3600000` | Cache TTL for package metadata in milliseconds. |
+| `llm` | `OpenAICompatibleLlmOptions` | unset | Optional OpenAI-compatible semantic security scan. |
+
+When using the CLI, set `OPENAI_API_KEY`. `OPENAI_BASE_URL` and `OPENAI_MODEL`
+can override the API endpoint and model. LLM analysis is optional and static
+scanning remains available when it is not configured.
 
 ---
 
@@ -226,6 +231,7 @@ interface CheckResult {
     readonly overallLevel: SecurityLevel;
     readonly overallScore: number;
     readonly staticScan: StaticScanReport | null;
+    readonly llmScan?: LlmScanReport;
   };
   readonly registryInfo: {
     readonly description: string;
@@ -931,16 +937,16 @@ constructor(
 ```ts
 start(intervalMs?: number): void
 stop(): void
-refreshPackage(name: string): Promise<void>
-refreshAll(): Promise<void>
+refreshPackage(name: string): Promise<boolean>
+refreshAll(): Promise<boolean>
 ```
 
 | Method | Description |
 |--------|-------------|
 | `start` | Start the periodic refresh loop. Kicks off an immediate background cycle, then repeats at `intervalMs` (default: 1 hour). Idempotent restart. |
 | `stop` | Stop the periodic refresh loop. Safe when not running. In-flight refreshes continue to completion. |
-| `refreshPackage` | Refresh a single package. Catches per-package errors and emits them as events instead of rejecting. Never rejects. |
-| `refreshAll` | Refresh every package with stale cache entries, processed sequentially. |
+| `refreshPackage` | Refresh a single package. Catches per-package errors, emits them as events instead of rejecting, and returns whether the refresh succeeded. |
+| `refreshAll` | Refresh every package with stale cache entries, processed sequentially, and returns whether all refreshes succeeded. |
 
 #### Events
 

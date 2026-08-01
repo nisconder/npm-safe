@@ -232,7 +232,19 @@ npm-store/
 
 第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试和 CLI，剩余工作沿以下方向扩展项目：
 
-- **基于大语言模型的扫描提供者。** 将翻译器层与大语言模型（本地或远程）集成，用于包行为的语义分析和功能不匹配检测。
+- **基于大语言模型的扫描提供者。** 核心现已支持可选的 OpenAI-compatible
+  语义扫描。CLI 可通过 `OPENAI_API_KEY`（以及可选的 `OPENAI_BASE_URL`、
+  `OPENAI_MODEL`）启用，也可在 `NpmSafeEngineOptions` 中传入 `llm`。
+  结果会缓存并与静态评分合并。
 - **仪表板 UI。** 基于浏览器的界面，用于查看扫描结果、管理监控列表和配置引擎设置。
 - **插件系统。** 允许第三方扫描规则和输出格式化器动态注册。
 - **CI/CD 集成。** 提供 GitHub Action 或 CLI 工具，在 CI 流水线中执行 `@npm-safe/core` 检查。
+
+### 桌面端控制台
+
+仓库新增了零依赖的桌面端控制台原型，位于
+[`packages/desktop`](packages/desktop)。直接在浏览器打开
+[`packages/desktop/index.html`](packages/desktop/index.html) 即可预览。
+界面包含安全总览、风险趋势、监控列表搜索、扫描报告、LLM 连接状态、
+主题切换、设置和新建扫描流程。视觉层与 core 解耦，后续可直接套入
+Electron 或接入 engine 的 IPC bridge。

@@ -27,6 +27,8 @@ import type { CacheManager } from '../store/cache-manager.js';
 import type { TokenBucket } from './rate-limiter.js';
 import type { StaticAnalyzer } from '../scanner/static-rules.js';
 import type { StaticScanReport } from '../scanner/types.js';
+import type { LlmScanReport } from '../scanner/types.js';
+import type { LlmScanProvider } from '../llm/provider.js';
 
 /**
  * Payload of the `refresh:start` event.
@@ -44,6 +46,7 @@ export interface RefreshCompletePayload {
   readonly packageName: string;
   /** The static scan report produced during the refresh. */
   readonly report: StaticScanReport;
+  readonly llmScan?: LlmScanReport;
 }
 
 /**
@@ -98,6 +101,8 @@ export class RefreshScheduler extends EventEmitter {
   private readonly limiter: TokenBucket;
   /** Static analyzer re-run on each refreshed package. */
   private readonly analyzer: StaticAnalyzer;
+  /** Optional semantic analyzer for refreshed packages. */
+  private readonly llmProvider?: LlmScanProvider;
   /** Handle to the recurring refresh interval, or `null` when stopped. */
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
@@ -114,12 +119,14 @@ export class RefreshScheduler extends EventEmitter {
     cache: CacheManager,
     limiter: TokenBucket,
     analyzer: StaticAnalyzer,
+    llmProvider?: LlmScanProvider,
   ) {
     super();
     this.client = client;
     this.cache = cache;
     this.limiter = limiter;
     this.analyzer = analyzer;
+    this.llmProvider = llmProvider;
   }
 
   /**
@@ -174,10 +181,10 @@ export class RefreshScheduler extends EventEmitter {
    * abort a batch.
    *
    * @param name - Fully-qualified package name (scope included when scoped).
-   * @returns Resolves once the refresh attempt has completed (successfully
-   *   or not). Never rejects.
+   * @returns `true` when the refresh succeeds, or `false` after emitting
+   *   `refresh:error`. Never rejects for per-package refresh failures.
    */
-  async refreshPackage(name: string): Promise<void> {
+  async refreshPackage(name: string): Promise<boolean> {
     this.emit('refresh:start', { packageName: name } satisfies RefreshStartPayload);
 
     try {
@@ -206,11 +213,15 @@ export class RefreshScheduler extends EventEmitter {
       const report = this.analyzer.analyze(readme, packageJson);
 
       await this.cache.setSecurityReport(report);
+      const llmScan = this.llmProvider
+        ? await this.scanWithLlm(meta, latestVersion)
+        : undefined;
 
       this.emit(
         'refresh:complete',
-        { packageName: name, report } satisfies RefreshCompletePayload,
+        { packageName: name, report, llmScan } satisfies RefreshCompletePayload,
       );
+      return true;
     } catch (error) {
       // Per-package failures are reported, not thrown, so a batch refresh
       // continues with the remaining packages.
@@ -218,7 +229,37 @@ export class RefreshScheduler extends EventEmitter {
         'refresh:error',
         { packageName: name, error } satisfies RefreshErrorPayload,
       );
+      return false;
     }
+  }
+
+  private async scanWithLlm(
+  meta: PackageMetadata,
+  version: string,
+  ): Promise<LlmScanReport> {
+  if (!this.llmProvider) {
+    return { enabled: false, reason: 'LLM provider is not configured.' };
+  }
+  try {
+    const manifest = meta.versions[version];
+    const report = await this.llmProvider.scan({
+      packageName: meta.name,
+      version,
+      description: meta.description ?? '',
+      readme: meta.readme ?? '',
+      packageJson: manifest ? { ...manifest } as Record<string, unknown> : undefined,
+    });
+    await this.cache.setLlmScanReport(meta.name, version, report);
+    return report;
+  } catch (error) {
+    const report: LlmScanReport = {
+      enabled: false,
+      reason: error instanceof Error ? error.message : String(error),
+      scannedAt: new Date().toISOString(),
+    };
+    await this.cache.setLlmScanReport(meta.name, version, report);
+    return report;
+  }
   }
 
   /**
@@ -229,13 +270,17 @@ export class RefreshScheduler extends EventEmitter {
    * package's outcome is surfaced via the `refresh:complete` / `refresh:error`
    * events emitted by {@link RefreshScheduler.refreshPackage}.
    *
-   * @returns Resolves once all stale packages have been attempted.
+   * @returns `true` when every stale package refresh succeeds, otherwise
+   *   `false` after all stale packages have been attempted.
    */
-  async refreshAll(): Promise<void> {
+  async refreshAll(): Promise<boolean> {
     const stale = await this.cache.getStalePackages();
+    let allSucceeded = true;
     for (const name of stale) {
-      await this.refreshPackage(name);
+      const succeeded = await this.refreshPackage(name);
+      allSucceeded = allSucceeded && succeeded;
     }
+    return allSucceeded;
   }
 
   /**

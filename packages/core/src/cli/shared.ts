@@ -23,9 +23,17 @@ export async function createEngine(
   proxyUrl?: string,
 ): Promise<NpmSafeEngine> {
   const db = dbPath ?? getDefaultDbPath();
+  const llmApiKey = process.env.OPENAI_API_KEY;
   const engine = new NpmSafeEngine({
     dbPath: db,
     proxy: proxyUrl ?? (await readPersistedProxy(db)),
+    llm: llmApiKey
+      ? {
+          apiKey: llmApiKey,
+          baseUrl: process.env.OPENAI_BASE_URL,
+          model: process.env.OPENAI_MODEL,
+        }
+      : undefined,
   });
 
   try {
