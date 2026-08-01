@@ -1,10 +1,11 @@
 # @npm-safe/core：第一阶段到第二阶段交接文档
 
-**日期：** 2026-07-29
-**包名：** @npm-safe/core v0.1.0
-**状态：** 第一阶段已完成（引擎核心）。13 个源文件，零 TypeScript 错误，端到端冒烟测试通过。
+**日期：** 2026-08-01
+**包名：** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
+**状态：** 第一阶段已完成（引擎核心）。第二阶段已完成（测试、CLI、代理、桌面 GUI）。13 个源文件，零 TypeScript 错误，端到端冒烟测试通过。
 
 > **更新（2026-07-31）：** 第二阶段第 1-3 项已完成。完整测试套件（193 个测试全部通过）覆盖每个模块；`ReadonlySet` 问题已验证为不存在；CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`）已实现，并支持代理和中英文切换。
+> **更新（2026-08-01）：** 第二阶段第 5 项（Web UI）已完成，采用 Neutralinojs 桌面 GUI 方案，位于 `packages/desktop/`。包含 Material You 风格总览仪表盘（半圆仪表、最近检查、近7日柱状图、总数/风险统计）、检查/搜索/监控/设置标签页、浅色/深色主题、支持拖动/最小化/关闭的自定义标题栏，以及持久化到 `~/.npm-safe/history.json` 的检查历史。
 
 [English](HANDOVER.md)
 
@@ -104,9 +105,9 @@
 
 4. **CLI 命令行工具。** 不存在命令行界面。引擎仅作为库使用。第二阶段应添加 `commander` 或 `yargs` 依赖并创建 `bin/` 入口点。
 
-5. **Web UI。** 不存在前端界面。
+5. **~~Web UI。~~** 已完成 —— 位于 `packages/desktop/` 的 Neutralinojs 桌面 GUI，采用 Material You 设计，包含仪表盘、标签页、主题切换和检查历史。
 
-6. **除 refreshAll 之外的批量 API。** `refreshAll()` 串行刷新过期包。没有多包名的批量 `checkPackage`、批量搜索、批量报告导出。
+6. **除 refreshAll 之外的批量 API。** `refreshAll()` 串行刷新过期包。没有多包名的批量 `checkPackage`、批量搜索、GUI 批量报告导出。
 
 7. **遥测和分析。** 无使用追踪、无指标收集、无超出事件发射器的结构化日志。
 
@@ -258,11 +259,25 @@ TypeScript 编译器通过 `bundler` 模块解析设置自动将 `.js` 说明符
 
 ### 4.9 TokenBucket 的 interval 定时器
 
-`TokenBucket` 使用 100ms 的 `setInterval` 进行补充 tick。定时器被 unref 以防止保持 Node.js 事件循环运行。如果第二阶段添加依赖定时的测试，需要 mock 此定时器，或测试需要考虑异步补充行为。
+`TokenBucket` 使用 100ms 的 `setInterval` 进行补充 tick。定时器被 unref 以防止保持 Node.js 事件循环运行。如果第三阶段添加依赖定时的测试，需要 mock 此定时器，或测试需要考虑异步补充行为。
+
+### 4.10 桌面 GUI 历史记录持久化
+
+桌面 GUI 扩展将每次成功的 `checkPackage` 结果记录到 `~/.npm-safe/history.json`，最多保留 1000 条。仪表盘通过 `getHistory` 扩展事件读取该文件。该文件与 SQLite 缓存/设置数据库相互独立，仅用于 UI 分析展示。
 
 ---
 
-## 5. 第二阶段建议实施顺序
+## 5. 第三阶段建议实施顺序
+
+第二阶段已完成。第三阶段应聚焦大语言模型集成、批量操作和分发部署。
+
+| 优先级 | 工作项 | 理由 |
+|---|---|---|
+| 1 | **实现 LLM 扫描提供者** | 将 `translator/provider.ts` 骨架接入实际 API，把 `LlmScanReport` 集成到 `checkPackage` 和调度器中。 |
+| 2 | **添加 GUI 批量操作** | 多包检查、批量搜索导出、仪表盘报告下载。 |
+| 3 | **添加插件框架** | 设计基于配置或目录的插件发现系统，用于自定义 `ScanRule` 注册。 |
+| 4 | **遥测和分析** | 添加结构化日志（pino 或 winston）、可选使用报告和 Prometheus 指标导出。 |
+| 5 | **CI/CD 和发布** | 设置 GitHub Actions 执行 lint、类型检查和测试。配置 npm 来源证明发布。 |
 
 以下顺序通过自下而上构建信心来最小化风险。
 

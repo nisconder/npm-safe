@@ -75,7 +75,46 @@ const SUPPORTED_METHODS = new Set([
   "refreshAll",
   "getSetting",
   "setSetting",
+  "getHistory",
+  "addHistory",
+  "clearHistory",
 ]);
+
+const HISTORY_DIR = path.join(os.homedir(), ".npm-safe");
+const HISTORY_FILE = path.join(HISTORY_DIR, "history.json");
+
+function readHistory() {
+  try {
+    if (!fs.existsSync(HISTORY_FILE)) return [];
+    return JSON.parse(fs.readFileSync(HISTORY_FILE, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+function writeHistory(history) {
+  try {
+    fs.mkdirSync(HISTORY_DIR, { recursive: true });
+    fs.writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));
+  } catch (err) {
+    log(`writeHistory failed: ${err.message}`, "ERROR");
+  }
+}
+
+function recordHistory(data) {
+  const history = readHistory();
+  const entry = {
+    id: crypto.randomUUID(),
+    packageName: data.packageName,
+    level: data.level,
+    score: data.score,
+    timestamp: data.timestamp ?? new Date().toISOString(),
+  };
+  history.unshift(entry);
+  while (history.length > 1000) history.pop();
+  writeHistory(history);
+  return entry;
+}
 
 ws.onmessage = (event) => {
   const msg = JSON.parse(event.data);
@@ -112,8 +151,18 @@ function log(message, type = "INFO") {
 
 async function invoke(method, data) {
   switch (method) {
-    case "checkPackage":
-      return await engine.checkPackage(data.name);
+    case "checkPackage": {
+      const result = await engine.checkPackage(data.name);
+      if (result.exists && result.security) {
+        recordHistory({
+          packageName: result.packageName,
+          level: result.security.overallLevel,
+          score: result.security.overallScore,
+          timestamp: new Date().toISOString(),
+        });
+      }
+      return result;
+    }
     case "searchPackages":
       return await engine.searchPackages(data.query, data.size ?? 20);
     case "getWatchlist":
@@ -134,6 +183,13 @@ async function invoke(method, data) {
       return await engine.getSetting(data.key);
     case "setSetting":
       await engine.setSetting(data.key, data.value);
+      return null;
+    case "getHistory":
+      return readHistory();
+    case "addHistory":
+      return recordHistory(data);
+    case "clearHistory":
+      writeHistory([]);
       return null;
     default:
       throw new Error(`Unknown method: ${method}`);

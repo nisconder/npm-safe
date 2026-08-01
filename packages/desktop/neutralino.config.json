@@ -19,6 +19,7 @@
     "os.*",
     "window.*",
     "extensions.*",
+    "filesystem.*",
     "debug.log"
   ],
   "extensions": [
@@ -38,8 +39,9 @@
       "fullScreen": false,
       "alwaysOnTop": false,
       "icon": "/resources/icons/appIcon.png",
-      "enableInspector": true,
-      "borderless": false,
+      "enableInspector": false,
+      "borderless": true,
+      "transparent": true,
       "maximize": false,
       "hidden": false,
       "resizable": true,

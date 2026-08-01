@@ -17,7 +17,13 @@
           <div class="nav-subtitle">Supply Chain Security</div>
         </div>
         <div class="nav-items">
-          <button class="nav-item active" data-tab="check">
+          <button class="nav-item active" data-tab="overview">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            </span>
+            <span class="nav-label">总览</span>
+          </button>
+          <button class="nav-item" data-tab="check">
             <span class="nav-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
             </span>
@@ -45,14 +51,89 @@
       </nav>
 
       <div class="app-content">
+        <!-- Custom Title Bar -->
+        <div class="custom-title-bar" id="title-bar">
+          <div class="title-bar-drag" id="title-bar-drag">
+            <span class="title-bar-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            </span>
+            <span class="title-bar-text">npm-safe</span>
+          </div>
+          <div class="title-bar-controls">
+            <button class="title-bar-btn" id="theme-toggle" title="切换浅色/深色模式" aria-label="切换主题">
+              <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path d="M12 2.5a1 1 0 0 1 1 1v2.2a1 1 0 0 1-2 0V3.5a1 1 0 0 1 1-1zm0 15.8a1 1 0 0 1 1 1v2.2a1 1 0 0 1-2 0v-2.2a1 1 0 0 1 1-1zM4.22 4.22a1 1 0 0 1 1.41 0l1.56 1.56a1 1 0 1 1-1.41 1.41L4.22 5.64a1 1 0 0 1 0-1.42zm13.59 13.59a1 1 0 0 1 1.41 0l1.56 1.56a1 1 0 1 1-1.41 1.41l-1.56-1.56a1 1 0 0 1 0-1.41zM2 12a1 1 0 0 1 1-1h2.2a1 1 0 0 1 0 2H3a1 1 0 0 1-1-1zm15.8 0a1 1 0 0 1 1-1h2.2a1 1 0 0 1 0 2h-2.2a1 1 0 0 1-1-1zM4.22 19.78a1 1 0 0 1 0-1.41l1.56-1.56a1 1 0 1 1 1.41 1.41l-1.56 1.56a1 1 0 0 1-1.41 0zm13.59-13.59a1 1 0 0 1 0-1.41l1.56-1.56a1 1 0 1 1 1.41 1.41l-1.56 1.56a1 1 0 0 1-1.41 0z"/></svg>
+              <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+            </button>
+            <button class="title-bar-btn title-bar-window" id="window-minimize" title="最小化" aria-label="最小化">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H4v2h16v-2z"/></svg>
+            </button>
+            <button class="title-bar-btn title-bar-close" id="window-close" title="关闭" aria-label="关闭">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </div>
+        </div>
+
         <!-- Top App Bar -->
         <header class="top-app-bar">
-          <h1 class="top-app-bar-title" id="top-title">检查</h1>
+          <h1 class="top-app-bar-title" id="top-title">总览</h1>
         </header>
 
         <main class="app-main">
+          <!-- Overview / Dashboard -->
+          <section id="tab-overview" class="tab-panel active">
+            <div class="dashboard-grid">
+              <div class="dashboard-card gauge-card">
+                <div class="card-title">整体安全评分</div>
+                <div class="gauge-wrapper">
+                  <svg class="gauge" viewBox="0 0 200 110">
+                    <defs>
+                      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:var(--md-error)" />
+                        <stop offset="50%" style="stop-color:var(--md-yellow)" />
+                        <stop offset="100%" style="stop-color:var(--md-safe)" />
+                      </linearGradient>
+                    </defs>
+                    <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" pathLength="100" />
+                    <path id="gauge-arc" class="gauge-arc" d="M 20 100 A 80 80 0 0 1 180 100" pathLength="100" />
+                    <text id="gauge-value" x="100" y="85" text-anchor="middle" class="gauge-value">0</text>
+                    <text id="gauge-label" x="100" y="102" text-anchor="middle" class="gauge-label">等待数据</text>
+                  </svg>
+                </div>
+                <div class="gauge-summary" id="gauge-summary">暂无检查记录</div>
+              </div>
+
+              <div class="dashboard-card">
+                <div class="card-title">近7日检查</div>
+                <div class="stat-number" id="weekly-count">0</div>
+                <div class="stat-label">次检查</div>
+                <div class="mini-chart" id="weekly-chart"></div>
+              </div>
+
+              <div class="dashboard-card">
+                <div class="card-title">总检查次数</div>
+                <div class="stat-number" id="total-count">0</div>
+                <div class="stat-label">次</div>
+              </div>
+
+              <div class="dashboard-card">
+                <div class="card-title">风险分布</div>
+                <div class="risk-bars" id="risk-bars">
+                  <div class="risk-bar-row"><span class="risk-dot safe"></span><span>安全</span><span class="risk-count" id="risk-safe">0</span></div>
+                  <div class="risk-bar-row"><span class="risk-dot suspicious"></span><span>可疑</span><span class="risk-count" id="risk-suspicious">0</span></div>
+                  <div class="risk-bar-row"><span class="risk-dot dangerous"></span><span>危险</span><span class="risk-count" id="risk-dangerous">0</span></div>
+                  <div class="risk-bar-row"><span class="risk-dot unknown"></span><span>未知</span><span class="risk-count" id="risk-unknown">0</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-card recent-card">
+              <div class="card-title">最近检查</div>
+              <div id="recent-checks" class="recent-list"></div>
+            </div>
+          </section>
+
           <!-- Check -->
-          <section id="tab-check" class="tab-panel active">
+          <section id="tab-check" class="tab-panel">
             <div class="panel-header">
               <div class="text-field outlined">
                 <input id="check-name" type="text" placeholder=" " />

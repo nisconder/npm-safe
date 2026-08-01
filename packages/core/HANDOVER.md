@@ -1,10 +1,11 @@
 # @npm-safe/core: Phase 1 to Phase 2 Handover
 
-**Date:** 2026-07-29
-**Package:** @npm-safe/core v0.1.0
-**Status:** Phase 1 complete (engine core). 13 source files, zero TypeScript errors, smoke-tested end to end.
+**Date:** 2026-08-01
+**Package:** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
+**Status:** Phase 1 complete (engine core). Phase 2 complete (tests, CLI, proxy, desktop GUI). 13 source files, zero TypeScript errors, smoke-tested end to end.
 
 > **Update (2026-07-31):** Phase 2 items 1-3 are done. A full test suite (193 tests, all passing) covers every module; the `ReadonlySet` concern was verified as a non-issue; and a CLI binary (`check`, `search`, `watch`, `refresh`, `settings`, `lang`) is implemented, with proxy support and en/zh localization.
+> **Update (2026-08-01):** Phase 2 item 5 (Web UI) is done as a Neutralinojs desktop GUI under `packages/desktop/`. It includes a Material You dashboard with a half-circle gauge, recent checks, 7-day histogram, total/risk stats, check/search/watch/settings tabs, light/dark themes, a custom title bar with drag/minimize/close, and persistent check history in `~/.npm-safe/history.json`.
 
 [中文版](HANDOVER_zh.md)
 
@@ -104,9 +105,9 @@ The following capabilities were deliberately deferred. They are listed in rough 
 
 4. **CLI binary.** No command-line interface exists. The engine is a library only. Phase 2 should add `commander` or `yargs` as a dependency and create a `bin/` entry point.
 
-5. **Web UI.** No frontend exists.
+5. **~~Web UI.~~** Done — Neutralinojs desktop GUI under `packages/desktop/` with Material You design, dashboard, tabs, themes, and history.
 
-6. **Multi-package batch API beyond refreshAll.** `refreshAll()` refreshes stale packages sequentially. There is no batch `checkPackage` for multiple names, no bulk search, and no batch report export.
+6. **Multi-package batch API beyond refreshAll.** `refreshAll()` refreshes stale packages sequentially. There is no batch `checkPackage` for multiple names, no bulk search, and no batch report export from the GUI.
 
 7. **Telemetry and analytics.** No usage tracking, no metrics collection, no structured logging beyond the event emitter.
 
@@ -258,20 +259,22 @@ The TypeScript compiler resolves `.js` specifiers to `.ts` sources automatically
 
 ### 4.9 TokenBucket interval timer
 
-The `TokenBucket` uses a 100ms `setInterval` for refill ticks. The timer is unref'd so it does not keep the Node.js event loop alive. If Phase 2 adds tests that depend on timing, this timer will need to be mocked or the test will need to account for asynchronous refill behavior.
+The `TokenBucket` uses a 100ms `setInterval` for refill ticks. The timer is unref'd so it does not keep the Node.js event loop alive. If Phase 3 adds tests that depend on timing, this timer will need to be mocked or the test will need to account for asynchronous refill behavior.
+
+### 4.10 Desktop GUI history persistence
+
+The desktop GUI extension records every successful `checkPackage` result in `~/.npm-safe/history.json`. The file is limited to the latest 1000 entries. The dashboard reads this file via the `getHistory` extension event. It is separate from the SQLite cache/settings database and is intended purely for UI analytics.
 
 ---
 
-## 5. Recommended Phase 2 Order
+## 5. Recommended Phase 3 Order
 
-This order minimises risk by building confidence from the bottom up.
+Phase 2 is complete. Phase 3 should focus on LLM integration, batch operations, and distribution.
 
 | Priority | Work item | Rationale |
 |---|---|---|
-| 1 | **Write unit tests for all modules** | Phase 1 has zero tests. Without tests, every subsequent change is blind. Start with pure modules (`validator.ts`, `static-rules.ts`), then move to modules with side effects (`client.ts` with mock fetch, `database.ts` with in-memory SQLite, `cache-manager.ts`, `rate-limiter.ts`, `refresh-scheduler.ts`). Finish with integration tests for `index.ts`. |
-| 2 | **Fix the `ReadonlySet` cosmetic error** | Correct `validator.ts` line 52. One-line fix, removes the only tsc diagnostic. |
-| 3 | **Build a CLI binary** | Add commander or yargs, create `bin/npm-safe.ts`, implement commands for `check`, `search`, `watch`, `refresh`, `settings`. This makes the tool usable from the terminal without writing code. |
-| 4 | **Implement the LLM scan provider** | Wire the `translator/provider.ts` skeletons into actual API calls. Integrate the `LlmScanReport` into `checkPackage` and the scheduler. |
-| 5 | **Add the plugin framework** | Design a configuration-based or directory-based plugin discovery system for custom `ScanRule` registrations. |
-| 6 | **Telemetry and analytics** | Add structured logging (pino or winston), optional usage reporting, and Prometheus metrics export. |
-| 7 | **CI/CD and publishing** | Set up GitHub Actions for lint, type check, and test. Configure npm provenance publishing. |
+| 1 | **Implement the LLM scan provider** | Wire the `translator/provider.ts` skeletons into actual API calls. Integrate the `LlmScanReport` into `checkPackage` and the scheduler. |
+| 2 | **Add batch GUI operations** | Multi-package checks, bulk search export, and report download from the dashboard. |
+| 3 | **Add the plugin framework** | Design a configuration-based or directory-based plugin discovery system for custom `ScanRule` registrations. |
+| 4 | **Telemetry and analytics** | Add structured logging (pino or winston), optional usage reporting, and Prometheus metrics export. |
+| 5 | **CI/CD and publishing** | Set up GitHub Actions for lint, type check, and test. Configure npm provenance publishing. |
