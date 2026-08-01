@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-01
 **Package:** @npm-safe/core v0.1.0
-**Status:** All Phase 1 and Phase 2 plans complete. Engine core (13 source files) plus CLI (9 files) delivered, 193 tests passing, proxy support and en/zh localization shipped, zero TypeScript errors.
+**Status:** All Phase 1 and Phase 2 plans complete. Engine core (13 source files) plus CLI (9 files) delivered, 205 tests passing, proxy support, en/zh localization, and multi-provider LLM scanning (OpenAI / Gemini / Anthropic) shipped, zero TypeScript errors.
 
 [中文版](HANDOVER_zh.md)
 
@@ -16,12 +16,12 @@ This document records every project plan and its completion status.
 |---|---|---|
 | Phase 1: engine core (`npm-safe-phase1`) | **Done** | 13 source files, tsc-clean, smoke-tested |
 | Phase 1: documentation pack (`phase1-documentation`) | **Done** | README, README_zh, ARCHITECTURE, API, SCANNER_RULES, HANDOVER, HANDOVER_zh |
-| Phase 2: test suite | **Done** (2026-07-31) | 193 tests, all passing, 8 test files |
+| Phase 2: test suite | **Done** (2026-07-31) | 205 tests, all passing, 11 test files |
 | Phase 2: CLI binary | **Done** (2026-07-31) | 9 files under `src/cli/`, 6 commands, `npm-safe` bin |
 | Phase 2: proxy support | **Done** (2026-07-31) | `undici.ProxyAgent`, flag > setting > env resolution, `NO_PROXY` bypass, 4 tests |
 | Phase 2: i18n | **Done** (2026-07-31) | en/zh CLI localization, persisted `lang` command, HANDOVER_zh.md |
-| LLM-based scan provider | Pending | Future phase |
-| Dashboard UI | Pending | Future phase (browser frontend) |
+| LLM-based scan provider | **Done** (2026-08-01) | Multi-provider: OpenAI / Gemini / Anthropic, see section 3.5 |
+| Neutralinojs GUI (MD3) | Pending | Future phase (Neutralinojs + Preact + mdui, Material Design 3) |
 | AI skill packaging | Pending | Future phase (OpenCode SKILL.md under `opencode-skill/`) |
 | Plugin system | Pending | Future phase |
 | CI/CD integration | Pending | Future phase |
@@ -113,13 +113,16 @@ An auxiliary Translator layer (`translator/`) provides a pluggable translation i
 
 ---
 
-## 3. Phase 2: Tests, CLI, Proxy, i18n (Completed)
+## 3. Phase 2: Tests, CLI, Proxy, i18n, LLM Scan Provider (Completed)
 
-Phase 2 shipped on 2026-07-31. It added a full test suite, a terminal CLI binary, proxy support for restricted networks, and en/zh localization. All four workstreams are complete and verified.
+Phase 2 shipped on 2026-07-31 and the LLM scan provider followed on
+2026-08-01. The phase added a full test suite, a terminal CLI binary, proxy
+support for restricted networks, en/zh localization, and a multi-provider LLM
+scan core. All five workstreams are complete and verified.
 
 ### 3.1 Test suite
 
-193 tests across 8 files, all passing. Run with:
+205 tests across 11 files, all passing. Run with:
 
 ```
 pnpm -F @npm-safe/core test
@@ -137,6 +140,9 @@ The test runner is the Node.js built-in test runner invoked through `tsx` (`node
 | `test/refresh-scheduler.test.ts` | Scheduler events and watchlist refresh cycles |
 | `test/engine.test.ts` | `NpmSafeEngine` integration surface |
 | `test/cli.test.ts` | CLI commands, language switching, and shorthand invocation |
+| `test/llm-provider.test.ts` | `createLlmProvider` factory and shared provider behaviour |
+| `test/llm-gemini.test.ts` | Gemini provider request and response handling |
+| `test/llm-anthropic.test.ts` | Anthropic provider request and response handling |
 
 ### 3.2 CLI binary
 
@@ -178,6 +184,30 @@ The `NO_PROXY` environment variable bypasses the proxy using exact match, `.suff
 
 The CLI ships an en/zh localization module (`cli/i18n.ts`). The `lang` command reads and writes the persisted language, so the choice survives across invocations. The Chinese handover document is `HANDOVER_zh.md`.
 
+### 3.5 LLM scan provider
+
+The optional semantic scan now supports three backends selected via
+`LlmProviderType`: OpenAI-compatible chat-completions endpoints (`OpenAi`),
+Google Gemini (`Gemini`), and Anthropic Claude (`Anthropic`). A single
+`LlmProviderOptions` interface feeds the `createLlmProvider(options?)`
+factory, which dispatches on `options.provider` and defaults to the
+OpenAI-compatible provider. `OpenAICompatibleLlmOptions` remains as a
+deprecated alias for backward compatibility.
+
+Provider implementations (all under `packages/core/src/llm/`):
+
+- `OpenAICompatibleLlmProvider` (`provider.ts`): `/chat/completions` surface, env fallback `OPENAI_API_KEY`, default model `gpt-4o-mini`
+- `GeminiLlmProvider` (`gemini.ts`): `models/<model>:generateContent`, env fallback `GEMINI_API_KEY`, default model `gemini-2.0-flash`
+- `AnthropicLlmProvider` (`anthropic.ts`): `/v1/messages`, env fallback `ANTHROPIC_API_KEY`, default model `claude-3-5-sonnet-latest`
+
+Shared parsing and validation helpers plus the `LlmProviderError` class live
+in `llm/parse.ts`; `LlmProviderError` is re-exported from `provider.ts` for
+backward compatibility. The CLI (`cli/shared.ts`) auto-detects the provider
+from the environment in priority order `ANTHROPIC_API_KEY`, then
+`GEMINI_API_KEY`, then `OPENAI_API_KEY`, and wires the chosen options into
+`NpmSafeEngineOptions.llm`. Three dedicated test files cover the provider
+factory and the two new backends.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -202,14 +232,13 @@ The following plans are not started. They are listed in rough priority order.
 
 | Priority | Plan | Description |
 |---|---|---|
-| 1 | **LLM-based scan provider** | Integrate the `translator/provider.ts` skeletons with an LLM (local or remote) for semantic analysis of package behavior and functionality-mismatch detection. Wire `LlmScanReport` into `checkPackage` and the refresh scheduler. |
-| 2 | **Dashboard UI** | A browser frontend for viewing scan results, managing the watchlist, and configuring engine settings. The dashboard is a client-side interface over the existing library, not a server or daemon. |
-| 3 | **AI skill packaging** | Package the `npm-safe` CLI as an OpenCode SKILL.md (with YAML frontmatter) under an `opencode-skill/` directory. The skill exposes the tool's commands (check, search, watch, refresh, settings, lang) so an AI agent can automatically invoke them to scan npm packages. Recorded decision: OpenCode SKILL.md format (see `.omo/drafts/npm-safe-phase1.md`). |
-| 4 | **Plugin system** | Dynamic third-party `ScanRule` registration. The `StaticAnalyzer` constructor already accepts an optional `ScanRule[]` array; add discovery, a registration API, and a configuration file. |
-| 5 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
-| 6 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
-| 7 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
-| 8 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
+| 1 | **Neutralinojs GUI (MD3)** | A desktop GUI built with Neutralinojs, Preact, and the mdui component library, styled with Material Design 3 (MD3). Views: overview, watchlist, reports, settings, theme switching, scan workflow. The visual layer is separate from the core package and connects via a Neutralinojs IPC bridge. |
+| 2 | **AI skill packaging** | Package the `npm-safe` CLI as an OpenCode SKILL.md (with YAML frontmatter) under an `opencode-skill/` directory. The skill exposes the tool's commands (check, search, watch, refresh, settings, lang) so an AI agent can automatically invoke them to scan npm packages. Recorded decision: OpenCode SKILL.md format (see `.omo/drafts/npm-safe-phase1.md`). |
+| 3 | **Plugin system** | Dynamic third-party `ScanRule` registration. The `StaticAnalyzer` constructor already accepts an optional `ScanRule[]` array; add discovery, a registration API, and a configuration file. |
+| 4 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
+| 5 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
+| 6 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
+| 7 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
 
 ---
 
@@ -289,7 +318,7 @@ import { SecurityLevel } from './scanner/types.js';
 import type { SecurityLevel } from './scanner/types.js';
 ```
 
-The same rule applies to `ScanType`, `FindingCategory`, and `TranslatorProviderType`. When in doubt, use a value import for any enum.
+The same rule applies to `ScanType`, `FindingCategory`, `TranslatorProviderType`, and `LlmProviderType`. When in doubt, use a value import for any enum.
 
 ### 7.3 Value import for `Database` namespace from better-sqlite3
 

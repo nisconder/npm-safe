@@ -19,11 +19,8 @@ import { RefreshScheduler } from './scheduler/refresh-scheduler.js';
 import { SecurityLevel } from './scanner/types.js';
 import type { StaticScanReport } from './scanner/types.js';
 import type { LlmScanReport } from './scanner/types.js';
-import {
-  OpenAICompatibleLlmProvider,
-  type LlmScanProvider,
-  type OpenAICompatibleLlmOptions,
-} from './llm/provider.js';
+import { createLlmProvider } from './llm/provider.js';
+import type { LlmProviderOptions, LlmScanProvider } from './llm/provider.js';
 
 // ============================================================================
 // Exported types
@@ -70,8 +67,8 @@ export interface NpmSafeEngineOptions {
    */
   readonly proxy?: string;
 
-  /** Optional OpenAI-compatible LLM security scanner configuration. */
-  readonly llm?: OpenAICompatibleLlmOptions;
+  /** Optional LLM security scanner configuration (OpenAI / Gemini / Anthropic). */
+  readonly llm?: LlmProviderOptions;
 }
 
 /**
@@ -172,9 +169,7 @@ export class NpmSafeEngine {
       options?.rateLimitBurst ?? 10,
     );
     this.analyzer = new StaticAnalyzer();
-    if (options?.llm) {
-      this.llmProvider = new OpenAICompatibleLlmProvider(options.llm);
-    }
+    this.llmProvider = options?.llm ? createLlmProvider(options.llm) : undefined;
     this.scheduler = new RefreshScheduler(
       this.client,
       this.cache,
@@ -525,12 +520,9 @@ function scoreToSecurityLevel(score: number): SecurityLevel {
   return SecurityLevel.Unknown;
 }
 
-export {
-  OpenAICompatibleLlmProvider,
-  LlmProviderError,
-} from './llm/provider.js';
+export { createLlmProvider, LlmProviderError } from './llm/provider.js';
 export type {
+  LlmProviderOptions,
   LlmScanInput,
   LlmScanProvider,
-  OpenAICompatibleLlmOptions,
 } from './llm/provider.js';

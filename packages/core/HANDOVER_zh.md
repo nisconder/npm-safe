@@ -2,7 +2,7 @@
 
 **日期：** 2026-08-01
 **包名：** @npm-safe/core v0.1.0
-**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（13 个源文件）和 CLI（9 个文件）已交付，193 个测试全部通过，代理支持和中英文本地化已上线，零 TypeScript 错误。
+**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（13 个源文件）和 CLI（9 个文件）已交付，205 个测试全部通过，代理支持、中英文本地化以及多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）已上线，零 TypeScript 错误。
 
 [English](HANDOVER.md)
 
@@ -16,12 +16,12 @@
 |---|---|---|
 | 第一阶段：引擎核心（`npm-safe-phase1`） | **已完成** | 13 个源文件，tsc 零错误，冒烟测试通过 |
 | 第一阶段：文档包（`phase1-documentation`） | **已完成** | README、README_zh、ARCHITECTURE、API、SCANNER_RULES、HANDOVER、HANDOVER_zh |
-| 第二阶段：测试套件 | **已完成**（2026-07-31） | 193 个测试全部通过，8 个测试文件 |
+| 第二阶段：测试套件 | **已完成**（2026-07-31） | 205 个测试全部通过，11 个测试文件 |
 | 第二阶段：CLI 命令行工具 | **已完成**（2026-07-31） | `src/cli/` 下 9 个文件，6 个命令，`npm-safe` 可执行文件 |
 | 第二阶段：代理支持 | **已完成**（2026-07-31） | `undici.ProxyAgent`，标志 > 设置 > 环境变量解析，`NO_PROXY` 绕过，4 个测试 |
 | 第二阶段：i18n | **已完成**（2026-07-31） | 中英文 CLI 本地化，持久化的 `lang` 命令，HANDOVER_zh.md |
-| 基于 LLM 的扫描提供者 | 待办 | 未来阶段 |
-| 仪表盘 UI | 待办 | 未来阶段（浏览器前端） |
+| 基于 LLM 的扫描提供者 | **已完成**（2026-08-01） | 多提供者：OpenAI / Gemini / Anthropic，见第 3.5 节 |
+| Neutralinojs 图形界面（MD3） | 待办 | 未来阶段（Neutralinojs + Preact + mdui，Material Design 3 设计风格） |
 | AI 技能打包 | 待办 | 未来阶段（`opencode-skill/` 下的 OpenCode SKILL.md） |
 | 插件系统 | 待办 | 未来阶段 |
 | CI/CD 集成 | 待办 | 未来阶段 |
@@ -113,13 +113,13 @@
 
 ---
 
-## 3. 第二阶段：测试、CLI、代理、i18n（已完成）
+## 3. 第二阶段：测试、CLI、代理、i18n、LLM 扫描提供者（已完成）
 
-第二阶段于 2026-07-31 交付。它添加了完整的测试套件、终端 CLI 命令行工具、受限网络的代理支持以及中英文本地化。四条工作流全部完成并通过验证。
+第二阶段于 2026-07-31 交付，LLM 扫描提供者于 2026-08-01 完成。本阶段添加了完整的测试套件、终端 CLI 命令行工具、受限网络的代理支持、中英文本地化，以及多提供者 LLM 扫描核心。五条工作流全部完成并通过验证。
 
 ### 3.1 测试套件
 
-193 个测试分布在 8 个文件中，全部通过。运行方式：
+205 个测试分布在 11 个文件中，全部通过。运行方式：
 
 ```
 pnpm -F @npm-safe/core test
@@ -137,6 +137,9 @@ pnpm -F @npm-safe/core test
 | `test/refresh-scheduler.test.ts` | 调度器事件和监控列表刷新周期 |
 | `test/engine.test.ts` | `NpmSafeEngine` 集成接口 |
 | `test/cli.test.ts` | CLI 命令、语言切换和简写调用 |
+| `test/llm-provider.test.ts` | `createLlmProvider` 工厂函数和共享的提供者行为 |
+| `test/llm-gemini.test.ts` | Gemini 提供者的请求/响应处理 |
+| `test/llm-anthropic.test.ts` | Anthropic 提供者的请求/响应处理 |
 
 ### 3.2 CLI 命令行工具
 
@@ -178,6 +181,28 @@ pnpm -F @npm-safe/core run build
 
 CLI 内置中英文本地化模块（`cli/i18n.ts`）。`lang` 命令读写持久化的语言设置，因此选择在多次调用之间保持。中文交接文档为 `HANDOVER_zh.md`。
 
+### 3.5 LLM 扫描提供者
+
+可选的语义扫描现在通过 `LlmProviderType` 支持三种后端：OpenAI 兼容的
+chat-completions 端点（`OpenAi`）、Google Gemini（`Gemini`）和 Anthropic
+Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
+`createLlmProvider(options?)` 工厂提供配置，工厂根据 `options.provider`
+分派实现，默认使用 OpenAI 兼容提供者。`OpenAICompatibleLlmOptions` 保留为
+已弃用的向后兼容别名。
+
+提供者实现（均在 `packages/core/src/llm/` 下）：
+
+- `OpenAICompatibleLlmProvider`（`provider.ts`）：`/chat/completions` 接口，环境变量回退 `OPENAI_API_KEY`，默认模型 `gpt-4o-mini`
+- `GeminiLlmProvider`（`gemini.ts`）：`models/<model>:generateContent`，环境变量回退 `GEMINI_API_KEY`，默认模型 `gemini-2.0-flash`
+- `AnthropicLlmProvider`（`anthropic.ts`）：`/v1/messages`，环境变量回退 `ANTHROPIC_API_KEY`，默认模型 `claude-3-5-sonnet-latest`
+
+共享的解析/校验辅助函数和 `LlmProviderError` 类位于 `llm/parse.ts`；
+`LlmProviderError` 从 `provider.ts` 重新导出以保持向后兼容。CLI
+（`cli/shared.ts`）按优先级顺序（`ANTHROPIC_API_KEY`，其次
+`GEMINI_API_KEY`，最后 `OPENAI_API_KEY`）从环境变量自动检测提供者，并将
+所选选项接入 `NpmSafeEngineOptions.llm`。三个专门的测试文件覆盖提供者
+工厂和两个新增后端。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -202,14 +227,13 @@ CLI 内置中英文本地化模块（`cli/i18n.ts`）。`lang` 命令读写持�
 
 | 优先级 | 计划 | 描述 |
 |---|---|---|
-| 1 | **基于 LLM 的扫描提供者** | 将 `translator/provider.ts` 中的骨架与 LLM（本地或远程）集成，用于对包行为进行语义分析和功能不匹配检测。将 `LlmScanReport` 接入 `checkPackage` 和刷新调度器。 |
-| 2 | **仪表盘 UI** | 用于查看扫描结果、管理监控列表和配置引擎设置的浏览器前端。仪表盘是建立在现有库之上的客户端界面。 |
-| 3 | **AI 技能打包** | 将 `npm-safe` CLI 打包为 `opencode-skill/` 目录下的 OpenCode SKILL.md（包含 YAML frontmatter）。该技能暴露工具的各个命令（check、search、watch、refresh、settings、lang），使 AI 代理能够自动调用它们来扫描 npm 包。已记录的决策：采用 OpenCode SKILL.md 格式（参见 `.omo/drafts/npm-safe-phase1.md`）。 |
-| 4 | **插件系统** | 动态注册第三方 `ScanRule`。`StaticAnalyzer` 构造函数已经接受可选的 `ScanRule[]` 数组；增加发现机制、注册 API 和配置文件。 |
-| 5 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
-| 6 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
-| 7 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
-| 8 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
+| 1 | **Neutralinojs 图形界面（MD3）** | 基于 Neutralinojs、Preact 和 mdui 组件库构建的桌面图形界面，采用 Material Design 3（MD3）设计风格，封装引擎。视图包括：总览、监控列表、报告、设置、主题切换、扫描流程。视觉层与核心包分离，通过 Neutralinojs IPC 桥接连接。 |
+| 2 | **AI 技能打包** | 将 `npm-safe` CLI 打包为 `opencode-skill/` 目录下的 OpenCode SKILL.md（包含 YAML frontmatter）。该技能暴露工具的各个命令（check、search、watch、refresh、settings、lang），使 AI 代理能够自动调用它们来扫描 npm 包。已记录的决策：采用 OpenCode SKILL.md 格式（参见 `.omo/drafts/npm-safe-phase1.md`）。 |
+| 3 | **插件系统** | 动态注册第三方 `ScanRule`。`StaticAnalyzer` 构造函数已经接受可选的 `ScanRule[]` 数组；增加发现机制、注册 API 和配置文件。 |
+| 4 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
+| 5 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
+| 6 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
+| 7 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
 
 ---
 
@@ -289,7 +313,7 @@ import { SecurityLevel } from './scanner/types.js';
 import type { SecurityLevel } from './scanner/types.js';
 ```
 
-此规则同样适用于 `ScanType`、`FindingCategory` 和 `TranslatorProviderType`。有疑问时，对任何枚举使用值导入。
+此规则同样适用于 `ScanType`、`FindingCategory`、`TranslatorProviderType` 和 `LlmProviderType`。有疑问时，对任何枚举使用值导入。
 
 ### 7.3 better-sqlite3 中 `Database` 命名空间的值导入
 

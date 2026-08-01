@@ -2,12 +2,47 @@ import os from "node:os";
 import path from "node:path";
 import fs from "node:fs";
 import { NpmSafeEngine } from "../index.js";
+import { type LlmProviderOptions, LlmProviderType } from "../llm/provider.js";
 import { setLocale, type Locale } from "./i18n.js";
 
 export function getDefaultDbPath(): string {
   const dir = path.join(os.homedir(), ".npm-safe");
   fs.mkdirSync(dir, { recursive: true });
   return path.join(dir, "npm-safe.db");
+}
+
+/**
+ * Resolve LLM provider configuration from environment variables.
+ *
+ * Priority order: ANTHROPIC_API_KEY, then GEMINI_API_KEY, then
+ * OPENAI_API_KEY. Returns `undefined` when no key is configured.
+ */
+function resolveLlmOptions(): LlmProviderOptions | undefined {
+  if (process.env.ANTHROPIC_API_KEY) {
+    return {
+      provider: LlmProviderType.Anthropic,
+      apiKey: process.env.ANTHROPIC_API_KEY,
+      baseUrl: process.env.ANTHROPIC_BASE_URL,
+      model: process.env.ANTHROPIC_MODEL,
+    };
+  }
+  if (process.env.GEMINI_API_KEY) {
+    return {
+      provider: LlmProviderType.Gemini,
+      apiKey: process.env.GEMINI_API_KEY,
+      baseUrl: process.env.GEMINI_BASE_URL,
+      model: process.env.GEMINI_MODEL,
+    };
+  }
+  if (process.env.OPENAI_API_KEY) {
+    return {
+      provider: LlmProviderType.OpenAi,
+      apiKey: process.env.OPENAI_API_KEY,
+      baseUrl: process.env.OPENAI_BASE_URL,
+      model: process.env.OPENAI_MODEL,
+    };
+  }
+  return undefined;
 }
 
 /**
@@ -23,17 +58,11 @@ export async function createEngine(
   proxyUrl?: string,
 ): Promise<NpmSafeEngine> {
   const db = dbPath ?? getDefaultDbPath();
-  const llmApiKey = process.env.OPENAI_API_KEY;
+  const llmOptions = resolveLlmOptions();
   const engine = new NpmSafeEngine({
     dbPath: db,
     proxy: proxyUrl ?? (await readPersistedProxy(db)),
-    llm: llmApiKey
-      ? {
-          apiKey: llmApiKey,
-          baseUrl: process.env.OPENAI_BASE_URL,
-          model: process.env.OPENAI_MODEL,
-        }
-      : undefined,
+    llm: llmOptions,
   });
 
   try {

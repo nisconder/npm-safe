@@ -4,7 +4,7 @@
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
-**当前状态：第一阶段已完成（引擎核心）+ 第二阶段进行中。** 引擎核心交付，13 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（193 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang` 命令），以及受限网络下的代理支持。
+**当前状态：第一阶段已完成（引擎核心）+ 第二阶段进行中。** 引擎核心交付，13 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（205 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang` 命令），以及受限网络下的代理支持。
 
 ---
 
@@ -95,7 +95,7 @@ npm-safe lang en       # 切换为英文（持久化）
 pnpm -F @npm-safe/core test
 ```
 
-193 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层以及 CLI 本身。
+205 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者以及 CLI 本身。
 
 ---
 
@@ -162,6 +162,9 @@ npm-store/
         refresh-scheduler.test.ts # 调度器事件测试
         engine.test.ts         # NpmSafeEngine 集成测试
         cli.test.ts            # CLI 测试（命令、语言、简写）
+        llm-provider.test.ts   # createLlmProvider 工厂 + 共享行为测试
+        llm-gemini.test.ts     # Gemini LLM 提供者测试
+        llm-anthropic.test.ts  # Anthropic LLM 提供者测试
 ```
 
 ---
@@ -232,19 +235,13 @@ npm-store/
 
 第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试和 CLI，剩余工作沿以下方向扩展项目：
 
-- **基于大语言模型的扫描提供者。** 核心现已支持可选的 OpenAI-compatible
-  语义扫描。CLI 可通过 `OPENAI_API_KEY`（以及可选的 `OPENAI_BASE_URL`、
-  `OPENAI_MODEL`）启用，也可在 `NpmSafeEngineOptions` 中传入 `llm`。
-  结果会缓存并与静态评分合并。
-- **仪表板 UI。** 基于浏览器的界面，用于查看扫描结果、管理监控列表和配置引擎设置。
+- **基于大语言模型的扫描提供者。** 核心现已支持可选的多后端语义扫描：
+  OpenAI 兼容端点、Google Gemini 和 Anthropic Claude。CLI 会根据已设置
+  的 API 密钥自动检测提供者（`ANTHROPIC_API_KEY`、`GEMINI_API_KEY` 或
+  `OPENAI_API_KEY`），也可以在 `NpmSafeEngineOptions` 中传入 `llm` 显式
+  选择。结果会缓存并与静态评分合并。
+- **Neutralinojs 图形界面。** 基于 Neutralinojs、Preact 和 mdui 组件库构建的桌面图形界面，采用 Material Design 3（MD3）设计风格，封装引擎，提供总览、监控列表、报告、设置、主题切换和扫描流程等视图。
 - **插件系统。** 允许第三方扫描规则和输出格式化器动态注册。
 - **CI/CD 集成。** 提供 GitHub Action 或 CLI 工具，在 CI 流水线中执行 `@npm-safe/core` 检查。
 
-### 桌面端控制台
 
-仓库新增了零依赖的桌面端控制台原型，位于
-[`packages/desktop`](packages/desktop)。直接在浏览器打开
-[`packages/desktop/index.html`](packages/desktop/index.html) 即可预览。
-界面包含安全总览、风险趋势、监控列表搜索、扫描报告、LLM 连接状态、
-主题切换、设置和新建扫描流程。视觉层与 core 解耦，后续可直接套入
-Electron 或接入 engine 的 IPC bridge。

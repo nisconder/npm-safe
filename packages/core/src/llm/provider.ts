@@ -1,10 +1,40 @@
-import {
-  FindingCategory,
-  Severity,
-  type LlmScanReport,
-  type ScanFinding,
-} from "../scanner/types.js";
+/**
+ * Multi-provider LLM scan core.
+ *
+ * This module hosts the unified {@link LlmProviderOptions} interface, the
+ * {@link LlmProviderType} enum, and the {@link createLlmProvider} factory
+ * that dispatches to a concrete provider implementation. The OpenAI-
+ * compatible provider ({@link OpenAICompatibleLlmProvider}) lives here as
+ * the reference implementation; Gemini and Anthropic providers live in
+ * sibling modules and are wired up through the factory.
+ *
+ * Shared parsing/validation helpers and the {@link LlmProviderError} class
+ * are imported from {@link ./parse.js} so every provider reuses the same
+ * logic instead of duplicating it.
+ */
 
+import type { LlmScanReport } from "../scanner/types.js";
+
+import {
+  LlmProviderError,
+  SYSTEM_PROMPT,
+  buildReport,
+  parseJsonObject,
+} from "./parse.js";
+import { GeminiLlmProvider } from "./gemini.js";
+import { AnthropicLlmProvider } from "./anthropic.js";
+
+// Re-export LlmProviderError for backward compatibility: index.ts and the
+// existing test suite import it from this module.
+export { LlmProviderError } from "./parse.js";
+// Re-export the concrete provider classes so tests and consumers can import
+// them from this barrel module alongside the factory and shared types.
+export { GeminiLlmProvider } from "./gemini.js";
+export { AnthropicLlmProvider } from "./anthropic.js";
+
+/**
+ * Input passed to an LLM scan provider.
+ */
 export interface LlmScanInput {
   readonly packageName: string;
   readonly version: string;
@@ -13,35 +43,82 @@ export interface LlmScanInput {
   readonly packageJson?: Record<string, unknown>;
 }
 
+/**
+ * Contract every LLM scan provider implements.
+ */
 export interface LlmScanProvider {
   scan(input: LlmScanInput): Promise<LlmScanReport>;
   testConnection(): Promise<boolean>;
 }
 
-export interface OpenAICompatibleLlmOptions {
-  readonly apiKey?: string;
-  readonly baseUrl?: string;
-  readonly model?: string;
-  readonly timeoutMs?: number;
-  readonly maxInputChars?: number;
+/**
+ * Supported LLM provider backends.
+ */
+export enum LlmProviderType {
+  OpenAi = "openai",
+  Gemini = "gemini",
+  Anthropic = "anthropic",
 }
 
-export class LlmProviderError extends Error {
-  constructor(message: string, public readonly statusCode?: number) {
-    super(message);
-    this.name = "LlmProviderError";
-  }
+/**
+ * Unified options accepted by {@link createLlmProvider} and every concrete
+ * provider constructor. Fields not relevant to a given backend are ignored
+ * by that backend.
+ */
+export interface LlmProviderOptions {
+  /** Backend to instantiate. @default {@link LlmProviderType.OpenAi} */
+  readonly provider?: LlmProviderType;
+  /** API key. Falls back to a backend-specific env var when omitted. */
+  readonly apiKey?: string;
+  /** Base URL of the LLM API endpoint. */
+  readonly baseUrl?: string;
+  /** Model identifier to use for completions. */
+  readonly model?: string;
+  /** Request timeout in milliseconds. @default 30000 */
+  readonly timeoutMs?: number;
+  /** Maximum README characters to send to the model. @default 12000 */
+  readonly maxInputChars?: number;
+  /** Anthropic-only maximum response tokens. @default 2000 */
+  readonly maxTokens?: number;
 }
+
+/**
+ * Deprecated alias for {@link LlmProviderOptions}.
+ * @deprecated Use {@link LlmProviderOptions} instead.
+ */
+export type OpenAICompatibleLlmOptions = LlmProviderOptions;
 
 const DEFAULT_BASE_URL = "https://api.openai.com/v1";
 const DEFAULT_MODEL = "gpt-4o-mini";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_INPUT_CHARS = 12_000;
 
-const SYSTEM_PROMPT = `You are an npm package security analyst. Analyze the supplied package metadata and README for semantic risks that static rules may miss. Return only a JSON object with this exact shape:
-{"summary":"string","functionalMatch":true,"suspiciousScore":0,"findings":[{"ruleId":"llm-...","ruleName":"string","severity":"low|medium|high|critical","message":"string","recommendation":"string","category":"informational|known-malicious|suspicious-dependency|sensitive-exposure|code-obfuscation|binary-download|install-script|typosquatting|homograph-attack|registry-mismatch"}]}
-suspiciousScore is 0-100, where higher means more suspicious. Do not invent evidence that is not present in the input. Use an empty findings array when no concern is found.`;
+/**
+ * Construct an {@link LlmScanProvider} for the backend selected via
+ * {@link LlmProviderOptions.provider}. Defaults to the OpenAI-compatible
+ * provider.
+ *
+ * @param options - Provider configuration. When omitted, an OpenAI-
+ * compatible provider is constructed with environment-derived defaults.
+ * @returns A concrete {@link LlmScanProvider} instance.
+ */
+export function createLlmProvider(options?: LlmProviderOptions): LlmScanProvider {
+  switch (options?.provider ?? LlmProviderType.OpenAi) {
+    case LlmProviderType.Gemini:
+      return new GeminiLlmProvider(options);
+    case LlmProviderType.Anthropic:
+      return new AnthropicLlmProvider(options);
+    default:
+      return new OpenAICompatibleLlmProvider(options);
+  }
+}
 
+/**
+ * OpenAI-compatible chat completions LLM scan provider.
+ *
+ * Talks to any endpoint that implements the `/chat/completions` surface
+ * (OpenAI, Azure OpenAI, local LM Studio / Ollama OpenAI shims, etc.).
+ */
 export class OpenAICompatibleLlmProvider implements LlmScanProvider {
   private readonly apiKey?: string;
   private readonly baseUrl: string;
@@ -49,7 +126,11 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
   private readonly timeoutMs: number;
   private readonly maxInputChars: number;
 
-  constructor(options: OpenAICompatibleLlmOptions = {}) {
+  /**
+   * @param options - Provider configuration. Env-var fallbacks:
+   *   `apiKey` defaults to `process.env.OPENAI_API_KEY`.
+   */
+  constructor(options: LlmProviderOptions = {}) {
     this.apiKey = options.apiKey ?? process.env.OPENAI_API_KEY;
     this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
     this.model = options.model ?? DEFAULT_MODEL;
@@ -57,6 +138,7 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
     this.maxInputChars = options.maxInputChars ?? DEFAULT_MAX_INPUT_CHARS;
   }
 
+  /** @inheritdoc */
   async scan(input: LlmScanInput): Promise<LlmScanReport> {
     if (!this.apiKey) {
       return {
@@ -82,16 +164,10 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
       ],
     });
     const parsed = parseJsonObject(payload);
-    return {
-      enabled: true,
-      summary: readOptionalString(parsed.summary),
-      functionalMatch: readOptionalBoolean(parsed.functionalMatch),
-      suspiciousScore: clampScore(readOptionalNumber(parsed.suspiciousScore) ?? 0),
-      findings: parseFindings(parsed.findings),
-      scannedAt: new Date().toISOString(),
-    };
+    return buildReport(parsed, new Date().toISOString());
   }
 
+  /** @inheritdoc */
   async testConnection(): Promise<boolean> {
     if (!this.apiKey) return false;
     await this.request({
@@ -102,6 +178,13 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
     return true;
   }
 
+  /**
+   * Issue a POST to `/chat/completions` with timeout and error normalization.
+   *
+   * @param body - The JSON request body.
+   * @returns The `choices[0].message.content` string from the response.
+   * @throws {LlmProviderError} On network, timeout, HTTP, or shape errors.
+   */
   private async request(body: Record<string, unknown>): Promise<string> {
     if (!this.apiKey) {
       throw new LlmProviderError("LLM provider is not configured.");
@@ -142,6 +225,14 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
   }
 }
 
+/**
+ * Extract the `choices[0].message.content` string from an OpenAI-shaped
+ * chat completion response. Returns `undefined` when the shape does not
+ * match.
+ *
+ * @param value - The parsed JSON response body.
+ * @returns The content string, or `undefined`.
+ */
 function readResponseContent(value: unknown): string | undefined {
   if (!value || typeof value !== "object") return undefined;
   const choices = (value as { choices?: unknown }).choices;
@@ -150,66 +241,4 @@ function readResponseContent(value: unknown): string | undefined {
   if (!message || typeof message !== "object") return undefined;
   const content = (message as { message?: { content?: unknown } }).message?.content;
   return typeof content === "string" ? content : undefined;
-}
-
-function parseJsonObject(content: string): Record<string, unknown> {
-  const normalized = content.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-  try {
-    const parsed = JSON.parse(normalized) as unknown;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      throw new Error("expected a JSON object");
-    }
-    return parsed as Record<string, unknown>;
-  } catch (error) {
-    throw new LlmProviderError(
-      `LLM returned invalid JSON: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
-}
-
-function parseFindings(value: unknown): readonly ScanFinding[] {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((item, index) => {
-    if (!item || typeof item !== "object") return [];
-    const finding = item as Record<string, unknown>;
-    const message = readOptionalString(finding.message);
-    if (!message) return [];
-    return [{
-      ruleId: readOptionalString(finding.ruleId) ?? `llm-finding-${index + 1}`,
-      ruleName: readOptionalString(finding.ruleName) ?? "LLM security finding",
-      severity: readSeverity(finding.severity),
-      message,
-      recommendation: readOptionalString(finding.recommendation),
-      category: readCategory(finding.category),
-    }];
-  });
-}
-
-function readSeverity(value: unknown): Severity {
-  return value === Severity.Critical || value === Severity.High ||
-    value === Severity.Medium || value === Severity.Low
-    ? value
-    : Severity.Medium;
-}
-
-function readCategory(value: unknown): FindingCategory {
-  return Object.values(FindingCategory).includes(value as FindingCategory)
-    ? value as FindingCategory
-    : FindingCategory.Informational;
-}
-
-function readOptionalString(value: unknown): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
-
-function readOptionalBoolean(value: unknown): boolean | undefined {
-  return typeof value === "boolean" ? value : undefined;
-}
-
-function readOptionalNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
-}
-
-function clampScore(value: number): number {
-  return Math.max(0, Math.min(100, Math.round(value)));
 }

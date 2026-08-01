@@ -11,7 +11,7 @@ designed to operate as a library rather than a standalone service.
 
 **Status: Phase 1 complete (engine core) + Phase 2 in progress.** Engine core
 delivered with 13 source files and zero TypeScript errors. Phase 2 has added a
-full test suite (193 tests, all passing), a CLI binary with commands for
+full test suite (205 tests, all passing), a CLI binary with commands for
 `check`, `search`, `watch`, `refresh`, `settings`, and `lang`, plus proxy
 support for restricted networks.
 
@@ -113,9 +113,9 @@ npm-safe lang en       # Switch to English (persisted)
 pnpm -F @npm-safe/core test
 ```
 
-193 tests cover every module: validators, static rules, rate limiter, store
+205 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
-integration surface, and the CLI itself.
+integration surface, the LLM providers, and the CLI itself.
 
 ---
 
@@ -182,6 +182,9 @@ npm-store/
         refresh-scheduler.test.ts # scheduler event tests
         engine.test.ts         # NpmSafeEngine integration tests
         cli.test.ts            # CLI tests (commands, lang, shorthand)
+        llm-provider.test.ts   # createLlmProvider factory + shared behaviour
+        llm-gemini.test.ts     # Gemini LLM provider tests
+        llm-anthropic.test.ts  # Anthropic LLM provider tests
 ```
 
 ---
@@ -258,24 +261,16 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 progress so far:
 tests and CLI are done. Remaining work:
 
-- **LLM-based scan provider.** The core now supports an optional
-  OpenAI-compatible semantic scan. Configure `OPENAI_API_KEY` (plus optional
-  `OPENAI_BASE_URL` and `OPENAI_MODEL`) for CLI checks, or pass `llm` in
-  `NpmSafeEngineOptions`. Results are cached and combined with static scores.
-- **Dashboard UI.** A browser-based interface for viewing scan results,
-  managing the watchlist, and configuring engine settings.
+- **LLM-based scan provider.** The core now supports an optional semantic
+  scan across three backends: OpenAI-compatible endpoints, Google Gemini, and
+  Anthropic Claude. The CLI auto-detects the provider from whichever API key
+  is set (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, or `OPENAI_API_KEY`), or pass
+  `llm` in `NpmSafeEngineOptions` to select one explicitly. Results are cached
+  and combined with static scores.
+- **Neutralinojs GUI.** A desktop GUI built with Neutralinojs, Preact, and the mdui component library, styled with Material Design 3 (MD3). Wraps the engine and provides overview, watchlist, reports, settings, theme switching, and scan workflow views.
 - **Plugin system.** Allow third-party scan rules and output formatters to be
   registered dynamically.
 - **CI/CD integration.** A GitHub Action or CLI tool that runs
   `@npm-safe/core` checks as part of a CI pipeline.
 
-### Desktop console
 
-The repository now includes a zero-dependency desktop dashboard prototype in
-[`packages/desktop`](packages/desktop). Open
-[`packages/desktop/index.html`](packages/desktop/index.html) directly in a
-browser to preview the console. It includes overview metrics, risk trends,
-watchlist search, report navigation, LLM connection state, theme switching,
-settings, and a new-scan flow. The visual layer is intentionally independent
-from the core package so it can be wrapped by Electron or connected to the
-engine IPC bridge without changing the dashboard layout.
