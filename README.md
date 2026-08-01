@@ -258,12 +258,24 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 progress so far:
 tests and CLI are done. Remaining work:
 
-- **LLM-based scan provider.** Integrate the translator layer with an LLM
-  (local or remote) for semantic analysis of package behavior and
-  functionality-mismatch detection.
+- **LLM-based scan provider.** The core now supports an optional
+  OpenAI-compatible semantic scan. Configure `OPENAI_API_KEY` (plus optional
+  `OPENAI_BASE_URL` and `OPENAI_MODEL`) for CLI checks, or pass `llm` in
+  `NpmSafeEngineOptions`. Results are cached and combined with static scores.
 - **Dashboard UI.** A browser-based interface for viewing scan results,
   managing the watchlist, and configuring engine settings.
 - **Plugin system.** Allow third-party scan rules and output formatters to be
   registered dynamically.
 - **CI/CD integration.** A GitHub Action or CLI tool that runs
   `@npm-safe/core` checks as part of a CI pipeline.
+
+### Desktop console
+
+The repository now includes a zero-dependency desktop dashboard prototype in
+[`packages/desktop`](packages/desktop). Open
+[`packages/desktop/index.html`](packages/desktop/index.html) directly in a
+browser to preview the console. It includes overview metrics, risk trends,
+watchlist search, report navigation, LLM connection state, theme switching,
+settings, and a new-scan flow. The visual layer is intentionally independent
+from the core package so it can be wrapped by Electron or connected to the
+engine IPC bridge without changing the dashboard layout.

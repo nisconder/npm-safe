@@ -60,6 +60,41 @@ describe("NpmSafeEngine", () => {
   });
 
   describe("checkPackage", () => {
+    it("runs and caches the optional LLM security scan", async () => {
+      let llmCalls = 0;
+      globalThis.fetch = ((url: unknown) => {
+        if (String(url).includes("chat/completions")) {
+          llmCalls++;
+          return Promise.resolve(new Response(JSON.stringify({
+            choices: [{
+              message: {
+                content: JSON.stringify({
+                  summary: "Looks consistent.",
+                  functionalMatch: true,
+                  suspiciousScore: 5,
+                  findings: [],
+                }),
+              },
+            }],
+          }), { status: 200 }));
+        }
+        return Promise.resolve(new Response(JSON.stringify(mockPackageMeta), { status: 200 }));
+      }) as typeof fetch;
+
+      engine = new NpmSafeEngine({
+        dbPath: ":memory:",
+        llm: { apiKey: "test-key", baseUrl: "https://llm.example/v1" },
+      });
+
+      const first = await engine.checkPackage("safe-lib");
+      const second = await engine.checkPackage("safe-lib");
+
+      assert.strictEqual(first.security.llmScan?.enabled, true);
+      assert.strictEqual(first.security.llmScan?.suspiciousScore, 5);
+      assert.strictEqual(second.security.llmScan?.enabled, true);
+      assert.strictEqual(llmCalls, 1);
+    });
+
     it("returns cached result on second call for same package", async () => {
       let fetchCount = 0;
       globalThis.fetch = ((_url: unknown, _init?: unknown) => {

@@ -11,11 +11,21 @@ export function registerRefreshCommand(program: Command): void {
       const engine = await createEngine(opts.db, opts.proxy);
       try {
         if (packageName) {
-          await engine.refreshPackage(packageName);
-          console.log(t("refresh.single", { name: packageName }));
+          const succeeded = await engine.refreshPackage(packageName);
+          if (succeeded) {
+            console.log(t("refresh.single", { name: packageName }));
+          } else {
+            console.error(t("refresh.failed", { name: packageName }));
+            process.exitCode = 1;
+          }
         } else {
-          await engine.refreshAll();
-          console.log(t("refresh.all"));
+          const succeeded = await engine.refreshAll();
+          if (succeeded) {
+            console.log(t("refresh.all"));
+          } else {
+            console.error(t("refresh.failedAll"));
+            process.exitCode = 1;
+          }
         }
       } finally {
         engine.close();

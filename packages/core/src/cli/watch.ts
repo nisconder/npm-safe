@@ -33,7 +33,12 @@ export function registerWatchCommand(program: Command): void {
       const opts = program.opts<{ db?: string; proxy?: string }>();
       const engine = await createEngine(opts.db, opts.proxy);
       try {
-        await engine.checkPackage(packageName);
+        const result = await engine.checkPackage(packageName);
+        if (!result.exists) {
+          console.error(t("watch.add.notFound", { name: packageName }));
+          process.exitCode = 1;
+          return;
+        }
         await engine.addToWatchlist(packageName);
         console.log(t("watch.add.added", { name: packageName }));
       } finally {
