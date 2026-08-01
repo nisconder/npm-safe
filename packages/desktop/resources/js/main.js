@@ -82,13 +82,23 @@ function setBusy(btn, busy) {
 // Tab navigation
 // ---------------------------------------------------------------------------
 
+const TAB_TITLES = {
+  check: "检查",
+  search: "搜索",
+  watch: "监控",
+  settings: "设置",
+};
+
 function initTabs() {
-  document.querySelectorAll(".tab-btn").forEach((btn) => {
+  document.querySelectorAll(".nav-item").forEach((btn) => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
       document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
       btn.classList.add("active");
-      document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
+      const tab = btn.dataset.tab;
+      document.getElementById(`tab-${tab}`).classList.add("active");
+      const title = document.getElementById("top-title");
+      if (title && TAB_TITLES[tab]) title.textContent = TAB_TITLES[tab];
     });
   });
 }
@@ -156,7 +166,7 @@ async function handleCheck() {
     setStatus(`检查完成: ${name}`, "success");
   } catch (err) {
     document.getElementById("check-result").innerHTML =
-      `<div class="card"><div class="card-title" style="color:var(--red)">检查失败</div>${escapeHtml(err.message)}</div>`;
+      `<div class="card"><div class="card-title" style="color:var(--md-error)">检查失败</div>${escapeHtml(err.message)}</div>`;
     setStatus(err.message, "error");
   } finally {
     setBusy(btn, false);
@@ -188,7 +198,7 @@ function renderSearchResults(results) {
 
   area.querySelectorAll(".search-item").forEach((item) => {
     item.addEventListener("click", () => {
-      document.querySelector(".tab-btn[data-tab='check']").click();
+      document.querySelector(".nav-item[data-tab='check']").click();
       document.getElementById("check-name").value = item.dataset.name;
       handleCheck();
     });
@@ -209,7 +219,7 @@ async function handleSearch() {
     setStatus(`搜索完成: ${results.length} 条结果`, "success");
   } catch (err) {
     document.getElementById("search-result").innerHTML =
-      `<div class="card"><div class="card-title" style="color:var(--red)">搜索失败</div>${escapeHtml(err.message)}</div>`;
+      `<div class="card"><div class="card-title" style="color:var(--md-error)">搜索失败</div>${escapeHtml(err.message)}</div>`;
     setStatus(err.message, "error");
   } finally {
     setBusy(btn, false);
@@ -244,7 +254,7 @@ async function renderWatchlist() {
     area.querySelectorAll("[data-refresh]").forEach((btn) => {
       btn.addEventListener("click", () => {
         document.getElementById("check-name").value = btn.dataset.refresh;
-        document.querySelector(".tab-btn[data-tab='check']").click();
+        document.querySelector(".nav-item[data-tab='check']").click();
         handleCheck();
       });
     });
@@ -261,7 +271,7 @@ async function renderWatchlist() {
       });
     });
   } catch (err) {
-    area.innerHTML = `<div class="card"><div class="card-title" style="color:var(--red)">加载失败</div>${escapeHtml(err.message)}</div>`;
+    area.innerHTML = `<div class="card"><div class="card-title" style="color:var(--md-error)">加载失败</div>${escapeHtml(err.message)}</div>`;
   }
 }
 
@@ -273,6 +283,7 @@ async function handleWatchAdd() {
   try {
     await callEngine("addToWatchlist", { name });
     document.getElementById("watch-name").value = "";
+    document.querySelector("label[for='watch-name']").style.color = "";
     await renderWatchlist();
     setStatus(`已添加 ${name} 到监控列表`, "success");
   } catch (err) {

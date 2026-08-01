@@ -3,60 +3,114 @@
   <head>
     <meta charset="UTF-8" />
     <title>npm-safe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="app-header">
-      <h1 class="app-title">npm-safe</h1>
-      <nav class="tabs">
-        <button class="tab-btn active" data-tab="check">检查</button>
-        <button class="tab-btn" data-tab="search">搜索</button>
-        <button class="tab-btn" data-tab="watch">监控</button>
-        <button class="tab-btn" data-tab="settings">设置</button>
+    <div class="app-layout">
+      <!-- Navigation Drawer (permanent for desktop) -->
+      <nav class="nav-drawer">
+        <div class="nav-header">
+          <div class="nav-logo">npm-safe</div>
+          <div class="nav-subtitle">Supply Chain Security</div>
+        </div>
+        <div class="nav-items">
+          <button class="nav-item active" data-tab="check">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+            </span>
+            <span class="nav-label">检查</span>
+          </button>
+          <button class="nav-item" data-tab="search">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            </span>
+            <span class="nav-label">搜索</span>
+          </button>
+          <button class="nav-item" data-tab="watch">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            </span>
+            <span class="nav-label">监控</span>
+          </button>
+          <button class="nav-item" data-tab="settings">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.488.488 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.08.73 1.69.98l.38 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+            </span>
+            <span class="nav-label">设置</span>
+          </button>
+        </div>
       </nav>
-    </header>
 
-    <main class="app-main">
-      <!-- Check -->
-      <section id="tab-check" class="tab-panel active">
-        <div class="panel-header">
-          <input id="check-name" type="text" placeholder="输入包名，例如 lodash" />
-          <button id="check-btn" class="btn btn-primary">检查</button>
-        </div>
-        <div id="check-result" class="result-area"></div>
-      </section>
+      <div class="app-content">
+        <!-- Top App Bar -->
+        <header class="top-app-bar">
+          <h1 class="top-app-bar-title" id="top-title">检查</h1>
+        </header>
 
-      <!-- Search -->
-      <section id="tab-search" class="tab-panel">
-        <div class="panel-header">
-          <input id="search-query" type="text" placeholder="搜索关键词" />
-          <input id="search-size" type="number" value="20" min="1" max="250" class="size-input" title="结果数量" />
-          <button id="search-btn" class="btn btn-primary">搜索</button>
-        </div>
-        <div id="search-result" class="result-area"></div>
-      </section>
+        <main class="app-main">
+          <!-- Check -->
+          <section id="tab-check" class="tab-panel active">
+            <div class="panel-header">
+              <div class="text-field outlined">
+                <input id="check-name" type="text" placeholder=" " />
+                <label for="check-name">输入包名，例如 lodash</label>
+              </div>
+              <button id="check-btn" class="btn filled" data-original-text="检查">检查</button>
+            </div>
+            <div id="check-result" class="result-area"></div>
+          </section>
 
-      <!-- Watchlist -->
-      <section id="tab-watch" class="tab-panel">
-        <div class="panel-header">
-          <input id="watch-name" type="text" placeholder="要监控的包名" />
-          <button id="watch-add-btn" class="btn btn-primary">添加</button>
-          <button id="watch-refresh-btn" class="btn">刷新全部</button>
-        </div>
-        <div id="watch-result" class="result-area"></div>
-      </section>
+          <!-- Search -->
+          <section id="tab-search" class="tab-panel">
+            <div class="panel-header">
+              <div class="text-field outlined">
+                <input id="search-query" type="text" placeholder=" " />
+                <label for="search-query">搜索关键词</label>
+              </div>
+              <div class="text-field outlined size-field">
+                <input id="search-size" type="number" value="20" min="1" max="250" placeholder=" " />
+                <label for="search-size">数量</label>
+              </div>
+              <button id="search-btn" class="btn filled" data-original-text="搜索">搜索</button>
+            </div>
+            <div id="search-result" class="result-area"></div>
+          </section>
 
-      <!-- Settings -->
-      <section id="tab-settings" class="tab-panel">
-        <div class="panel-header">
-          <input id="setting-key" type="text" placeholder="键（例如 proxy / lang）" />
-          <input id="setting-value" type="text" placeholder="值（例如 http://127.0.0.1:7897）" />
-          <button id="setting-get-btn" class="btn">读取</button>
-          <button id="setting-set-btn" class="btn btn-primary">写入</button>
-        </div>
-        <div id="setting-result" class="result-area"></div>
-      </section>
-    </main>
+          <!-- Watchlist -->
+          <section id="tab-watch" class="tab-panel">
+            <div class="panel-header">
+              <div class="text-field outlined">
+                <input id="watch-name" type="text" placeholder=" " />
+                <label for="watch-name">要监控的包名</label>
+              </div>
+              <button id="watch-add-btn" class="btn filled" data-original-text="添加">添加</button>
+              <button id="watch-refresh-btn" class="btn outlined" data-original-text="刷新全部">刷新全部</button>
+            </div>
+            <div id="watch-result" class="result-area"></div>
+          </section>
+
+          <!-- Settings -->
+          <section id="tab-settings" class="tab-panel">
+            <div class="panel-header">
+              <div class="text-field outlined">
+                <input id="setting-key" type="text" placeholder=" " />
+                <label for="setting-key">键（例如 proxy / lang）</label>
+              </div>
+              <div class="text-field outlined">
+                <input id="setting-value" type="text" placeholder=" " />
+                <label for="setting-value">值（例如 http://127.0.0.1:7897）</label>
+              </div>
+              <button id="setting-get-btn" class="btn outlined" data-original-text="读取">读取</button>
+              <button id="setting-set-btn" class="btn filled" data-original-text="写入">写入</button>
+            </div>
+            <div id="setting-result" class="result-area"></div>
+          </section>
+        </main>
+      </div>
+    </div>
 
     <div id="status-bar" class="status-bar">就绪</div>
 
