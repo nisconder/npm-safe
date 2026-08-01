@@ -18,6 +18,9 @@ import { StaticAnalyzer } from './scanner/static-rules.js';
 import { RefreshScheduler } from './scheduler/refresh-scheduler.js';
 import { SecurityLevel } from './scanner/types.js';
 import type { StaticScanReport } from './scanner/types.js';
+import type { LlmScanReport } from './scanner/types.js';
+import { createLlmProvider } from './llm/provider.js';
+import type { LlmProviderOptions, LlmScanProvider } from './llm/provider.js';
 
 // ============================================================================
 // Exported types
@@ -63,6 +66,9 @@ export interface NpmSafeEngineOptions {
    * variables (`HTTPS_PROXY`, `HTTP_PROXY`, `ALL_PROXY`) are consulted.
    */
   readonly proxy?: string;
+
+  /** Optional LLM security scanner configuration (OpenAI / Gemini / Anthropic). */
+  readonly llm?: LlmProviderOptions;
 }
 
 /**
@@ -86,6 +92,8 @@ export interface CheckResult {
     readonly overallScore: number;
     /** Full static scan report, or `null` if one is not available. */
     readonly staticScan: StaticScanReport | null;
+    /** Optional semantic analysis from the configured LLM provider. */
+    readonly llmScan?: LlmScanReport;
   };
 
   /**
@@ -140,6 +148,8 @@ export class NpmSafeEngine {
   private readonly analyzer: StaticAnalyzer;
   /** Auto-refresh scheduler. */
   private readonly scheduler: RefreshScheduler;
+  /** Optional semantic security scanner. */
+  private readonly llmProvider?: LlmScanProvider;
 
   /**
    * @param options - Optional configuration overrides; see
@@ -159,11 +169,13 @@ export class NpmSafeEngine {
       options?.rateLimitBurst ?? 10,
     );
     this.analyzer = new StaticAnalyzer();
+    this.llmProvider = options?.llm ? createLlmProvider(options.llm) : undefined;
     this.scheduler = new RefreshScheduler(
       this.client,
       this.cache,
       this.limiter,
       this.analyzer,
+      this.llmProvider,
     );
   }
 
@@ -192,12 +204,17 @@ export class NpmSafeEngine {
         name,
         latestVersion,
       );
+      const llmScan = this.llmProvider
+        ? (await this.cache.getLlmScanReport(name, latestVersion)) ??
+          await this.scanWithLlm(cached, latestVersion)
+        : undefined;
 
       return this.buildCheckResult(
         name,
         true,
         latestVersion,
         staticScan ?? null,
+        llmScan,
         {
           description: cached.description ?? '',
           homepage: cached.homepage ?? '',
@@ -228,12 +245,16 @@ export class NpmSafeEngine {
       const report = this.analyzer.analyze(readme, packageJson);
 
       await this.cache.setSecurityReport(report);
+      const llmScan = this.llmProvider
+        ? await this.scanWithLlm(meta, latestVersion)
+        : undefined;
 
       return this.buildCheckResult(
         name,
         true,
         latestVersion,
         report,
+        llmScan,
         {
           description: meta.description ?? '',
           homepage: meta.homepage ?? '',
@@ -250,6 +271,7 @@ export class NpmSafeEngine {
           false,
           '',
           null,
+          undefined,
           null,
           null,
         );
@@ -310,12 +332,12 @@ export class NpmSafeEngine {
    * re-run static analysis, and persist the results.
    *
    * Per-package failures are surfaced via the scheduler's `refresh:error`
-   * event rather than thrown — the returned promise resolves after emitting
-   * the error so a failing package does not abort a batch.
+   * event and represented by a `false` result rather than thrown, so a
+   * failing package does not abort a batch.
    *
    * @param name - Fully-qualified package name to refresh.
    */
-  async refreshPackage(name: string): Promise<void> {
+  async refreshPackage(name: string): Promise<boolean> {
     return this.scheduler.refreshPackage(name);
   }
 
@@ -324,7 +346,7 @@ export class NpmSafeEngine {
    *
    * Packages are processed sequentially so the rate limiter is respected.
    */
-  async refreshAll(): Promise<void> {
+  async refreshAll(): Promise<boolean> {
     return this.scheduler.refreshAll();
   }
 
@@ -409,6 +431,7 @@ export class NpmSafeEngine {
     exists: boolean,
     latestVersion: string,
     staticScan: StaticScanReport | null,
+    llmScan: LlmScanReport | undefined,
     registryInfo: {
       description: string;
       homepage: string;
@@ -416,18 +439,49 @@ export class NpmSafeEngine {
     } | null,
     cachedAt: string | null,
   ): CheckResult {
+    const overallScore = combineScores(staticScan, llmScan);
     return {
       packageName,
       exists,
       latestVersion,
       security: {
-        overallLevel: staticScan?.overallLevel ?? SecurityLevel.Unknown,
-        overallScore: staticScan?.score ?? 0,
+        overallLevel: scoreToSecurityLevel(overallScore),
+        overallScore,
         staticScan,
+        llmScan,
       },
       registryInfo,
       cachedAt,
     };
+  }
+
+  private async scanWithLlm(
+    meta: PackageMetadata,
+    version: string,
+  ): Promise<LlmScanReport> {
+    if (!this.llmProvider) {
+      return { enabled: false, reason: 'LLM provider is not configured.' };
+    }
+    const manifest = meta.versions[version];
+    try {
+      const report = await this.llmProvider.scan({
+        packageName: meta.name,
+        version,
+        description: meta.description ?? '',
+        readme: meta.readme ?? '',
+        packageJson: manifest ? { ...manifest } as Record<string, unknown> : undefined,
+      });
+      await this.cache.setLlmScanReport(meta.name, version, report);
+      return report;
+    } catch (error) {
+      const report: LlmScanReport = {
+        enabled: false,
+        reason: error instanceof Error ? error.message : String(error),
+        scannedAt: new Date().toISOString(),
+      };
+      await this.cache.setLlmScanReport(meta.name, version, report);
+      return report;
+    }
   }
 }
 
@@ -449,3 +503,26 @@ function repositoryToString(repo: PackageRepository | undefined): string {
   if (typeof repo === 'string') return repo;
   return `${repo.type}:${repo.url}`;
 }
+
+function combineScores(
+  staticScan: StaticScanReport | null,
+  llmScan: LlmScanReport | undefined,
+): number {
+  if (!staticScan) return 0;
+  if (!llmScan?.enabled) return staticScan.score;
+  return Math.round(staticScan.score * 0.6 + (100 - (llmScan.suspiciousScore ?? 0)) * 0.4);
+}
+
+function scoreToSecurityLevel(score: number): SecurityLevel {
+  if (score >= 80) return SecurityLevel.Safe;
+  if (score >= 50) return SecurityLevel.Suspicious;
+  if (score >= 20) return SecurityLevel.Dangerous;
+  return SecurityLevel.Unknown;
+}
+
+export { createLlmProvider, LlmProviderError } from './llm/provider.js';
+export type {
+  LlmProviderOptions,
+  LlmScanInput,
+  LlmScanProvider,
+} from './llm/provider.js';

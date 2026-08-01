@@ -24,10 +24,13 @@ const messages: Record<Locale, Record<string, string>> = {
     "watch.list.empty": "No packages on the watchlist.",
     "watch.list.header": "Watched packages",
     "watch.add.added": 'Added "{name}" to the watchlist.',
+    "watch.add.notFound": 'Package "{name}" was not found on the registry.',
     "watch.remove.removed": 'Removed "{name}" from the watchlist.',
 
     "refresh.single": 'Refreshed "{name}".',
     "refresh.all": "Refreshed all watched packages.",
+    "refresh.failed": 'Failed to refresh "{name}".',
+    "refresh.failedAll": "One or more packages failed to refresh.",
 
     "settings.notSet": 'Setting "{key}" is not set.',
     "settings.set": 'Set "{key}" = "{value}".',
@@ -60,10 +63,13 @@ const messages: Record<Locale, Record<string, string>> = {
     "watch.list.empty": "监控列表中没有包。",
     "watch.list.header": "已监控的包",
     "watch.add.added": '已将 "{name}" 加入监控列表。',
+    "watch.add.notFound": '在注册表中未找到包 "{name}"。',
     "watch.remove.removed": '已将 "{name}" 从监控列表中移除。',
 
     "refresh.single": '已刷新 "{name}"。',
     "refresh.all": "已刷新所有监控的包。",
+    "refresh.failed": '刷新 "{name}" 失败。',
+    "refresh.failedAll": "一个或多个包刷新失败。",
 
     "settings.notSet": '设置 "{key}" 未配置。',
     "settings.set": '已将 "{key}" 设为 "{value}"。',

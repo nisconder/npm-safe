@@ -9,13 +9,14 @@ caches results in a local SQLite database, and exposes a typed API for
 querying, watching, and refreshing security assessments. The engine is
 designed to operate as a library rather than a standalone service.
 
-**Status: Phase 1 complete (engine core) + Phase 2 complete (CLI + desktop GUI).**
- Engine core delivered with 13 source files and zero TypeScript errors. Phase 2
- added a full test suite (193 tests, all passing), a CLI binary with commands
- for `check`, `search`, `watch`, `refresh`, `settings`, and `lang`, proxy
- support for restricted networks, and a Neutralinojs desktop GUI with a
- Material You dashboard, check/search/watch/settings tabs, light/dark themes,
- and persistent check history.
+**Status: Phase 1 complete (engine core) + Phase 2 complete.** Engine core
+delivered with 13 source files and zero TypeScript errors. Phase 2 added a
+full test suite (205 tests, all passing), a CLI binary with commands for
+`check`, `search`, `watch`, `refresh`, `settings`, and `lang`, proxy support
+for restricted networks, an optional multi-provider LLM scan provider
+(OpenAI / Gemini / Anthropic), and a Neutralinojs desktop GUI with a
+Material You dashboard, check/search/watch/settings tabs, light/dark themes,
+and persistent check history.
 
 ---
 
@@ -157,9 +158,9 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-193 tests cover every module: validators, static rules, rate limiter, store
+205 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
-integration surface, and the CLI itself.
+integration surface, the LLM providers, and the CLI itself.
 
 ---
 
@@ -229,6 +230,9 @@ npm-store/
         refresh-scheduler.test.ts # scheduler event tests
         engine.test.ts         # NpmSafeEngine integration tests
         cli.test.ts            # CLI tests (commands, lang, shorthand)
+        llm-provider.test.ts   # createLlmProvider factory + shared behaviour
+        llm-gemini.test.ts     # Gemini LLM provider tests
+        llm-anthropic.test.ts  # Anthropic LLM provider tests
     desktop/                         # @npm-safe/desktop (Neutralinojs GUI)
       package.json                   # desktop workspace package
       neutralino.config.json         # Neutralino app config (borderless, extensions)
@@ -314,12 +318,11 @@ Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test
 suite, CLI, proxy support, and a Neutralinojs desktop GUI. Remaining work for
 Phase 3:
 
-- **LLM-based scan provider.** Integrate the translator layer with an LLM
-  (local or remote) for semantic analysis of package behavior and
-  functionality-mismatch detection.
 - **Batch operations.** Multi-package `checkPackage`, bulk search export, and
   report download from the dashboard.
 - **Plugin system.** Allow third-party scan rules and output formatters to be
   registered dynamically.
 - **CI/CD integration.** A GitHub Action or CLI tool that runs
   `@npm-safe/core` checks as part of a CI pipeline.
+
+

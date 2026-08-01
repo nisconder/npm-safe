@@ -23,6 +23,14 @@ This document describes every public export from `@npm-safe/core` in Phase 1. Si
   - [LlmScanReport](#llmscanreport)
   - [ScanReport](#scanreport)
   - [SecuritySummary](#securitysummary)
+- [LLM Providers](#llm-providers)
+  - [LlmProviderType](#llmprovidertype)
+  - [LlmProviderOptions](#llmprovideroptions)
+  - [createLlmProvider](#createllmprovider)
+  - [OpenAICompatibleLlmProvider](#openaicompatiblellmprovider)
+  - [GeminiLlmProvider](#geminillmprovider)
+  - [AnthropicLlmProvider](#anthropicllmprovider)
+  - [Environment Variables](#environment-variables)
 - [Registry Types](#registry-types)
   - [NpmRegistryError](#npmregistryerror)
   - [PackageMetadata](#packagemetadata)
@@ -68,6 +76,16 @@ Interfaces and type aliases may use `import type`:
 ```ts
 import type { CheckResult, ScanFinding } from '@npm-safe/core';
 ```
+
+The same distinction applies to the LLM provider exports. `LlmProviderType` is
+a runtime value, so it must use a value import:
+
+```ts
+import { LlmProviderType } from '@npm-safe/core';
+```
+
+`LlmProviderOptions` and the other LLM interfaces are types and may use
+`import type`.
 
 ---
 
@@ -134,7 +152,7 @@ Remove a package from the watchlist. No-op if the name was not watched.
 #### refreshPackage
 
 ```ts
-refreshPackage(name: string): Promise<void>
+refreshPackage(name: string): Promise<boolean>
 ```
 
 Refresh a single package: fetch its latest metadata from the registry, re-run static analysis, and persist the results. Per-package failures are surfaced via the scheduler's `refresh:error` event rather than thrown; the returned promise resolves after emitting the error so a failing package does not abort a batch.
@@ -142,7 +160,7 @@ Refresh a single package: fetch its latest metadata from the registry, re-run st
 #### refreshAll
 
 ```ts
-refreshAll(): Promise<void>
+refreshAll(): Promise<boolean>
 ```
 
 Refresh every package whose cached metadata has passed its TTL. Packages are processed sequentially so the rate limiter is respected.
@@ -200,6 +218,7 @@ interface NpmSafeEngineOptions {
   readonly rateLimit?: number;
   readonly rateLimitBurst?: number;
   readonly cacheTtlMs?: number;
+  readonly llm?: LlmProviderOptions;
 }
 ```
 
@@ -210,6 +229,14 @@ interface NpmSafeEngineOptions {
 | `rateLimit` | `number` | `5` | Token bucket refill rate (tokens per second). |
 | `rateLimitBurst` | `number` | `10` | Maximum burst size for the token bucket. |
 | `cacheTtlMs` | `number` | `3600000` | Cache TTL for package metadata in milliseconds. |
+| `llm` | `LlmProviderOptions` | unset | Optional semantic security scan backed by any supported LLM provider. |
+
+When using the CLI, LLM scanning is configured through environment variables:
+set `OPENAI_API_KEY` (plus optional `OPENAI_BASE_URL` and `OPENAI_MODEL`) for
+OpenAI-compatible endpoints, `GEMINI_API_KEY` for Google Gemini, or
+`ANTHROPIC_API_KEY` for Anthropic Claude. The CLI auto-detects the provider
+from whichever key is present. LLM analysis is optional and static scanning
+remains available when no provider is configured.
 
 ---
 
@@ -226,6 +253,7 @@ interface CheckResult {
     readonly overallLevel: SecurityLevel;
     readonly overallScore: number;
     readonly staticScan: StaticScanReport | null;
+    readonly llmScan?: LlmScanReport;
   };
   readonly registryInfo: {
     readonly description: string;
@@ -476,6 +504,133 @@ interface SecuritySummary {
 | `lowCount` | Number of findings with low severity. |
 | `lastScanned` | ISO 8601 timestamp of the last scan, or null if never scanned. |
 | `cachedAt` | ISO 8601 timestamp of when this summary was cached. |
+
+---
+
+## LLM Providers
+
+The optional semantic scan can run against one of three LLM backends:
+OpenAI-compatible chat-completions endpoints, Google Gemini, and Anthropic
+Claude. All three are configured through the unified `LlmProviderOptions`
+interface and constructed with the `createLlmProvider` factory. The provider
+implementations live under `src/llm/` and share the same parsing and
+validation helpers (`src/llm/parse.ts`).
+
+### LlmProviderType
+
+String enum identifying a supported LLM backend. This is a runtime value, so
+it must use a value import (see [Import Notes](#import-notes)).
+
+```ts
+enum LlmProviderType {
+  OpenAi = 'openai',
+  Gemini = 'gemini',
+  Anthropic = 'anthropic',
+}
+```
+
+### LlmProviderOptions
+
+Unified options accepted by `createLlmProvider` and every concrete provider
+constructor. Fields that do not apply to a given backend are ignored by that
+backend.
+
+```ts
+interface LlmProviderOptions {
+  readonly provider?: LlmProviderType;
+  readonly apiKey?: string;
+  readonly baseUrl?: string;
+  readonly model?: string;
+  readonly timeoutMs?: number;
+  readonly maxInputChars?: number;
+  readonly maxTokens?: number;
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `provider` | `LlmProviderType` | `LlmProviderType.OpenAi` | Backend to instantiate. |
+| `apiKey` | `string` | unset | API key. Falls back to a provider-specific environment variable when omitted. |
+| `baseUrl` | `string` | provider default | Base URL of the LLM API endpoint. |
+| `model` | `string` | provider default | Model identifier to use for completions. |
+| `timeoutMs` | `number` | `30000` | Request timeout in milliseconds. |
+| `maxInputChars` | `number` | `12000` | Maximum README characters to send to the model. |
+| `maxTokens` | `number` | `2000` | Anthropic-only maximum response tokens. Ignored by the other providers. |
+
+The deprecated alias `OpenAICompatibleLlmOptions` is kept for backward
+compatibility and is identical to `LlmProviderOptions`.
+
+### createLlmProvider
+
+```ts
+function createLlmProvider(options?: LlmProviderOptions): LlmScanProvider
+```
+
+Constructs an `LlmScanProvider` for the backend selected via
+`options.provider`, defaulting to the OpenAI-compatible provider when
+`provider` is omitted. The returned provider implements `scan(input)` and
+`testConnection()`.
+
+### OpenAICompatibleLlmProvider
+
+Talks to any endpoint that implements the `/chat/completions` surface
+(OpenAI, Azure OpenAI, local LM Studio / Ollama OpenAI shims). Source:
+`src/llm/provider.ts`.
+
+Env-var fallback: `apiKey` defaults to `process.env.OPENAI_API_KEY`. Default
+base URL `https://api.openai.com/v1`, default model `gpt-4o-mini`.
+
+### GeminiLlmProvider
+
+Talks to the Google Generative Language API
+(`generativelanguage.googleapis.com/v1beta`) using the
+`models/<model>:generateContent` surface. Source: `src/llm/gemini.ts`.
+
+Env-var fallback: `apiKey` defaults to `process.env.GEMINI_API_KEY`. Default
+base URL `https://generativelanguage.googleapis.com/v1beta`, default model
+`gemini-2.0-flash`.
+
+### AnthropicLlmProvider
+
+Talks to the Anthropic Messages API (`/v1/messages`). Source:
+`src/llm/anthropic.ts`.
+
+Env-var fallback: `apiKey` defaults to `process.env.ANTHROPIC_API_KEY`.
+Default base URL `https://api.anthropic.com`, default model
+`claude-3-5-sonnet-latest`. `maxTokens` is required on every request and
+defaults to `2000`.
+
+### LlmProviderError
+
+Error thrown when an LLM provider request or response is invalid. Defined in
+`src/llm/parse.ts` and re-exported from the provider module for backward
+compatibility.
+
+```ts
+class LlmProviderError extends Error {
+  readonly statusCode?: number;
+
+  constructor(message: string, statusCode?: number);
+}
+```
+
+### Environment Variables
+
+The CLI resolves LLM configuration from environment variables in priority
+order: `ANTHROPIC_API_KEY`, then `GEMINI_API_KEY`, then `OPENAI_API_KEY`.
+When none is present, LLM scanning is disabled.
+
+| Variable | Provider | Purpose |
+|---|---|---|
+| `OPENAI_API_KEY` | OpenAI-compatible | API key. |
+| `OPENAI_BASE_URL` | OpenAI-compatible | API endpoint override. |
+| `OPENAI_MODEL` | OpenAI-compatible | Model override (default `gpt-4o-mini`). |
+| `GEMINI_API_KEY` | Google Gemini | API key. |
+| `GEMINI_BASE_URL` | Google Gemini | API endpoint override. |
+| `GEMINI_MODEL` | Google Gemini | Model override (default `gemini-2.0-flash`). |
+| `ANTHROPIC_API_KEY` | Anthropic Claude | API key. |
+| `ANTHROPIC_BASE_URL` | Anthropic Claude | API endpoint override. |
+| `ANTHROPIC_MODEL` | Anthropic Claude | Model override (default `claude-3-5-sonnet-latest`). |
 
 ---
 
@@ -931,16 +1086,16 @@ constructor(
 ```ts
 start(intervalMs?: number): void
 stop(): void
-refreshPackage(name: string): Promise<void>
-refreshAll(): Promise<void>
+refreshPackage(name: string): Promise<boolean>
+refreshAll(): Promise<boolean>
 ```
 
 | Method | Description |
 |--------|-------------|
 | `start` | Start the periodic refresh loop. Kicks off an immediate background cycle, then repeats at `intervalMs` (default: 1 hour). Idempotent restart. |
 | `stop` | Stop the periodic refresh loop. Safe when not running. In-flight refreshes continue to completion. |
-| `refreshPackage` | Refresh a single package. Catches per-package errors and emits them as events instead of rejecting. Never rejects. |
-| `refreshAll` | Refresh every package with stale cache entries, processed sequentially. |
+| `refreshPackage` | Refresh a single package. Catches per-package errors, emits them as events instead of rejecting, and returns whether the refresh succeeded. |
+| `refreshAll` | Refresh every package with stale cache entries, processed sequentially, and returns whether all refreshes succeeded. |
 
 #### Events
 

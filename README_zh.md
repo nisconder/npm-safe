@@ -4,7 +4,7 @@
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
-**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成（CLI + 桌面 GUI）。** 引擎核心交付，13 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（193 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang` 命令）、受限网络下的代理支持，以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/设置标签页、浅色/深色主题和持久化检查历史。
+**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，13 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（205 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic），以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/设置标签页、浅色/深色主题和持久化检查历史。
 
 ---
 
@@ -128,7 +128,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-193 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层以及 CLI 本身。
+205 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者以及 CLI 本身。
 
 ---
 
@@ -198,6 +198,9 @@ npm-store/
         refresh-scheduler.test.ts # 调度器事件测试
         engine.test.ts         # NpmSafeEngine 集成测试
         cli.test.ts            # CLI 测试（命令、语言、简写）
+        llm-provider.test.ts   # createLlmProvider 工厂 + 共享行为测试
+        llm-gemini.test.ts     # Gemini LLM 提供者测试
+        llm-anthropic.test.ts  # Anthropic LLM 提供者测试
     desktop/                         # @npm-safe/desktop（Neutralinojs 桌面 GUI）
       package.json                   # 桌面工作区包
       neutralino.config.json         # Neutralino 应用配置（无边框、扩展）
@@ -276,7 +279,8 @@ npm-store/
 
 第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持和 Neutralinojs 桌面 GUI。第三阶段剩余工作：
 
-- **基于大语言模型的扫描提供者。** 将翻译器层与大语言模型（本地或远程）集成，用于包行为的语义分析和功能不匹配检测。
 - **批量操作。** 多包 `checkPackage`、批量搜索导出、仪表盘报告下载。
 - **插件系统。** 允许第三方扫描规则和输出格式化器动态注册。
 - **CI/CD 集成。** 提供 GitHub Action 或 CLI 工具，在 CI 流水线中执行 `@npm-safe/core` 检查。
+
+
