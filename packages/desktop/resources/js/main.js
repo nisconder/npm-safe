@@ -567,7 +567,20 @@ Neutralino.events.on("windowClose", () => {
   document.getElementById("watch-name").addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleWatchAdd();
   });
-  document.getElementById("watch-refresh-btn").addEventListener("click", renderWatchlist);
+  document.getElementById("watch-refresh-btn").addEventListener("click", async () => {
+    const btn = document.getElementById("watch-refresh-btn");
+    setBusy(btn, true);
+    setStatus("正在刷新全部 ...");
+    try {
+      await callEngine("refreshAll", {});
+      await renderWatchlist();
+      setStatus("刷新完成", "success");
+    } catch (err) {
+      setStatus(err.message, "error");
+    } finally {
+      setBusy(btn, false);
+    }
+  });
   document.getElementById("setting-get-btn").addEventListener("click", handleSettingGet);
   document.getElementById("setting-set-btn").addEventListener("click", handleSettingSet);
 
