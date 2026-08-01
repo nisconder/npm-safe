@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>npm-safe</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1 class="app-title">npm-safe</h1>
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="check">检查</button>
+        <button class="tab-btn" data-tab="search">搜索</button>
+        <button class="tab-btn" data-tab="watch">监控</button>
+        <button class="tab-btn" data-tab="settings">设置</button>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <!-- Check -->
+      <section id="tab-check" class="tab-panel active">
+        <div class="panel-header">
+          <input id="check-name" type="text" placeholder="输入包名，例如 lodash" />
+          <button id="check-btn" class="btn btn-primary">检查</button>
+        </div>
+        <div id="check-result" class="result-area"></div>
+      </section>
+
+      <!-- Search -->
+      <section id="tab-search" class="tab-panel">
+        <div class="panel-header">
+          <input id="search-query" type="text" placeholder="搜索关键词" />
+          <input id="search-size" type="number" value="20" min="1" max="250" class="size-input" title="结果数量" />
+          <button id="search-btn" class="btn btn-primary">搜索</button>
+        </div>
+        <div id="search-result" class="result-area"></div>
+      </section>
+
+      <!-- Watchlist -->
+      <section id="tab-watch" class="tab-panel">
+        <div class="panel-header">
+          <input id="watch-name" type="text" placeholder="要监控的包名" />
+          <button id="watch-add-btn" class="btn btn-primary">添加</button>
+          <button id="watch-refresh-btn" class="btn">刷新全部</button>
+        </div>
+        <div id="watch-result" class="result-area"></div>
+      </section>
+
+      <!-- Settings -->
+      <section id="tab-settings" class="tab-panel">
+        <div class="panel-header">
+          <input id="setting-key" type="text" placeholder="键（例如 proxy / lang）" />
+          <input id="setting-value" type="text" placeholder="值（例如 http://127.0.0.1:7897）" />
+          <button id="setting-get-btn" class="btn">读取</button>
+          <button id="setting-set-btn" class="btn btn-primary">写入</button>
+        </div>
+        <div id="setting-result" class="result-area"></div>
+      </section>
+    </main>
+
+    <div id="status-bar" class="status-bar">就绪</div>
+
+    <script src="js/neutralino.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
