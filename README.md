@@ -9,11 +9,14 @@ caches results in a local SQLite database, and exposes a typed API for
 querying, watching, and refreshing security assessments. The engine is
 designed to operate as a library rather than a standalone service.
 
-**Status: Phase 1 complete (engine core) + Phase 2 in progress.** Engine core
-delivered with 13 source files and zero TypeScript errors. Phase 2 has added a
+**Status: Phase 1 complete (engine core) + Phase 2 complete.** Engine core
+delivered with 13 source files and zero TypeScript errors. Phase 2 added a
 full test suite (205 tests, all passing), a CLI binary with commands for
-`check`, `search`, `watch`, `refresh`, `settings`, and `lang`, plus proxy
-support for restricted networks.
+`check`, `search`, `watch`, `refresh`, `settings`, and `lang`, proxy support
+for restricted networks, an optional multi-provider LLM scan provider
+(OpenAI / Gemini / Anthropic), and a Neutralinojs desktop GUI with a
+Material You dashboard, check/search/watch/settings tabs, light/dark themes,
+and persistent check history.
 
 ---
 
@@ -65,6 +68,39 @@ npm-safe settings set <key> <val>  # Write a setting
 npm-safe lang [en|zh]              # Get or set the output language
 ```
 
+### Desktop Application
+
+A Neutralinojs desktop GUI is provided under `packages/desktop/`:
+
+```bash
+# Build the core engine and run the desktop app in development mode
+cd packages/desktop
+pnpm run
+
+# Build a release bundle
+pnpm run build:release
+```
+
+Features:
+
+- **Overview dashboard** — average security score with a half-circle gauge,
+  recent checks list, 7-day check histogram, total count, and risk breakdown.
+- **Check** — enter a package name and view the security level, score, and
+  findings.
+- **Search** — keyword search against the npm registry; click a result to jump
+  straight to Check.
+- **Watch** — manage the watchlist and refresh individual packages or all
+  watched packages.
+- **Settings** — read/write arbitrary engine settings (e.g. `proxy`, `lang`).
+- **Light/Dark themes** — toggle between two independent Material You palettes
+  from the custom title bar.
+- **Custom window chrome** — borderless window with draggable title bar, minimize
+  and close buttons (Windows loopback exemption is required for WebView2; see
+  setup notes below).
+
+Check history is persisted in `~/.npm-safe/history.json` by the Node.js
+extension process.
+
 Global options:
 
 - `-d, --db <path>` — custom SQLite database path (default `~/.npm-safe/npm-safe.db`)
@@ -107,6 +143,15 @@ npm-safe lang zh       # Switch to Chinese (persisted)
 npm-safe lang en       # Switch to English (persisted)
 ```
 
+### Desktop first-run (Windows)
+
+If the WebView2 window fails to load with a loopback error, run once in an
+administrator PowerShell:
+
+```powershell
+CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"
+```
+
 ### Tests
 
 ```bash
@@ -128,6 +173,9 @@ Detailed documentation for the engine is available under `packages/core/`:
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- Comprehensive reference for all 10 built-in static analysis rules. Each rule documents its category, severity, detection logic (regex patterns), and mitigation recommendations.
 - **[HANDOVER.md](packages/core/HANDOVER.md)** -- Phase 1 to Phase 2 handover document. Covers what was built, what was deferred, known issues, development gotchas, and a recommended Phase 2 implementation order. Also available in Chinese: **[HANDOVER_zh.md](packages/core/HANDOVER_zh.md)**.
 - **[README_zh.md](README_zh.md)** -- Chinese translation of the project README.
+
+The desktop GUI lives under `packages/desktop/` and is documented in the
+[Desktop README](packages/desktop/README.md).
 
 ---
 
@@ -185,6 +233,14 @@ npm-store/
         llm-provider.test.ts   # createLlmProvider factory + shared behaviour
         llm-gemini.test.ts     # Gemini LLM provider tests
         llm-anthropic.test.ts  # Anthropic LLM provider tests
+    desktop/                         # @npm-safe/desktop (Neutralinojs GUI)
+      package.json                   # desktop workspace package
+      neutralino.config.json         # Neutralino app config (borderless, extensions)
+      resources/
+        index.html                   # Material You UI with Navigation Drawer
+        styles.css                   # M3 light/dark themes, custom title bar
+        js/main.js                   # frontend IPC bridge + dashboard logic
+        extensions/core/main.mjs     # Node.js extension hosting NpmSafeEngine
 ```
 
 ---
@@ -256,18 +312,14 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 
 ---
 
-## What Is Next (Phase 2)
+## What Is Next (Phase 3)
 
-Phase 1 delivered a working, tsc-clean engine core. Phase 2 progress so far:
-tests and CLI are done. Remaining work:
+Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test
+suite, CLI, proxy support, and a Neutralinojs desktop GUI. Remaining work for
+Phase 3:
 
-- **LLM-based scan provider.** The core now supports an optional semantic
-  scan across three backends: OpenAI-compatible endpoints, Google Gemini, and
-  Anthropic Claude. The CLI auto-detects the provider from whichever API key
-  is set (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, or `OPENAI_API_KEY`), or pass
-  `llm` in `NpmSafeEngineOptions` to select one explicitly. Results are cached
-  and combined with static scores.
-- **Neutralinojs GUI.** A desktop GUI built with Neutralinojs, Preact, and the mdui component library, styled with Material Design 3 (MD3). Wraps the engine and provides overview, watchlist, reports, settings, theme switching, and scan workflow views.
+- **Batch operations.** Multi-package `checkPackage`, bulk search export, and
+  report download from the dashboard.
 - **Plugin system.** Allow third-party scan rules and output formatters to be
   registered dynamically.
 - **CI/CD integration.** A GitHub Action or CLI tool that runs

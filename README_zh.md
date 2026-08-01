@@ -4,7 +4,7 @@
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
-**当前状态：第一阶段已完成（引擎核心）+ 第二阶段进行中。** 引擎核心交付，13 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（205 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang` 命令），以及受限网络下的代理支持。
+**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，13 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（205 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic），以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/设置标签页、浅色/深色主题和持久化检查历史。
 
 ---
 
@@ -50,6 +50,31 @@ npm-safe settings set <key> <val>  # 写入设置
 npm-safe lang [en|zh]              # 查看或设置输出语言
 ```
 
+### 桌面应用
+
+`packages/desktop/` 下提供基于 Neutralinojs 的桌面 GUI：
+
+```bash
+# 构建核心引擎并在开发模式下运行桌面应用
+cd packages/desktop
+pnpm run
+
+# 构建发布包
+pnpm run build:release
+```
+
+功能特性：
+
+- **总览仪表盘** — 平均安全评分半圆仪表、最近检查列表、近7日检查柱状图、总检查次数、风险分布。
+- **检查** — 输入包名，查看安全等级、分数和发现项。
+- **搜索** — 关键词搜索 npm 注册表；点击结果直接跳转检查。
+- **监控** — 管理监控列表，刷新单个或全部监控包。
+- **设置** — 读取/写入任意引擎设置（如 `proxy`、`lang`）。
+- **浅色/深色主题** — 自定义标题栏一键切换两套独立的 Material You 配色。
+- **自定义窗口边框** — 无边框窗口，支持标题栏拖动、最小化和关闭按钮（Windows 需设置 WebView2 回环豁免，见下文）。
+
+检查历史由 Node.js 扩展进程持久化到 `~/.npm-safe/history.json`。
+
 全局选项：
 
 - `-d, --db <path>` — 自定义 SQLite 数据库路径（默认 `~/.npm-safe/npm-safe.db`）
@@ -89,6 +114,14 @@ npm-safe lang zh       # 切换为中文（持久化）
 npm-safe lang en       # 切换为英文（持久化）
 ```
 
+### 桌面应用首次运行（Windows）
+
+如果 WebView2 窗口因回环隔离错误无法加载，请以管理员身份运行一次 PowerShell：
+
+```powershell
+CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"
+```
+
 ### 测试
 
 ```bash
@@ -106,8 +139,11 @@ pnpm -F @npm-safe/core test
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- 分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
 - **[API.md](packages/core/API.md)** -- 完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 12 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- 所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
-- **[HANDOVER.md](packages/core/HANDOVER.md)** -- 第一阶段到第二阶段的交接文档。涵盖已构建的内容、被推迟的内容、已知问题、开发注意事项，以及建议的第二阶段实施顺序。另有中文版 **[HANDOVER_zh.md](packages/core/HANDOVER_zh.md)**。
-- **[README_zh.md](README_zh.md)** -- 本项目的简体中文版 README。
+  - **[HANDOVER.md](packages/core/HANDOVER.md)** -- 第一阶段到第二阶段的交接文档。涵盖已构建的内容、被推迟的内容、已知问题、开发注意事项，以及建议的第二阶段实施顺序。另有中文版 **[HANDOVER_zh.md](packages/core/HANDOVER_zh.md)**。
+  - **[README_zh.md](README_zh.md)** -- 本项目的简体中文版 README。
+
+桌面 GUI 位于 `packages/desktop/`，详见
+[桌面端 README](packages/desktop/README.md)。
 
 ---
 
@@ -165,6 +201,14 @@ npm-store/
         llm-provider.test.ts   # createLlmProvider 工厂 + 共享行为测试
         llm-gemini.test.ts     # Gemini LLM 提供者测试
         llm-anthropic.test.ts  # Anthropic LLM 提供者测试
+    desktop/                         # @npm-safe/desktop（Neutralinojs 桌面 GUI）
+      package.json                   # 桌面工作区包
+      neutralino.config.json         # Neutralino 应用配置（无边框、扩展）
+      resources/
+        index.html                   # Material You 界面（Navigation Drawer）
+        styles.css                   # M3 浅色/深色主题、自定义标题栏
+        js/main.js                   # 前端 IPC 桥接 + 仪表盘逻辑
+        extensions/core/main.mjs     # 承载 NpmSafeEngine 的 Node.js 扩展
 ```
 
 ---
@@ -231,16 +275,11 @@ npm-store/
 
 ---
 
-## 下一步计划（第二阶段）
+## 下一步计划（第三阶段）
 
-第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试和 CLI，剩余工作沿以下方向扩展项目：
+第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持和 Neutralinojs 桌面 GUI。第三阶段剩余工作：
 
-- **基于大语言模型的扫描提供者。** 核心现已支持可选的多后端语义扫描：
-  OpenAI 兼容端点、Google Gemini 和 Anthropic Claude。CLI 会根据已设置
-  的 API 密钥自动检测提供者（`ANTHROPIC_API_KEY`、`GEMINI_API_KEY` 或
-  `OPENAI_API_KEY`），也可以在 `NpmSafeEngineOptions` 中传入 `llm` 显式
-  选择。结果会缓存并与静态评分合并。
-- **Neutralinojs 图形界面。** 基于 Neutralinojs、Preact 和 mdui 组件库构建的桌面图形界面，采用 Material Design 3（MD3）设计风格，封装引擎，提供总览、监控列表、报告、设置、主题切换和扫描流程等视图。
+- **批量操作。** 多包 `checkPackage`、批量搜索导出、仪表盘报告下载。
 - **插件系统。** 允许第三方扫描规则和输出格式化器动态注册。
 - **CI/CD 集成。** 提供 GitHub Action 或 CLI 工具，在 CI 流水线中执行 `@npm-safe/core` 检查。
 

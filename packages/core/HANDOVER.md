@@ -1,8 +1,8 @@
 # @npm-safe/core: Project Handover
 
 **Date:** 2026-08-01
-**Package:** @npm-safe/core v0.1.0
-**Status:** All Phase 1 and Phase 2 plans complete. Engine core (13 source files) plus CLI (9 files) delivered, 205 tests passing, proxy support, en/zh localization, and multi-provider LLM scanning (OpenAI / Gemini / Anthropic) shipped, zero TypeScript errors.
+**Package:** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
+**Status:** All Phase 1 and Phase 2 plans complete. Engine core (13 source files) plus CLI (9 files) delivered, 205 tests passing, proxy support, en/zh localization, and multi-provider LLM scanning (OpenAI / Gemini / Anthropic) shipped, zero TypeScript errors. A Neutralinojs desktop GUI (vanilla JS, Material You) ships under `packages/desktop/`.
 
 [中文版](HANDOVER_zh.md)
 
@@ -21,6 +21,7 @@ This document records every project plan and its completion status.
 | Phase 2: proxy support | **Done** (2026-07-31) | `undici.ProxyAgent`, flag > setting > env resolution, `NO_PROXY` bypass, 4 tests |
 | Phase 2: i18n | **Done** (2026-07-31) | en/zh CLI localization, persisted `lang` command, HANDOVER_zh.md |
 | LLM-based scan provider | **Done** (2026-08-01) | Multi-provider: OpenAI / Gemini / Anthropic, see section 3.5 |
+| Desktop GUI (`packages/desktop`) | **Done** (2026-08-01) | Neutralinojs + vanilla JS + Material You (M3), see section 6 |
 | Neutralinojs GUI (MD3) | Pending | Future phase (Neutralinojs + Preact + mdui, Material Design 3) |
 | AI skill packaging | Pending | Future phase (OpenCode SKILL.md under `opencode-skill/`) |
 | Plugin system | Pending | Future phase |
@@ -208,6 +209,30 @@ from the environment in priority order `ANTHROPIC_API_KEY`, then
 `NpmSafeEngineOptions.llm`. Three dedicated test files cover the provider
 factory and the two new backends.
 
+### 3.6 Desktop GUI (`packages/desktop`)
+
+A Neutralinojs desktop GUI shipped on 2026-08-01. It is an independent
+vanilla-JS implementation (no Preact/mdui) styled with Material You /
+Material Design 3 color tokens.
+
+- **Architecture:** The Neutralinojs main process spawns a Node.js extension
+  (`resources/extensions/core/main.mjs`) that hosts `NpmSafeEngine`. The
+  frontend talks to the extension over WebSocket IPC via
+  `Neutralino.extensions.dispatch`.
+- **Views:** Overview dashboard (half-circle average-score gauge, recent
+  checks, 7-day histogram, total count, risk breakdown), Check, Search,
+  Watch, and Settings.
+- **Window chrome:** Borderless window with a custom title bar — draggable
+  region, minimize and close buttons, and a light/dark theme toggle. Two
+  independent M3 palettes: dark seed `#4f8cff`, light seed `#7c2d12`.
+- **History:** every successful `checkPackage` is recorded by the extension
+  to `~/.npm-safe/history.json` (latest 1000 entries), read by the dashboard
+  via the `getHistory` event.
+- **Windows first-run:** WebView2 loopback exemption is required once:
+  `CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"`.
+
+Run with `cd packages/desktop && pnpm run` (dev) or `pnpm run build:release`.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -232,7 +257,7 @@ The following plans are not started. They are listed in rough priority order.
 
 | Priority | Plan | Description |
 |---|---|---|
-| 1 | **Neutralinojs GUI (MD3)** | A desktop GUI built with Neutralinojs, Preact, and the mdui component library, styled with Material Design 3 (MD3). Views: overview, watchlist, reports, settings, theme switching, scan workflow. The visual layer is separate from the core package and connects via a Neutralinojs IPC bridge. |
+| 1 | **Neutralinojs GUI (MD3)** | A desktop GUI built with Neutralinojs, Preact, and the mdui component library, styled with Material Design 3 (MD3). Views: overview, watchlist, reports, settings, theme switching, scan workflow. The visual layer is separate from the core package and connects via a Neutralinojs IPC bridge. **Note:** a separate vanilla-JS Material You GUI was already shipped at `packages/desktop/` (see section 3.6); this plan may be merged into or superseded by it. |
 | 2 | **AI skill packaging** | Package the `npm-safe` CLI as an OpenCode SKILL.md (with YAML frontmatter) under an `opencode-skill/` directory. The skill exposes the tool's commands (check, search, watch, refresh, settings, lang) so an AI agent can automatically invoke them to scan npm packages. Recorded decision: OpenCode SKILL.md format (see `.omo/drafts/npm-safe-phase1.md`). |
 | 3 | **Plugin system** | Dynamic third-party `ScanRule` registration. The `StaticAnalyzer` constructor already accepts an optional `ScanRule[]` array; add discovery, a registration API, and a configuration file. |
 | 4 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
@@ -385,3 +410,19 @@ The TypeScript compiler resolves `.js` specifiers to `.ts` sources automatically
 ### 7.9 TokenBucket interval timer
 
 The `TokenBucket` uses a 100ms `setInterval` for refill ticks. The timer is unref'd so it does not keep the Node.js event loop alive. Tests that depend on timing must account for asynchronous refill behavior; the existing `rate-limiter.test.ts` handles this with fake clocks.
+
+### 7.10 Desktop GUI history persistence
+
+The desktop extension records every successful `checkPackage` result in
+`~/.npm-safe/history.json` (latest 1000 entries). The dashboard reads it via
+the `getHistory` extension event. This file is separate from the SQLite
+cache/settings database and is intended purely for UI analytics — do not treat
+it as authoritative scan storage.
+
+### 7.11 Desktop IPC message filtering
+
+The extension (`packages/desktop/resources/extensions/core/main.mjs`) only
+handles messages whose `event` is in `SUPPORTED_METHODS`. Messages carrying a
+native `method` field (e.g. ACKs for its own `app.broadcast` calls) and
+framework-internal events (`appClientConnect`, `clientConnect`, ...) must be
+ignored — otherwise they surface as `Unknown method: undefined` errors.

@@ -1,8 +1,8 @@
 # @npm-safe/core：项目交接文档
 
 **日期：** 2026-08-01
-**包名：** @npm-safe/core v0.1.0
-**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（13 个源文件）和 CLI（9 个文件）已交付，205 个测试全部通过，代理支持、中英文本地化以及多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）已上线，零 TypeScript 错误。
+**包名：** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
+**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（13 个源文件）和 CLI（9 个文件）已交付，205 个测试全部通过，代理支持、中英文本地化以及多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）已上线，零 TypeScript 错误。基于 Neutralinojs 的桌面 GUI（原生 JS、Material You）已随 `packages/desktop/` 交付。
 
 [English](HANDOVER.md)
 
@@ -21,6 +21,7 @@
 | 第二阶段：代理支持 | **已完成**（2026-07-31） | `undici.ProxyAgent`，标志 > 设置 > 环境变量解析，`NO_PROXY` 绕过，4 个测试 |
 | 第二阶段：i18n | **已完成**（2026-07-31） | 中英文 CLI 本地化，持久化的 `lang` 命令，HANDOVER_zh.md |
 | 基于 LLM 的扫描提供者 | **已完成**（2026-08-01） | 多提供者：OpenAI / Gemini / Anthropic，见第 3.5 节 |
+| 桌面 GUI（`packages/desktop`） | **已完成**（2026-08-01） | Neutralinojs + 原生 JS + Material You（M3），见第 3.6 节 |
 | Neutralinojs 图形界面（MD3） | 待办 | 未来阶段（Neutralinojs + Preact + mdui，Material Design 3 设计风格） |
 | AI 技能打包 | 待办 | 未来阶段（`opencode-skill/` 下的 OpenCode SKILL.md） |
 | 插件系统 | 待办 | 未来阶段 |
@@ -203,6 +204,29 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 所选选项接入 `NpmSafeEngineOptions.llm`。三个专门的测试文件覆盖提供者
 工厂和两个新增后端。
 
+### 3.6 桌面 GUI（`packages/desktop`）
+
+基于 Neutralinojs 的桌面 GUI 于 2026-08-01 交付。它是一套独立的原生 JS
+实现（未使用 Preact/mdui），采用 Material You / Material Design 3 色彩令牌
+设计。
+
+- **架构：** Neutralinojs 主进程启动一个 Node.js 扩展进程
+  （`resources/extensions/core/main.mjs`）承载 `NpmSafeEngine`。前端通过
+  `Neutralino.extensions.dispatch` 经 WebSocket IPC 与扩展通信。
+- **视图：** 总览仪表盘（平均评分半圆仪表、最近检查、近7日柱状图、总数、
+  风险分布）、检查、搜索、监控和设置。
+- **窗口边框：** 无边框窗口配自定义标题栏——可拖动区域、最小化和关闭按钮，
+  以及浅色/深色主题切换。两套独立的 M3 配色：深色种子 `#4f8cff`，浅色
+  种子 `#7c2d12`。
+- **历史记录：** 每次成功的 `checkPackage` 由扩展记录到
+  `~/.npm-safe/history.json`（最多 1000 条），仪表盘通过 `getHistory`
+  事件读取。
+- **Windows 首次运行：** 需要一次性执行 WebView2 回环豁免：
+  `CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"`。
+
+运行方式：`cd packages/desktop && pnpm run`（开发）或
+`pnpm run build:release`。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -227,7 +251,7 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 
 | 优先级 | 计划 | 描述 |
 |---|---|---|
-| 1 | **Neutralinojs 图形界面（MD3）** | 基于 Neutralinojs、Preact 和 mdui 组件库构建的桌面图形界面，采用 Material Design 3（MD3）设计风格，封装引擎。视图包括：总览、监控列表、报告、设置、主题切换、扫描流程。视觉层与核心包分离，通过 Neutralinojs IPC 桥接连接。 |
+| 1 | **Neutralinojs 图形界面（MD3）** | 基于 Neutralinojs、Preact 和 mdui 组件库构建的桌面图形界面，采用 Material Design 3（MD3）设计风格，封装引擎。视图包括：总览、监控列表、报告、设置、主题切换、扫描流程。视觉层与核心包分离，通过 Neutralinojs IPC 桥接连接。**注意：** 独立的原生 JS Material You 桌面 GUI 已交付于 `packages/desktop/`（见第 3.6 节）；本计划可并入或由其取代。 |
 | 2 | **AI 技能打包** | 将 `npm-safe` CLI 打包为 `opencode-skill/` 目录下的 OpenCode SKILL.md（包含 YAML frontmatter）。该技能暴露工具的各个命令（check、search、watch、refresh、settings、lang），使 AI 代理能够自动调用它们来扫描 npm 包。已记录的决策：采用 OpenCode SKILL.md 格式（参见 `.omo/drafts/npm-safe-phase1.md`）。 |
 | 3 | **插件系统** | 动态注册第三方 `ScanRule`。`StaticAnalyzer` 构造函数已经接受可选的 `ScanRule[]` 数组；增加发现机制、注册 API 和配置文件。 |
 | 4 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
@@ -380,3 +404,18 @@ TypeScript 编译器通过 `bundler` 模块解析设置自动将 `.js` 说明符
 ### 7.9 TokenBucket 的 interval 定时器
 
 `TokenBucket` 使用 100ms 的 `setInterval` 进行补充 tick。定时器被 unref 以防止保持 Node.js 事件循环运行。依赖定时的测试必须考虑异步补充行为；现有的 `rate-limiter.test.ts` 使用假时钟处理这一问题。
+
+### 7.10 桌面 GUI 历史记录持久化
+
+桌面扩展将每次成功的 `checkPackage` 结果记录到 `~/.npm-safe/history.json`
+（最多 1000 条）。仪表盘通过 `getHistory` 扩展事件读取该文件。此文件与
+SQLite 缓存/设置数据库相互独立，仅用于 UI 分析展示——不要将其视为权威的
+扫描存储。
+
+### 7.11 桌面 IPC 消息过滤
+
+扩展（`packages/desktop/resources/extensions/core/main.mjs`）只处理
+`event` 在 `SUPPORTED_METHODS` 中的消息。携带原生 `method` 字段的消息
+（例如它自身 `app.broadcast` 调用的 ACK）以及框架内部事件
+（`appClientConnect`、`clientConnect` 等）必须忽略——否则会报
+`Unknown method: undefined` 错误。

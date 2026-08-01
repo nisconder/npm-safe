@@ -30,5 +30,8 @@ Thumbs.db
 .omo/
 .codegraph/
 
+# Local skills and agent config
+.opencode/
+
 # TypeScript
 *.tsbuildinfo

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://raw.githubusercontent.com/neutralinojs/neutralinojs/main/schemas/neutralino.config.schema.json",
+  "applicationId": "org.npmsafe.desktop",
+  "version": "0.1.0",
+  "defaultMode": "window",
+  "port": 0,
+  "documentRoot": "/resources/",
+  "url": "/",
+  "enableServer": true,
+  "enableNativeAPI": true,
+  "enableExtensions": true,
+  "tokenSecurity": "one-time",
+  "logging": {
+    "enabled": true,
+    "writeToLogFile": true
+  },
+  "nativeAllowList": [
+    "app.*",
+    "os.*",
+    "window.*",
+    "extensions.*",
+    "filesystem.*",
+    "debug.log"
+  ],
+  "extensions": [
+    {
+      "id": "js.npmsafe.core",
+      "command": "node ${NL_PATH}/resources/extensions/core/main.mjs"
+    }
+  ],
+  "modes": {
+    "window": {
+      "title": "npm-safe",
+      "width": 1100,
+      "height": 750,
+      "minWidth": 800,
+      "minHeight": 550,
+      "center": true,
+      "fullScreen": false,
+      "alwaysOnTop": false,
+      "icon": "/resources/icons/appIcon.png",
+      "enableInspector": false,
+      "borderless": true,
+      "transparent": true,
+      "maximize": false,
+      "hidden": false,
+      "resizable": true,
+      "exitProcessOnClose": true
+    },
+    "browser": {
+      "nativeBlockList": [
+        "filesystem.*"
+      ]
+    }
+  },
+  "cli": {
+    "binaryName": "npm-safe",
+    "resourcesPath": "/resources/",
+    "extensionsPath": "/extensions/",
+    "clientLibrary": "/resources/js/neutralino.js",
+    "binaryVersion": "6.9.0",
+    "clientVersion": "6.9.0"
+  }
+}
