@@ -78,8 +78,9 @@ describe("RefreshScheduler", () => {
       events.push(`complete:${packageName}:${report.score}`);
     });
 
-    await scheduler.refreshPackage("watch-pkg");
+    const succeeded = await scheduler.refreshPackage("watch-pkg");
 
+    assert.strictEqual(succeeded, true);
     assert.ok(events.some((e) => e.startsWith("start:watch-pkg")));
     assert.ok(events.some((e) => e.startsWith("complete:watch-pkg")));
   });
@@ -94,8 +95,9 @@ describe("RefreshScheduler", () => {
       events.push(`error:${packageName}`);
     });
 
-    await scheduler.refreshPackage("bad-pkg");
+    const succeeded = await scheduler.refreshPackage("bad-pkg");
 
+    assert.strictEqual(succeeded, false);
     assert.ok(events.some((e) => e === "error:bad-pkg"));
   });
 
