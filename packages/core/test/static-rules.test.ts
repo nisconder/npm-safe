@@ -245,15 +245,14 @@ describe("binary-links rule", () => {
     assert.ok(finding);
   });
 
-  it("matches URL with .com TLD as false positive", () => {
+  it("does not match URL with .com TLD (false positive fixed)", () => {
     const readme =
       "Documentation: https://example.com/docs/index.html";
     const report = analyzer.analyze(readme);
     const finding = report.findings.find(
       (f) => f.ruleId === "binary-links",
     );
-    assert.ok(finding);
-    assert.ok(finding.codeSnippet?.includes(".com"));
+    assert.strictEqual(finding, undefined);
   });
 });
 

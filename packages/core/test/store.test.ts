@@ -177,6 +177,21 @@ describe("CacheManager", () => {
       const result = await cache.getPackage("test-pkg");
       assert.ok(result !== null);
     });
+
+    it("honors sub-second TTLs (500ms cache expires)", async () => {
+      dbm = new DatabaseManager(":memory:");
+      cache = new CacheManager(dbm, { cacheTtlMs: 500 });
+      await cache.setPackage(mockPackageMeta);
+
+      // Immediately after set, the row must still be fresh.
+      assert.ok((await cache.getPackage("test-pkg")) !== null);
+      assert.deepStrictEqual(await cache.getStalePackages(), []);
+
+      // Wait generously past the TTL (1.4x) so the row must have expired.
+      await new Promise((resolve) => setTimeout(resolve, 700));
+      assert.strictEqual(await cache.getPackage("test-pkg"), null);
+      assert.deepStrictEqual(await cache.getStalePackages(), ["test-pkg"]);
+    });
   });
 
   describe("security reports", () => {
