@@ -182,7 +182,6 @@ Detailed documentation for the engine is available under `packages/core/`:
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- Layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.
 - **[API.md](packages/core/API.md)** -- Complete public API reference covering the `NpmSafeEngine` class (all 12 methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- Comprehensive reference for all 10 built-in static analysis rules. Each rule documents its category, severity, detection logic (regex patterns), and mitigation recommendations.
-- **[HANDOVER.md](packages/core/HANDOVER.md)** -- Phase 1 to Phase 2 handover document. Covers what was built, what was deferred, known issues, development gotchas, and a recommended Phase 2 implementation order. Also available in Chinese: **[HANDOVER_zh.md](packages/core/HANDOVER_zh.md)**.
 - **[README_zh.md](README_zh.md)** -- Chinese translation of the project README.
 
 The desktop GUI lives under `packages/desktop/` and is documented in the
@@ -221,8 +220,6 @@ npm-safe/
       API.md               # public API reference
       ARCHITECTURE.md      # layer map, data flows, DB schema
       SCANNER_RULES.md     # 10 static rule reference
-      HANDOVER.md          # Phase 1 → 2 handover (EN)
-      HANDOVER_zh.md       # Phase 1 → 2 handover (ZH)
       opencode-skill/
         npm-safe-scan/
           SKILL.md         # AI skill, auto-installed via postinstall
