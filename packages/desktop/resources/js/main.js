@@ -40,7 +40,20 @@ function registerHistoryEvents() {
 function callEngine(method, data) {
   return new Promise((resolve, reject) => {
     const requestId = crypto.randomUUID();
-    pending.set(requestId, { resolve, reject });
+    const timer = setTimeout(() => {
+      pending.delete(requestId);
+      reject(new Error("请求超时"));
+    }, 30000);
+    pending.set(requestId, {
+      resolve: (v) => {
+        clearTimeout(timer);
+        resolve(v);
+      },
+      reject: (e) => {
+        clearTimeout(timer);
+        reject(e);
+      },
+    });
 
     Neutralino.extensions.dispatch(EXT_ID, method, {
       ...data,
@@ -94,9 +107,14 @@ function setStatus(message, type = "") {
 }
 
 function setBusy(btn, busy) {
-  if (btn) {
-    btn.disabled = busy;
-    btn.textContent = busy ? "处理中..." : btn.dataset.originalText ?? btn.textContent;
+  if (!btn) return;
+  if (busy) {
+    if (!btn.dataset.originalText) btn.dataset.originalText = btn.textContent;
+    btn.textContent = "处理中...";
+    btn.disabled = true;
+  } else {
+    btn.textContent = btn.dataset.originalText ?? btn.textContent;
+    btn.disabled = false;
   }
 }
 
@@ -186,7 +204,7 @@ function initTitleBar() {
 function renderCheckResult(result) {
   const area = document.getElementById("check-result");
   if (!result.exists) {
-    area.innerHTML = `<div class="card"><div class="card-title">未找到</div>包 "${result.packageName}" 不存在于 npm 注册表。</div>`;
+    area.innerHTML = `<div class="card"><div class="card-title">未找到</div>包 "${escapeHtml(result.packageName)}" 不存在于 npm 注册表。</div>`;
     return;
   }
 
@@ -194,18 +212,18 @@ function renderCheckResult(result) {
   const findings = report?.findings ?? [];
 
   const rows = [
-    ["包名", result.packageName],
-    ["最新版本", result.latestVersion],
-    ["安全等级", `<span class="badge ${result.security.overallLevel}">${result.security.overallLevel}</span>`],
-    ["分数", `${result.security.overallScore}/100`],
+    ["包名", escapeHtml(result.packageName)],
+    ["最新版本", escapeHtml(result.latestVersion)],
+    ["安全等级", `<span class="badge ${escapeAttr(result.security.overallLevel)}">${escapeHtml(result.security.overallLevel)}</span>`],
+    ["分数", `${escapeHtml(String(result.security.overallScore))}/100`],
     ["发现项数量", String(findings.length)],
   ];
 
-  if (result.registryInfo?.description) rows.push(["描述", result.registryInfo.description]);
-  if (result.registryInfo?.homepage) rows.push(["主页", result.registryInfo.homepage]);
-  if (result.registryInfo?.repository) rows.push(["仓库", result.registryInfo.repository]);
+  if (result.registryInfo?.description) rows.push(["描述", escapeHtml(result.registryInfo.description)]);
+  if (result.registryInfo?.homepage) rows.push(["主页", escapeHtml(result.registryInfo.homepage)]);
+  if (result.registryInfo?.repository) rows.push(["仓库", escapeHtml(result.registryInfo.repository)]);
 
-  let html = `<div class="card"><div class="card-title">${result.packageName} 检查结果</div>`;
+  let html = `<div class="card"><div class="card-title">${escapeHtml(result.packageName)} 检查结果</div>`;
   for (const [k, v] of rows) {
     html += `<div class="card-row"><span>${k}</span><span class="value">${v}</span></div>`;
   }
@@ -215,12 +233,12 @@ function renderCheckResult(result) {
     for (const f of findings) {
       const sev = f.severity;
       html += `
-        <div class="finding ${sev}">
-          <div class="finding-header">[${sev.toUpperCase()}] ${f.ruleId} — ${f.ruleName}</div>
+        <div class="finding ${escapeAttr(sev)}">
+          <div class="finding-header">[${escapeHtml(sev.toUpperCase())}] ${escapeHtml(f.ruleId)} — ${escapeHtml(f.ruleName)}</div>
           <div class="finding-message">${escapeHtml(f.message)}</div>
           ${f.recommendation ? `<div class="finding-meta">建议: ${escapeHtml(f.recommendation)}</div>` : ""}
           ${f.codeSnippet ? `<div class="finding-meta">片段: ${escapeHtml(f.codeSnippet)}</div>` : ""}
-          ${f.lineNumber ? `<div class="finding-meta">行号: ${f.lineNumber}</div>` : ""}
+          ${f.lineNumber ? `<div class="finding-meta">行号: ${escapeHtml(String(f.lineNumber))}</div>` : ""}
         </div>`;
     }
   }
@@ -503,7 +521,7 @@ async function renderOverview() {
             <span class="recent-item-time">${formatDate(h.timestamp)}</span>
           </div>
           <div class="recent-item-score">
-            <span class="badge ${escapeAttr(h.level)}">${levelLabel(h.level)}</span>
+            <span class="badge ${escapeAttr(h.level)}">${escapeHtml(levelLabel(h.level))}</span>
             ${typeof h.score === "number" ? `<span>${h.score}/100</span>` : ""}
           </div>
         </div>
