@@ -240,7 +240,10 @@ A global agent skill `npm-safe-scan` was installed on 2026-08-02 at
 `~/.agents/skills/npm-safe-scan/SKILL.md`. It packages the `npm-safe` CLI as
 an agent skill usable by any AI agent (opencode, Claude Code), exposing the
 tool's commands (check, search, watch, refresh, settings, lang) so the agent
-can invoke them directly to scan npm packages.
+can invoke them directly to scan npm packages. The skill is bundled inside
+the package at `opencode-skill/npm-safe-scan/SKILL.md` and auto-installed to
+`~/.agents/skills/` via a `postinstall` hook (`scripts/install-skill.mjs`)
+whenever the package is installed.
 
 ---
 

@@ -233,7 +233,9 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 `~/.agents/skills/npm-safe-scan/SKILL.md`。它将 `npm-safe` CLI 打包为可供
 任意 AI 代理（opencode、Claude Code）使用的代理技能，暴露工具的各个命令
 （check、search、watch、refresh、settings、lang），使代理能够直接调用
-它们来扫描 npm 包。
+它们来扫描 npm 包。该技能随包一同分发于 `opencode-skill/npm-safe-scan/SKILL.md`，
+并在每次安装本包时通过 `postinstall` 钩子（`scripts/install-skill.mjs`）
+自动安装至 `~/.agents/skills/`。
 
 ---
 
