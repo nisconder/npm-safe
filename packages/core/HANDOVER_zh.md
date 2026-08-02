@@ -22,7 +22,7 @@
 | 第二阶段：i18n | **已完成**（2026-07-31） | 中英文 CLI 本地化，持久化的 `lang` 命令，HANDOVER_zh.md |
 | 基于 LLM 的扫描提供者 | **已完成**（2026-08-01） | 多提供者：OpenAI / Gemini / Anthropic，见第 3.5 节 |
 | 桌面 GUI（`packages/desktop`） | **已完成**（2026-08-01） | Neutralinojs + 原生 JS + Material You（M3），见第 3.6 节 |
-| Neutralinojs 图形界面（MD3） | 待办 | 未来阶段（Neutralinojs + Preact + mdui，Material Design 3 设计风格） |
+| Neutralinojs 图形界面（MD3） | **已完成**（2026-08-01） | 已随 `packages/desktop` 交付，基于 Neutralinojs 的窗口应用，采用 Material 3（MD3）设计体系（浅色/深色主题）。原始的 Preact+mdui 方案已被交付的原生 JS 实现取代，后者已满足 MD3 要求。 |
 | AI 技能打包 | 待办 | 未来阶段（`opencode-skill/` 下的 OpenCode SKILL.md） |
 | 插件系统 | 待办 | 未来阶段 |
 | CI/CD 集成 | 待办 | 未来阶段 |
@@ -208,7 +208,7 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 
 基于 Neutralinojs 的桌面 GUI 于 2026-08-01 交付。它是一套独立的原生 JS
 实现（未使用 Preact/mdui），采用 Material You / Material Design 3 色彩令牌
-设计。
+设计。桌面包采用 Apache-2.0 许可证。
 
 - **架构：** Neutralinojs 主进程启动一个 Node.js 扩展进程
   （`resources/extensions/core/main.mjs`）承载 `NpmSafeEngine`。前端通过
@@ -248,16 +248,17 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 ## 5. 剩余计划（未来阶段）
 
 以下计划尚未启动。它们按大致优先级排列。
+Neutralinojs 图形界面（MD3）计划已交付，不再列入下表；详见第 3.6 节
+已交付的桌面 GUI。
 
 | 优先级 | 计划 | 描述 |
 |---|---|---|
-| 1 | **Neutralinojs 图形界面（MD3）** | 基于 Neutralinojs、Preact 和 mdui 组件库构建的桌面图形界面，采用 Material Design 3（MD3）设计风格，封装引擎。视图包括：总览、监控列表、报告、设置、主题切换、扫描流程。视觉层与核心包分离，通过 Neutralinojs IPC 桥接连接。**注意：** 独立的原生 JS Material You 桌面 GUI 已交付于 `packages/desktop/`（见第 3.6 节）；本计划可并入或由其取代。 |
-| 2 | **AI 技能打包** | 将 `npm-safe` CLI 打包为 `opencode-skill/` 目录下的 OpenCode SKILL.md（包含 YAML frontmatter）。该技能暴露工具的各个命令（check、search、watch、refresh、settings、lang），使 AI 代理能够自动调用它们来扫描 npm 包。已记录的决策：采用 OpenCode SKILL.md 格式（参见 `.omo/drafts/npm-safe-phase1.md`）。 |
-| 3 | **插件系统** | 动态注册第三方 `ScanRule`。`StaticAnalyzer` 构造函数已经接受可选的 `ScanRule[]` 数组；增加发现机制、注册 API 和配置文件。 |
-| 4 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
-| 5 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
-| 6 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
-| 7 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
+| 1 | **AI 技能打包** | 将 `npm-safe` CLI 打包为 `opencode-skill/` 目录下的 OpenCode SKILL.md（包含 YAML frontmatter）。该技能暴露工具的各个命令（check、search、watch、refresh、settings、lang），使 AI 代理能够自动调用它们来扫描 npm 包。已记录的决策：采用 OpenCode SKILL.md 格式（参见 `.omo/drafts/npm-safe-phase1.md`）。 |
+| 2 | **插件系统** | 动态注册第三方 `ScanRule`。`StaticAnalyzer` 构造函数已经接受可选的 `ScanRule[]` 数组；增加发现机制、注册 API 和配置文件。 |
+| 3 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
+| 4 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
+| 5 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
+| 6 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
 
 ---
 

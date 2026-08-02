@@ -22,7 +22,7 @@ This document records every project plan and its completion status.
 | Phase 2: i18n | **Done** (2026-07-31) | en/zh CLI localization, persisted `lang` command, HANDOVER_zh.md |
 | LLM-based scan provider | **Done** (2026-08-01) | Multi-provider: OpenAI / Gemini / Anthropic, see section 3.5 |
 | Desktop GUI (`packages/desktop`) | **Done** (2026-08-01) | Neutralinojs + vanilla JS + Material You (M3), see section 6 |
-| Neutralinojs GUI (MD3) | Pending | Future phase (Neutralinojs + Preact + mdui, Material Design 3) |
+| Neutralinojs GUI (MD3) | **Done** (2026-08-01) | Shipped as `packages/desktop` — Neutralinojs window app with a Material 3 (MD3) design system (light/dark themes). The original Preact+mdui plan was superseded by the delivered vanilla-JS implementation, which fulfills the MD3 requirement. |
 | AI skill packaging | Pending | Future phase (OpenCode SKILL.md under `opencode-skill/`) |
 | Plugin system | Pending | Future phase |
 | CI/CD integration | Pending | Future phase |
@@ -213,7 +213,8 @@ factory and the two new backends.
 
 A Neutralinojs desktop GUI shipped on 2026-08-01. It is an independent
 vanilla-JS implementation (no Preact/mdui) styled with Material You /
-Material Design 3 color tokens.
+Material Design 3 color tokens. The desktop package is licensed under
+Apache-2.0.
 
 - **Architecture:** The Neutralinojs main process spawns a Node.js extension
   (`resources/extensions/core/main.mjs`) that hosts `NpmSafeEngine`. The
@@ -254,16 +255,17 @@ The Phase 1 documentation pack, plus the Phase 2 updates, is complete:
 ## 5. Remaining Plans (Future Phases)
 
 The following plans are not started. They are listed in rough priority order.
+The Neutralinojs GUI (MD3) plan is delivered and no longer listed here; it is
+covered by the shipped desktop GUI in section 3.6.
 
 | Priority | Plan | Description |
 |---|---|---|
-| 1 | **Neutralinojs GUI (MD3)** | A desktop GUI built with Neutralinojs, Preact, and the mdui component library, styled with Material Design 3 (MD3). Views: overview, watchlist, reports, settings, theme switching, scan workflow. The visual layer is separate from the core package and connects via a Neutralinojs IPC bridge. **Note:** a separate vanilla-JS Material You GUI was already shipped at `packages/desktop/` (see section 3.6); this plan may be merged into or superseded by it. |
-| 2 | **AI skill packaging** | Package the `npm-safe` CLI as an OpenCode SKILL.md (with YAML frontmatter) under an `opencode-skill/` directory. The skill exposes the tool's commands (check, search, watch, refresh, settings, lang) so an AI agent can automatically invoke them to scan npm packages. Recorded decision: OpenCode SKILL.md format (see `.omo/drafts/npm-safe-phase1.md`). |
-| 3 | **Plugin system** | Dynamic third-party `ScanRule` registration. The `StaticAnalyzer` constructor already accepts an optional `ScanRule[]` array; add discovery, a registration API, and a configuration file. |
-| 4 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
-| 5 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
-| 6 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
-| 7 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
+| 1 | **AI skill packaging** | Package the `npm-safe` CLI as an OpenCode SKILL.md (with YAML frontmatter) under an `opencode-skill/` directory. The skill exposes the tool's commands (check, search, watch, refresh, settings, lang) so an AI agent can automatically invoke them to scan npm packages. Recorded decision: OpenCode SKILL.md format (see `.omo/drafts/npm-safe-phase1.md`). |
+| 2 | **Plugin system** | Dynamic third-party `ScanRule` registration. The `StaticAnalyzer` constructor already accepts an optional `ScanRule[]` array; add discovery, a registration API, and a configuration file. |
+| 3 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
+| 4 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
+| 5 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
+| 6 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
 
 ---
 
