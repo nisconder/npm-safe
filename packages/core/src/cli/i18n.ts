@@ -38,6 +38,12 @@ const messages: Record<Locale, Record<string, string>> = {
     "lang.current": 'Current language: {lang}',
     "lang.set": 'Language set to {lang}.',
     "lang.unknown": 'Unknown locale "{locale}". Supported: en, zh.',
+
+    "rules.list.empty": "No scan rules are registered.",
+    "rules.enabled": 'Rule "{ruleId}" enabled.',
+    "rules.disabled": 'Rule "{ruleId}" disabled.',
+    "rules.severitySet": 'Rule "{ruleId}" severity set to {severity}.',
+    "rules.severityUnknown": 'Unknown severity "{severity}". Supported: low, medium, high, critical.',
   },
 
   zh: {
@@ -77,6 +83,12 @@ const messages: Record<Locale, Record<string, string>> = {
     "lang.current": '当前语言: {lang}',
     "lang.set": '语言已切换为 {lang}。',
     "lang.unknown": '不支持的语言 "{locale}"。支持: en, zh。',
+
+    "rules.list.empty": "尚未注册任何扫描规则。",
+    "rules.enabled": '规则 "{ruleId}" 已启用。',
+    "rules.disabled": '规则 "{ruleId}" 已禁用。',
+    "rules.severitySet": '规则 "{ruleId}" 的严重级别已设为 {severity}。',
+    "rules.severityUnknown": '未知的严重级别 "{severity}"。支持: low, medium, high, critical。',
   },
 };
 

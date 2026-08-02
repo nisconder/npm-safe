@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-01
 **Package:** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
-**Status:** All Phase 1 and Phase 2 plans complete. Engine core (17 source files) plus CLI (9 files) delivered, 206 tests passing, proxy support, en/zh localization, and multi-provider LLM scanning (OpenAI / Gemini / Anthropic) shipped, zero TypeScript errors. A Neutralinojs desktop GUI (vanilla JS, Material You) ships under `packages/desktop/`. A bug-fix pass on 2026-08-02 hardened the desktop GUI against XSS-to-RCE, added a watchlist foreign-key pre-check, corrected refresh semantics, and added sub-second TTL support (see section 3.8).
+**Status:** All Phase 1 and Phase 2 plans complete. Engine core (17 source files) plus CLI (9 files) delivered, 226 tests passing, proxy support, en/zh localization, multi-provider LLM scanning (OpenAI / Gemini / Anthropic), a Neutralinojs desktop GUI (vanilla JS, Material You), and a plugin system for custom scan rules shipped, zero TypeScript errors. A bug-fix pass on 2026-08-02 hardened the desktop GUI against XSS-to-RCE, added a watchlist foreign-key pre-check, corrected refresh semantics, and added sub-second TTL support (see section 3.8).
 
 [中文版](HANDOVER_zh.md)
 
@@ -24,7 +24,7 @@ This document records every project plan and its completion status.
 | Desktop GUI (`packages/desktop`) | **Done** (2026-08-01) | Neutralinojs + vanilla JS + Material You (M3), see section 6 |
 | Neutralinojs GUI (MD3) | **Done** (2026-08-01) | Shipped as `packages/desktop` — Neutralinojs window app with a Material 3 (MD3) design system (light/dark themes). The original Preact+mdui plan was superseded by the delivered vanilla-JS implementation, which fulfills the MD3 requirement. |
 | AI skill packaging | **Done** (2026-08-02) | Global agent skill `npm-safe-scan` installed at `~/.agents/skills/npm-safe-scan/SKILL.md`; packages the CLI for any AI agent (opencode, Claude Code). |
-| Plugin system | Pending | Future phase |
+| Plugin system | **Done** (2026-08-02) | Runtime rule registration API, `~/.npm-safe/rules.json` config, `~/.npm-safe/rules/` plugin discovery, `npm-safe rules` CLI, see section 3.7 |
 | CI/CD integration | Pending | Future phase |
 | Multi-package batch API | Pending | Future phase |
 | Telemetry and analytics | Pending | Future phase |
@@ -272,6 +272,30 @@ The suite grew from 205 to 206 tests; all pass. The source-file count under
 `packages/core/src/` is now 26 (the earlier 13 figure predated the CLI and
 LLM provider files).
 
+### 3.9 Plugin system (2026-08-02)
+
+The plugin system plan was delivered on 2026-08-02. It adds three layers on
+top of the existing `ScanRule` interface:
+
+- **Runtime registration API.** `StaticAnalyzer` gained `registerRule`,
+  `unregisterRule`, and `listRules`. `NpmSafeEngine` exposes the same surface
+  plus `setRuleEnabled`, `setRuleSeverity`, `setRuleOptions`, `getRuleConfig`,
+  and `loadRulePlugins`.
+- **Per-rule configuration.** `RuleConfigManager`
+  (`src/scanner/rule-config.ts`) persists enable/disable, severity overrides,
+  and free-form options to `~/.npm-safe/rules.json`. Overrides are applied at
+  analysis time: disabled rules are skipped and finding severities are
+  remapped.
+- **Plugin discovery.** `loadRulesFromDirectory`
+  (`src/scanner/rule-loader.ts`) scans `~/.npm-safe/rules/` for `*.mjs` /
+  `*.js` ES modules. Each file may export `rule`, `rules`, or `default`
+  holding one or more `ScanRule`s. Files are loaded in lexical order; invalid
+  files are skipped. The engine loads plugins automatically at startup.
+- **CLI.** `npm-safe rules list | enable | disable | severity` manages the
+  persisted config (en/zh localized).
+
+The test suite grew from 206 to 226 tests; all pass.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -298,11 +322,10 @@ covered by the shipped desktop GUI in section 3.6.
 
 | Priority | Plan | Description |
 |---|---|---|
-| 1 | **Plugin system** | Dynamic third-party `ScanRule` registration. The `StaticAnalyzer` constructor already accepts an optional `ScanRule[]` array; add discovery, a registration API, and a configuration file. |
-| 2 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
-| 3 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
-| 4 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
-| 5 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
+| 1 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
+| 2 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
+| 3 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
+| 4 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
 
 ---
 

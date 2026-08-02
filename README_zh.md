@@ -55,6 +55,10 @@ npm-safe refresh [package]         # 刷新单个（或全部监控）包
 npm-safe settings get <key>        # 读取设置
 npm-safe settings set <key> <val>  # 写入设置
 npm-safe lang [en|zh]              # 查看或设置输出语言
+npm-safe rules list                # 列出扫描规则及生效状态
+npm-safe rules enable <rule-id>    # 启用扫描规则（持久化）
+npm-safe rules disable <rule-id>   # 禁用扫描规则（持久化）
+npm-safe rules severity <rule-id> <severity>  # 覆盖规则严重级别
 ```
 
 ### 桌面应用
@@ -120,6 +124,43 @@ npm-safe lang          # 查看当前语言
 npm-safe lang zh       # 切换为中文（持久化）
 npm-safe lang en       # 切换为英文（持久化）
 ```
+
+### 规则与插件
+
+扫描规则可在运行时管理，配置持久化在 `~/.npm-safe/rules.json`：
+
+```bash
+npm-safe rules list                          # 查看所有规则及状态
+npm-safe rules disable install-script        # 禁用规则
+npm-safe rules enable install-script         # 重新启用
+npm-safe rules severity typosquatting critical  # 覆盖规则严重级别
+```
+
+第三方规则插件可放入 `~/.npm-safe/rules/` 目录（`*.mjs` / `*.js` ES 模块文件）。
+每个文件可导出 `rule`、`rules` 或 `default`，内容为一个或多个符合
+`ScanRule` 接口的规则：
+
+```js
+// ~/.npm-safe/rules/my-rule.mjs
+export const rule = {
+  id: "my-rule",
+  name: "My rule",
+  description: "Detects something bad",
+  severity: "high",
+  category: "informational",
+  enabled: true,
+  match(readme, packageJson) {
+    return packageJson?.scripts?.postinstall?.includes("wget")
+      ? [{ ruleId: "my-rule", ruleName: "My rule", severity: "high",
+           message: "postinstall uses wget", category: "informational" }]
+      : [];
+  },
+};
+```
+
+插件文件在引擎启动时自动加载，损坏的文件会被跳过。`ScanRule` 接口及完整
+的引擎规则 API（`registerRule`、`unregisterRule`、`listRules`、
+`setRuleEnabled`、`setRuleSeverity`）均从 `@npm-safe/core` 导出，供编程使用。
 
 ### 桌面应用首次运行（Windows）
 

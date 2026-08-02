@@ -77,6 +77,10 @@ npm-safe refresh [package]         # Refresh one (or all watched) packages
 npm-safe settings get <key>        # Read a setting
 npm-safe settings set <key> <val>  # Write a setting
 npm-safe lang [en|zh]              # Get or set the output language
+npm-safe rules list                # List scan rules with effective status
+npm-safe rules enable <rule-id>    # Enable a scan rule (persisted)
+npm-safe rules disable <rule-id>   # Disable a scan rule (persisted)
+npm-safe rules severity <rule-id> <severity>  # Override a rule's severity
 ```
 
 ### Desktop Application
@@ -153,6 +157,45 @@ npm-safe lang          # Show the current language
 npm-safe lang zh       # Switch to Chinese (persisted)
 npm-safe lang en       # Switch to English (persisted)
 ```
+
+### Rules and plugins
+
+Rules can be managed at runtime. Configuration is persisted in
+`~/.npm-safe/rules.json`:
+
+```bash
+npm-safe rules list                          # Show every rule and its status
+npm-safe rules disable install-script        # Disable a rule
+npm-safe rules enable install-script         # Re-enable it
+npm-safe rules severity typosquatting critical  # Override a rule's severity
+```
+
+Third-party rule plugins can be dropped into `~/.npm-safe/rules/` as ES module
+files (`*.mjs` / `*.js`). Each file may export `rule`, `rules`, or `default`
+holding one or more rules conforming to the `ScanRule` interface:
+
+```js
+// ~/.npm-safe/rules/my-rule.mjs
+export const rule = {
+  id: "my-rule",
+  name: "My rule",
+  description: "Detects something bad",
+  severity: "high",
+  category: "informational",
+  enabled: true,
+  match(readme, packageJson) {
+    return packageJson?.scripts?.postinstall?.includes("wget")
+      ? [{ ruleId: "my-rule", ruleName: "My rule", severity: "high",
+           message: "postinstall uses wget", category: "informational" }]
+      : [];
+  },
+};
+```
+
+Plugin files are loaded at engine startup and bad files are skipped. The
+`ScanRule` interface and the full engine rule API (`registerRule`,
+`unregisterRule`, `listRules`, `setRuleEnabled`, `setRuleSeverity`) are
+exported from `@npm-safe/core` for programmatic use.
 
 ### Desktop first-run (Windows)
 

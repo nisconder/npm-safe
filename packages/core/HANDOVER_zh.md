@@ -2,7 +2,7 @@
 
 **日期：** 2026-08-01
 **包名：** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
-**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（17 个源文件）和 CLI（9 个文件）已交付，206 个测试全部通过，代理支持、中英文本地化以及多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）已上线，零 TypeScript 错误。基于 Neutralinojs 的桌面 GUI（原生 JS、Material You）已随 `packages/desktop/` 交付。2026-08-02 的缺陷修复轮次对桌面 GUI 进行了 XSS 到 RCE 加固、增加了监控列表外键预检查、修正了 refresh 语义，并支持亚秒级 TTL（见第 3.8 节）。
+**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（17 个源文件）和 CLI（9 个文件）已交付，226 个测试全部通过，代理支持、中英文本地化、多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）、Neutralinojs 桌面 GUI（原生 JS、Material You）以及自定义扫描规则插件系统均已上线，零 TypeScript 错误。2026-08-02 的缺陷修复轮次对桌面 GUI 进行了 XSS 到 RCE 加固、增加了监控列表外键预检查、修正了 refresh 语义，并支持亚秒级 TTL（见第 3.8 节）。
 
 [English](HANDOVER.md)
 
@@ -24,7 +24,7 @@
 | 桌面 GUI（`packages/desktop`） | **已完成**（2026-08-01） | Neutralinojs + 原生 JS + Material You（M3），见第 3.6 节 |
 | Neutralinojs 图形界面（MD3） | **已完成**（2026-08-01） | 已随 `packages/desktop` 交付，基于 Neutralinojs 的窗口应用，采用 Material 3（MD3）设计体系（浅色/深色主题）。原始的 Preact+mdui 方案已被交付的原生 JS 实现取代，后者已满足 MD3 要求。 |
 | AI 技能打包 | **已完成**（2026-08-02） | 全局技能 `npm-safe-scan` 已安装于 `~/.agents/skills/npm-safe-scan/SKILL.md`；将 CLI 打包为供任意 AI 代理（opencode、Claude Code）使用的技能。 |
-| 插件系统 | 待办 | 未来阶段 |
+| 插件系统 | **已完成**（2026-08-02） | 运行时规则注册 API、`~/.npm-safe/rules.json` 配置、`~/.npm-safe/rules/` 插件发现、`npm-safe rules` CLI，见第 3.9 节 |
 | CI/CD 集成 | 待办 | 未来阶段 |
 | 多包批量 API | 待办 | 未来阶段 |
 | 遥测与分析 | 待办 | 未来阶段 |
@@ -249,6 +249,17 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 
 测试套件从 205 个增至 206 个，全部通过。`packages/core/src/` 下的源文件数现为 26（此前的 13 是在 CLI 和 LLM 提供者文件加入之前的数字）。
 
+### 3.9 插件系统（2026-08-02）
+
+插件系统计划于 2026-08-02 交付。在既有 `ScanRule` 接口之上新增三层能力：
+
+- **运行时注册 API。** `StaticAnalyzer` 新增 `registerRule`、`unregisterRule` 和 `listRules`。`NpmSafeEngine` 暴露相同接口，另加 `setRuleEnabled`、`setRuleSeverity`、`setRuleOptions`、`getRuleConfig` 和 `loadRulePlugins`。
+- **规则级配置。** `RuleConfigManager`（`src/scanner/rule-config.ts`）将启用/禁用、严重级别覆盖和自由选项持久化到 `~/.npm-safe/rules.json`。覆盖在分析时生效：被禁用的规则跳过执行，findings 的严重级别按覆盖重新映射。
+- **插件发现。** `loadRulesFromDirectory`（`src/scanner/rule-loader.ts`）扫描 `~/.npm-safe/rules/` 下的 `*.mjs` / `*.js` ES 模块。每个文件可导出 `rule`、`rules` 或 `default`，内容为一个或多个 `ScanRule`。文件按字典序加载，无效文件被跳过。引擎启动时自动加载插件。
+- **CLI。** `npm-safe rules list | enable | disable | severity` 管理持久化配置（中英文双语）。
+
+测试套件从 206 个增至 226 个，全部通过。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -275,11 +286,10 @@ Neutralinojs 图形界面（MD3）计划已交付，不再列入下表；详见�
 
 | 优先级 | 计划 | 描述 |
 |---|---|---|
-| 1 | **插件系统** | 动态注册第三方 `ScanRule`。`StaticAnalyzer` 构造函数已经接受可选的 `ScanRule[]` 数组；增加发现机制、注册 API 和配置文件。 |
-| 2 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
-| 3 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
-| 4 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
-| 5 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
+| 1 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
+| 2 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
+| 3 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
+| 4 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
 
 ---
 

@@ -205,6 +205,70 @@ close(): void
 
 Release all resources held by the engine. Stops the auto-refresh scheduler, disposes the rate limiter timer, and closes the database connection. Idempotent. After calling this method the engine instance must not be used for further operations.
 
+#### registerRule
+
+```ts
+registerRule(rule: ScanRule): void
+```
+
+Register a scan rule at runtime. A rule with the same id replaces the existing one (keeping its position in the registration order).
+
+#### unregisterRule
+
+```ts
+unregisterRule(ruleId: string): boolean
+```
+
+Remove a scan rule by id. Returns `true` if a rule was removed, `false` if no such rule exists.
+
+#### listRules
+
+```ts
+listRules(): RuleDescriptor[]
+```
+
+Describe every registered rule with its effective status (enabled state and severity after config overrides, plus `source: 'builtin' | 'plugin'`), in registration order.
+
+#### setRuleEnabled
+
+```ts
+setRuleEnabled(ruleId: string, enabled: boolean): void
+```
+
+Enable or disable a rule. Persisted in the rules config file (`~/.npm-safe/rules.json` by default).
+
+#### setRuleSeverity
+
+```ts
+setRuleSeverity(ruleId: string, severity: Severity | undefined): void
+```
+
+Override a rule's severity. Persisted. Pass `undefined` to clear the override and return to the rule's default severity.
+
+#### setRuleOptions
+
+```ts
+setRuleOptions(ruleId: string, options: Readonly<Record<string, unknown>>): void
+```
+
+Set free-form options for a rule. Persisted. Rule implementations can read these via `RuleConfigManager`.
+
+#### getRuleConfig
+
+```ts
+getRuleConfig(): RuleConfigManager
+```
+
+Access the rule configuration manager for low-level inspection.
+
+#### loadRulePlugins
+
+```ts
+loadRulePlugins(dir?: string): Promise<number>
+```
+
+Load third-party rules from a directory of ES module files (`*.mjs` / `*.js`). Each file may export `rule`, `rules`, or `default` holding one or more `ScanRule`s. Files that fail to load are skipped. Defaults to `~/.npm-safe/rules/`. Returns the number of rules loaded. Also invoked automatically at engine startup.
+
 ---
 
 ## NpmSafeEngineOptions
@@ -219,6 +283,8 @@ interface NpmSafeEngineOptions {
   readonly rateLimitBurst?: number;
   readonly cacheTtlMs?: number;
   readonly llm?: LlmProviderOptions;
+  readonly rulesConfigPath?: string;
+  readonly rulesDir?: string;
 }
 ```
 
@@ -230,6 +296,8 @@ interface NpmSafeEngineOptions {
 | `rateLimitBurst` | `number` | `10` | Maximum burst size for the token bucket. |
 | `cacheTtlMs` | `number` | `3600000` | Cache TTL for package metadata in milliseconds. |
 | `llm` | `LlmProviderOptions` | unset | Optional semantic security scan backed by any supported LLM provider. |
+| `rulesConfigPath` | `string` | `'~/.npm-safe/rules.json'` | Path to the per-rule configuration JSON file. |
+| `rulesDir` | `string` | `'~/.npm-safe/rules/'` | Directory scanned for third-party rule plugin files. |
 
 When using the CLI, LLM scanning is configured through environment variables:
 set `OPENAI_API_KEY` (plus optional `OPENAI_BASE_URL` and `OPENAI_MODEL`) for

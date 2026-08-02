@@ -14,6 +14,7 @@ import {
   Severity,
   StaticScanReport,
 } from './types.js';
+import { RuleConfigManager } from './rule-config.js';
 
 /** Severity weights subtracted from the base score (100) per finding. */
 const SEVERITY_WEIGHT: Readonly<Record<Severity, number>> = {
@@ -660,19 +661,91 @@ export const BUILTIN_RULES: readonly ScanRule[] = [
   registryMismatchRule,
 ];
 
+/** Ids of the built-in rules, used to label rule provenance. */
+export const BUILTIN_RULE_IDS: ReadonlySet<string> = new Set(
+  BUILTIN_RULES.map((r) => r.id),
+);
+
+/** A rule together with its effective (post-config) status. */
+export interface RuleDescriptor {
+  /** Stable unique identifier for the rule. */
+  readonly id: string;
+  /** Human-readable name of the rule. */
+  readonly name: string;
+  /** Description of what the rule detects. */
+  readonly description: string;
+  /** Effective severity (after config overrides). */
+  readonly severity: Severity;
+  /** Category assigned to findings produced by this rule. */
+  readonly category: FindingCategory;
+  /** Whether the rule is enabled (after config overrides). */
+  readonly enabled: boolean;
+  /** Whether the rule ships with the engine or was loaded from a plugin. */
+  readonly source: 'builtin' | 'plugin';
+}
+
 /**
  * Static analysis engine that runs a set of {@link ScanRule}s against a
  * package's README and package.json and aggregates the findings into a
  * {@link StaticScanReport}.
  */
 export class StaticAnalyzer {
-  private readonly rules: readonly ScanRule[];
+  private readonly rules: Map<string, ScanRule>;
+  private readonly config: RuleConfigManager | null;
 
   /**
    * @param rules - Optional custom rule set. Defaults to all built-in rules.
+   * @param config - Optional per-rule configuration manager whose overrides
+   *   (enabled / severity) are applied at analysis time.
    */
-  constructor(rules?: ScanRule[]) {
-    this.rules = rules ?? BUILTIN_RULES;
+  constructor(rules?: ScanRule[], config?: RuleConfigManager) {
+    this.rules = new Map(
+      (rules ?? [...BUILTIN_RULES]).map((r) => [r.id, r]),
+    );
+    this.config = config ?? null;
+  }
+
+  /**
+   * Register a rule at runtime. A rule with the same id replaces the existing
+   * one (keeping its position in the registration order).
+   *
+   * @param rule - The rule to register.
+   */
+  registerRule(rule: ScanRule): void {
+    this.rules.set(rule.id, rule);
+  }
+
+  /**
+   * Remove a rule by id.
+   *
+   * @param ruleId - Id of the rule to remove.
+   * @returns `true` if a rule was removed, `false` if no such rule exists.
+   */
+  unregisterRule(ruleId: string): boolean {
+    return this.rules.delete(ruleId);
+  }
+
+  /**
+   * Describe every registered rule with its effective status.
+   *
+   * @returns Rule descriptors in registration order.
+   */
+  listRules(): RuleDescriptor[] {
+    const descriptors: RuleDescriptor[] = [];
+    for (const rule of this.rules.values()) {
+      const severity = this.config?.getSeverityOverride(rule.id) ?? rule.severity;
+      const enabled = this.config?.isEnabled(rule.id, rule.enabled) ?? rule.enabled;
+      descriptors.push({
+        id: rule.id,
+        name: rule.name,
+        description: rule.description,
+        severity,
+        category: rule.category,
+        enabled,
+        source: BUILTIN_RULE_IDS.has(rule.id) ? 'builtin' : 'plugin',
+      });
+    }
+    return descriptors;
   }
 
   /**
@@ -694,10 +767,18 @@ export class StaticAnalyzer {
     packageJson?: Record<string, unknown>,
   ): StaticScanReport {
     const findings: ScanFinding[] = [];
-    for (const rule of this.rules) {
-      if (!rule.enabled) continue;
+    for (const rule of this.rules.values()) {
+      const enabled = this.config?.isEnabled(rule.id, rule.enabled) ?? rule.enabled;
+      if (!enabled) continue;
+      const severityOverride = this.config?.getSeverityOverride(rule.id);
       const ruleFindings = rule.match(readme, packageJson);
-      for (const f of ruleFindings) findings.push(f);
+      for (const f of ruleFindings) {
+        findings.push(
+          severityOverride && severityOverride !== f.severity
+            ? { ...f, severity: severityOverride }
+            : f,
+        );
+      }
     }
 
     let score = MAX_SCORE;
