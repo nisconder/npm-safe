@@ -9,6 +9,11 @@
   "bin": {
     "npm-safe": "./dist/cli/cli.js"
   },
+  "files": [
+    "dist",
+    "opencode-skill",
+    "scripts/install-skill.mjs"
+  ],
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -30,6 +35,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "build:cli": "tsc -p tsconfig.json",
+    "postinstall": "node scripts/install-skill.mjs",
     "test": "node --import tsx --test --test-reporter spec \"test/**/*.test.ts\""
   }
 }
