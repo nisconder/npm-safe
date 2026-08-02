@@ -2,6 +2,15 @@
 
 [English](README.md)
 
+![版本](https://img.shields.io/badge/版本-v0.1.0-2196F3)
+![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
+![语言](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![测试](https://img.shields.io/badge/测试-206%20通过-brightgreen)
+![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
+![pnpm](https://img.shields.io/badge/pnpm-工作区-F69220?logo=pnpm&logoColor=white)
+![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
+![状态](https://img.shields.io/badge/状态-第二阶段完成-FF5722)
+
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
 **当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，26 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（206 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic），以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
