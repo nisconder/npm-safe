@@ -103,11 +103,11 @@ export function registerCheckCommand(program: Command): void {
     .option("-j, --json", "Output raw JSON")
     .option("-r, --refresh", "Force a fresh registry fetch")
     .action(async (packageName: string, options: { json?: boolean; refresh?: boolean }) => {
-      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
       await runCheck(packageName, {
         db: opts.db,
         proxy: opts.proxy,
-        json: options.json,
+        json: options.json ?? opts.json,
         refresh: options.refresh,
       });
     });

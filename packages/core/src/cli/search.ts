@@ -9,13 +9,13 @@ export function registerSearchCommand(program: Command): void {
     .option("-j, --json", "Output raw JSON")
     .option("-s, --size <number>", "Maximum number of results", "20")
     .action(async (query: string, options: { json?: boolean; size?: string }) => {
-      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
       const engine = await createEngine(opts.db, opts.proxy);
       try {
         const size = parseInt(options.size ?? "20", 10);
         const results = await engine.searchPackages(query, size);
 
-        if (options.json) {
+        if (options.json ?? opts.json) {
           console.log(JSON.stringify(results, null, 2));
           return;
         }
