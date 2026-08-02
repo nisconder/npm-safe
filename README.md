@@ -7,9 +7,7 @@
 ![Language](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-206%20passing-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
-![pnpm](https://img.shields.io/badge/pnpm-workspace-F69220?logo=pnpm&logoColor=white)
 ![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
-![Status](https://img.shields.io/badge/status-Phase%202%20complete-FF5722)
 
 @npm-safe is a local-first engine for analyzing npm packages against known
 supply-chain attack patterns. It fetches package metadata from the public npm
