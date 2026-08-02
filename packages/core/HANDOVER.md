@@ -23,7 +23,7 @@ This document records every project plan and its completion status.
 | LLM-based scan provider | **Done** (2026-08-01) | Multi-provider: OpenAI / Gemini / Anthropic, see section 3.5 |
 | Desktop GUI (`packages/desktop`) | **Done** (2026-08-01) | Neutralinojs + vanilla JS + Material You (M3), see section 6 |
 | Neutralinojs GUI (MD3) | **Done** (2026-08-01) | Shipped as `packages/desktop` — Neutralinojs window app with a Material 3 (MD3) design system (light/dark themes). The original Preact+mdui plan was superseded by the delivered vanilla-JS implementation, which fulfills the MD3 requirement. |
-| AI skill packaging | Pending | Future phase (OpenCode SKILL.md under `opencode-skill/`) |
+| AI skill packaging | **Done** (2026-08-02) | Global agent skill `npm-safe-scan` installed at `~/.agents/skills/npm-safe-scan/SKILL.md`; packages the CLI for any AI agent (opencode, Claude Code). |
 | Plugin system | Pending | Future phase |
 | CI/CD integration | Pending | Future phase |
 | Multi-package batch API | Pending | Future phase |
@@ -234,6 +234,14 @@ Apache-2.0.
 
 Run with `cd packages/desktop && pnpm run` (dev) or `pnpm run build:release`.
 
+### 3.7 AI skill packaging
+
+A global agent skill `npm-safe-scan` was installed on 2026-08-02 at
+`~/.agents/skills/npm-safe-scan/SKILL.md`. It packages the `npm-safe` CLI as
+an agent skill usable by any AI agent (opencode, Claude Code), exposing the
+tool's commands (check, search, watch, refresh, settings, lang) so the agent
+can invoke them directly to scan npm packages.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -260,12 +268,11 @@ covered by the shipped desktop GUI in section 3.6.
 
 | Priority | Plan | Description |
 |---|---|---|
-| 1 | **AI skill packaging** | Package the `npm-safe` CLI as an OpenCode SKILL.md (with YAML frontmatter) under an `opencode-skill/` directory. The skill exposes the tool's commands (check, search, watch, refresh, settings, lang) so an AI agent can automatically invoke them to scan npm packages. Recorded decision: OpenCode SKILL.md format (see `.omo/drafts/npm-safe-phase1.md`). |
-| 2 | **Plugin system** | Dynamic third-party `ScanRule` registration. The `StaticAnalyzer` constructor already accepts an optional `ScanRule[]` array; add discovery, a registration API, and a configuration file. |
-| 3 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
-| 4 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
-| 5 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
-| 6 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
+| 1 | **Plugin system** | Dynamic third-party `ScanRule` registration. The `StaticAnalyzer` constructor already accepts an optional `ScanRule[]` array; add discovery, a registration API, and a configuration file. |
+| 2 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
+| 3 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
+| 4 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
+| 5 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
 
 ---
 

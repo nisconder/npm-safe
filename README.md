@@ -179,6 +179,18 @@ The desktop GUI lives under `packages/desktop/` and is documented in the
 
 ---
 
+## AI Skill
+
+An agent skill named `npm-safe-scan` is installed globally at
+`~/.agents/skills/npm-safe-scan/SKILL.md`. It packages this project's CLI so
+any AI agent (opencode, Claude Code, or another agent that auto-loads
+`~/.agents/skills/`) can automatically invoke `npm-safe` commands to check,
+search, watch, and refresh npm package security assessments. The skill
+documents the full command surface, common workflows, and JSON output
+interpretation.
+
+---
+
 ## Directory Structure
 
 ```

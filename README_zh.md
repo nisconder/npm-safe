@@ -147,6 +147,17 @@ pnpm -F @npm-safe/core test
 
 ---
 
+## AI 技能
+
+名为 `npm-safe-scan` 的代理技能已全局安装在
+`~/.agents/skills/npm-safe-scan/SKILL.md`。它将本项目的 CLI 封装为技能，
+使任何 AI 代理（opencode、Claude Code 或任何自动加载
+`~/.agents/skills/` 的代理）都能自动调用 `npm-safe` 命令来检查、搜索、
+监视和刷新 npm 包的安全评估。该技能文档记录了完整的命令集、常见工作流
+和 JSON 输出解读。
+
+---
+
 ## 目录结构
 
 ```

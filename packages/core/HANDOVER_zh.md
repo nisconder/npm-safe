@@ -23,7 +23,7 @@
 | 基于 LLM 的扫描提供者 | **已完成**（2026-08-01） | 多提供者：OpenAI / Gemini / Anthropic，见第 3.5 节 |
 | 桌面 GUI（`packages/desktop`） | **已完成**（2026-08-01） | Neutralinojs + 原生 JS + Material You（M3），见第 3.6 节 |
 | Neutralinojs 图形界面（MD3） | **已完成**（2026-08-01） | 已随 `packages/desktop` 交付，基于 Neutralinojs 的窗口应用，采用 Material 3（MD3）设计体系（浅色/深色主题）。原始的 Preact+mdui 方案已被交付的原生 JS 实现取代，后者已满足 MD3 要求。 |
-| AI 技能打包 | 待办 | 未来阶段（`opencode-skill/` 下的 OpenCode SKILL.md） |
+| AI 技能打包 | **已完成**（2026-08-02） | 全局技能 `npm-safe-scan` 已安装于 `~/.agents/skills/npm-safe-scan/SKILL.md`；将 CLI 打包为供任意 AI 代理（opencode、Claude Code）使用的技能。 |
 | 插件系统 | 待办 | 未来阶段 |
 | CI/CD 集成 | 待办 | 未来阶段 |
 | 多包批量 API | 待办 | 未来阶段 |
@@ -227,6 +227,14 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 运行方式：`cd packages/desktop && pnpm run`（开发）或
 `pnpm run build:release`。
 
+### 3.7 AI 技能打包
+
+全局技能 `npm-safe-scan` 于 2026-08-02 安装至
+`~/.agents/skills/npm-safe-scan/SKILL.md`。它将 `npm-safe` CLI 打包为可供
+任意 AI 代理（opencode、Claude Code）使用的代理技能，暴露工具的各个命令
+（check、search、watch、refresh、settings、lang），使代理能够直接调用
+它们来扫描 npm 包。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -253,12 +261,11 @@ Neutralinojs 图形界面（MD3）计划已交付，不再列入下表；详见�
 
 | 优先级 | 计划 | 描述 |
 |---|---|---|
-| 1 | **AI 技能打包** | 将 `npm-safe` CLI 打包为 `opencode-skill/` 目录下的 OpenCode SKILL.md（包含 YAML frontmatter）。该技能暴露工具的各个命令（check、search、watch、refresh、settings、lang），使 AI 代理能够自动调用它们来扫描 npm 包。已记录的决策：采用 OpenCode SKILL.md 格式（参见 `.omo/drafts/npm-safe-phase1.md`）。 |
-| 2 | **插件系统** | 动态注册第三方 `ScanRule`。`StaticAnalyzer` 构造函数已经接受可选的 `ScanRule[]` 数组；增加发现机制、注册 API 和配置文件。 |
-| 3 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
-| 4 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
-| 5 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
-| 6 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
+| 1 | **插件系统** | 动态注册第三方 `ScanRule`。`StaticAnalyzer` 构造函数已经接受可选的 `ScanRule[]` 数组；增加发现机制、注册 API 和配置文件。 |
+| 2 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
+| 3 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
+| 4 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
+| 5 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
 
 ---
 
