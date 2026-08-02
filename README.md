@@ -79,10 +79,10 @@ A Neutralinojs desktop GUI is provided under `packages/desktop/`:
 ```bash
 # Build the core engine and run the desktop app in development mode
 cd packages/desktop
-pnpm run
+pnpm run run
 
 # Build a release bundle
-pnpm run build:release
+pnpm run build
 ```
 
 Features:
@@ -199,45 +199,62 @@ surface, common workflows, and JSON output interpretation.
 ## Directory Structure
 
 ```
-npm-store/
-  pnpm-workspace.yaml          # workspace = packages/*
-  tsconfig.base.json           # shared TypeScript config (ESNext, strict)
-  .codegraph/
-    .gitignore
-  .omo/                        # OpenCode planning & evidence (internal)
+npm-safe/
+  .gitignore
+  LICENSE                  # Apache-2.0
+  README.md                # project README (English)
+  README_zh.md             # project README (Chinese)
+  pnpm-lock.yaml           # lockfile
+  pnpm-workspace.yaml      # workspace = packages/*
+  tsconfig.base.json       # shared TypeScript config (ESNext, strict)
   packages/
     core/
-      package.json             # @npm-safe/core v0.1.0, ESM, private
-      tsconfig.json            # extends ../../tsconfig.base.json
+      package.json         # @npm-safe/core v0.1.0, ESM, private
+      tsconfig.json        # extends ../../tsconfig.base.json
+      API.md               # public API reference
+      ARCHITECTURE.md      # layer map, data flows, DB schema
+      SCANNER_RULES.md     # 10 static rule reference
+      HANDOVER.md          # Phase 1 → 2 handover (EN)
+      HANDOVER_zh.md       # Phase 1 → 2 handover (ZH)
+      opencode-skill/
+        npm-safe-scan/
+          SKILL.md         # AI skill, auto-installed via postinstall
+      scripts/
+        install-skill.mjs  # postinstall hook
       src/
-        index.ts               # NpmSafeEngine facade — unified public API
+        index.ts           # NpmSafeEngine facade — unified public API
         cli/
-          cli.ts               # CLI entry — commander program + shorthand check
-          check.ts             # check command (shared with shorthand)
-          search.ts            # search command
-          watch.ts             # watchlist commands (list/add/remove)
-          refresh.ts           # refresh command
-          settings.ts          # settings get/set commands
-          lang.ts              # lang command (en/zh, persisted)
-          i18n.ts              # en/zh localization module
-          shared.ts            # engine factory + default DB path
+          cli.ts           # CLI entry — commander program + shorthand check
+          check.ts         # check command (shared with shorthand)
+          search.ts        # search command
+          watch.ts         # watchlist commands (list/add/remove)
+          refresh.ts       # refresh command
+          settings.ts      # settings get/set commands
+          lang.ts          # lang command (en/zh, persisted)
+          i18n.ts          # en/zh localization module
+          shared.ts        # engine factory + default DB path
+        llm/
+          provider.ts      # createLlmProvider factory (OpenAI / Gemini / Anthropic)
+          gemini.ts        # Gemini LLM provider
+          anthropic.ts     # Anthropic LLM provider
+          parse.ts         # LLM response parsing helpers
         registry/
-          types.ts             # PackageMetadata, AbbreviatedVersion, SearchResult, NpmRegistryError
-          validator.ts         # validatePackageName, validateVersion, validateDomain, isKnownRegistryDomain
-          client.ts            # NpmRegistryClient — HTTP fetch with retry, backoff & proxy support
+          types.ts         # PackageMetadata, AbbreviatedVersion, SearchResult, NpmRegistryError
+          validator.ts     # validatePackageName, validateVersion, validateDomain, isKnownRegistryDomain
+          client.ts        # NpmRegistryClient — HTTP fetch with retry, backoff & proxy support
         scanner/
-          types.ts             # SecurityLevel, Severity, ScanFinding, ScanRule, StaticScanReport
-          static-rules.ts      # StaticAnalyzer — 10 built-in analysis rules
+          types.ts         # SecurityLevel, Severity, ScanFinding, ScanRule, StaticScanReport
+          static-rules.ts  # StaticAnalyzer — 10 built-in analysis rules
         scheduler/
           rate-limiter.ts      # TokenBucket — 5 tokens/s, 10 burst
           refresh-scheduler.ts # RefreshScheduler — periodic watchlist refresh via EventEmitter
         store/
-          schema.ts            # SCHEMA_SQL (DDL), getMigrationList, getInitialMigration
-          database.ts          # DatabaseManager — better-sqlite3 with WAL, migrations
-          cache-manager.ts     # CacheManager — TTL-based get/set for packages, reports, watchlist, settings
+          schema.ts        # SCHEMA_SQL (DDL), getMigrationList, getInitialMigration
+          database.ts      # DatabaseManager — better-sqlite3 with WAL, migrations
+          cache-manager.ts # CacheManager — TTL-based get/set for packages, reports, watchlist, settings
         translator/
-          types.ts             # TranslationProvider interface, target-language config
-          provider.ts          # Built-in translation provider implementation
+          types.ts         # TranslationProvider interface, target-language config
+          provider.ts      # Built-in translation provider implementation
       test/
         validator.test.ts      # package name/version/domain validation tests
         static-rules.test.ts   # 10 rules + scoring/level tests
@@ -257,6 +274,12 @@ npm-store/
         index.html                   # Material You UI with Navigation Drawer
         styles.css                   # M3 light/dark themes, custom title bar
         js/main.js                   # frontend IPC bridge + dashboard logic
+        js/neutralino.js             # Neutralinojs client library
+        js/neutralino.d.ts           # Neutralinojs type definitions
+        icons/
+          appIcon.png                # app icon
+          trayIcon.png               # tray icon
+          logo.gif                   # logo animation
         extensions/core/main.mjs     # Node.js extension hosting NpmSafeEngine
 ```
 
