@@ -2,7 +2,7 @@
 
 **日期：** 2026-08-01
 **包名：** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
-**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（13 个源文件）和 CLI（9 个文件）已交付，205 个测试全部通过，代理支持、中英文本地化以及多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）已上线，零 TypeScript 错误。基于 Neutralinojs 的桌面 GUI（原生 JS、Material You）已随 `packages/desktop/` 交付。
+**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（17 个源文件）和 CLI（9 个文件）已交付，206 个测试全部通过，代理支持、中英文本地化以及多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）已上线，零 TypeScript 错误。基于 Neutralinojs 的桌面 GUI（原生 JS、Material You）已随 `packages/desktop/` 交付。2026-08-02 的缺陷修复轮次对桌面 GUI 进行了 XSS 到 RCE 加固、增加了监控列表外键预检查、修正了 refresh 语义，并支持亚秒级 TTL（见第 3.8 节）。
 
 [English](HANDOVER.md)
 
@@ -14,9 +14,9 @@
 
 | 计划 | 状态 | 备注 |
 |---|---|---|
-| 第一阶段：引擎核心（`npm-safe-phase1`） | **已完成** | 13 个源文件，tsc 零错误，冒烟测试通过 |
+| 第一阶段：引擎核心（`npm-safe-phase1`） | **已完成** | 引擎核心模块，tsc 零错误，冒烟测试通过 |
 | 第一阶段：文档包（`phase1-documentation`） | **已完成** | README、README_zh、ARCHITECTURE、API、SCANNER_RULES、HANDOVER、HANDOVER_zh |
-| 第二阶段：测试套件 | **已完成**（2026-07-31） | 205 个测试全部通过，11 个测试文件 |
+| 第二阶段：测试套件 | **已完成**（2026-07-31） | 206 个测试全部通过，11 个测试文件 |
 | 第二阶段：CLI 命令行工具 | **已完成**（2026-07-31） | `src/cli/` 下 9 个文件，6 个命令，`npm-safe` 可执行文件 |
 | 第二阶段：代理支持 | **已完成**（2026-07-31） | `undici.ProxyAgent`，标志 > 设置 > 环境变量解析，`NO_PROXY` 绕过，4 个测试 |
 | 第二阶段：i18n | **已完成**（2026-07-31） | 中英文 CLI 本地化，持久化的 `lang` 命令，HANDOVER_zh.md |
@@ -120,7 +120,7 @@
 
 ### 3.1 测试套件
 
-205 个测试分布在 11 个文件中，全部通过。运行方式：
+206 个测试分布在 11 个文件中，全部通过。运行方式：
 
 ```
 pnpm -F @npm-safe/core test
@@ -236,6 +236,18 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 它们来扫描 npm 包。该技能随包一同分发于 `opencode-skill/npm-safe-scan/SKILL.md`，
 并在每次安装本包时通过 `postinstall` 钩子（`scripts/install-skill.mjs`）
 自动安装至 `~/.agents/skills/`。
+
+### 3.8 缺陷修复（2026-08-02）
+
+2026-08-02 进行的安全与正确性审查发现并修复了 12 个问题，按严重级别划分如下：
+
+- **严重（2）：桌面 GUI 中的 XSS 到 RCE。** 由包控制的内容字段未经转义直接渲染到 DOM，脚本注入可借此触及 Neutralinojs 窗口的宿主 API。现在所有字段在渲染前均已转义。
+- **高危（2）。** LLM 发现项渲染器存在同样的 XSS 暴露，现同样已转义。监控列表刷新时若某包在周期中途被移除，可能因外键违规而崩溃；现在会预先检查该违规。
+- **中危（3）。** 用于断言仅限开发调用的 dev-guard 已收紧，`setBusy` 变为幂等，不带参数的 `refresh` 命令现在刷新监控列表，与文档描述一致。
+- **低危（5）。** 移除了仿冒包名规则中的 `.com` 误报；`search --size` 现在校验并将值限制在 1-250，默认 20（原先的 NaN 路径已消除）；`levelLabel` 增加了安全回退；修复了 `callEngine` 超时；亚秒级 TTL 现在以毫秒精度生效。
+- **CLI `-j` 标志。** 同一轮修复中一并修复了 JSON 输出标志。
+
+测试套件从 205 个增至 206 个，全部通过。`packages/core/src/` 下的源文件数现为 26（此前的 13 是在 CLI 和 LLM 提供者文件加入之前的数字）。
 
 ---
 

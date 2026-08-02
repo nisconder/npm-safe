@@ -10,13 +10,17 @@ querying, watching, and refreshing security assessments. The engine is
 designed to operate as a library rather than a standalone service.
 
 **Status: Phase 1 complete (engine core) + Phase 2 complete.** Engine core
-delivered with 13 source files and zero TypeScript errors. Phase 2 added a
-full test suite (205 tests, all passing), a CLI binary with commands for
+delivered with 26 source files and zero TypeScript errors. Phase 2 added a
+full test suite (206 tests, all passing), a CLI binary with commands for
 `check`, `search`, `watch`, `refresh`, `settings`, and `lang`, proxy support
 for restricted networks, an optional multi-provider LLM scan provider
 (OpenAI / Gemini / Anthropic), and a Neutralinojs desktop GUI with a
 Material You dashboard, check/search/watch/settings tabs, light/dark themes,
-and persistent check history.
+and persistent check history. A hardening pass (2026-08-02) fixed 12 issues
+found by a bug screen, including two critical XSS-to-RCE exposures in the
+desktop GUI (all fields are now escaped), a watchlist refresh crash, and
+several CLI correctness problems such as the `-j` output flag and sub-second
+TTL precision.
 
 ---
 
@@ -158,7 +162,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-205 tests cover every module: validators, static rules, rate limiter, store
+206 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
 integration surface, the LLM providers, and the CLI itself.
 
@@ -328,8 +332,9 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 ## What Is Next (Phase 3)
 
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test
-suite, CLI, proxy support, and a Neutralinojs desktop GUI. Remaining work for
-Phase 3:
+suite, CLI, proxy support, the LLM scan provider, and a Neutralinojs desktop
+GUI, followed by a security hardening pass (2026-08-02) that fixed 12 issues
+found by a bug screen. Remaining work for Phase 3:
 
 - **Batch operations.** Multi-package `checkPackage`, bulk search export, and
   report download from the dashboard.

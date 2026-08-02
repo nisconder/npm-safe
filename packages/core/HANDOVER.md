@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-01
 **Package:** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
-**Status:** All Phase 1 and Phase 2 plans complete. Engine core (13 source files) plus CLI (9 files) delivered, 205 tests passing, proxy support, en/zh localization, and multi-provider LLM scanning (OpenAI / Gemini / Anthropic) shipped, zero TypeScript errors. A Neutralinojs desktop GUI (vanilla JS, Material You) ships under `packages/desktop/`.
+**Status:** All Phase 1 and Phase 2 plans complete. Engine core (17 source files) plus CLI (9 files) delivered, 206 tests passing, proxy support, en/zh localization, and multi-provider LLM scanning (OpenAI / Gemini / Anthropic) shipped, zero TypeScript errors. A Neutralinojs desktop GUI (vanilla JS, Material You) ships under `packages/desktop/`. A bug-fix pass on 2026-08-02 hardened the desktop GUI against XSS-to-RCE, added a watchlist foreign-key pre-check, corrected refresh semantics, and added sub-second TTL support (see section 3.8).
 
 [中文版](HANDOVER_zh.md)
 
@@ -14,9 +14,9 @@ This document records every project plan and its completion status.
 
 | Plan | Status | Notes |
 |---|---|---|
-| Phase 1: engine core (`npm-safe-phase1`) | **Done** | 13 source files, tsc-clean, smoke-tested |
+| Phase 1: engine core (`npm-safe-phase1`) | **Done** | Engine core modules, tsc-clean, smoke-tested |
 | Phase 1: documentation pack (`phase1-documentation`) | **Done** | README, README_zh, ARCHITECTURE, API, SCANNER_RULES, HANDOVER, HANDOVER_zh |
-| Phase 2: test suite | **Done** (2026-07-31) | 205 tests, all passing, 11 test files |
+| Phase 2: test suite | **Done** (2026-07-31) | 206 tests, all passing, 11 test files |
 | Phase 2: CLI binary | **Done** (2026-07-31) | 9 files under `src/cli/`, 6 commands, `npm-safe` bin |
 | Phase 2: proxy support | **Done** (2026-07-31) | `undici.ProxyAgent`, flag > setting > env resolution, `NO_PROXY` bypass, 4 tests |
 | Phase 2: i18n | **Done** (2026-07-31) | en/zh CLI localization, persisted `lang` command, HANDOVER_zh.md |
@@ -123,7 +123,7 @@ scan core. All five workstreams are complete and verified.
 
 ### 3.1 Test suite
 
-205 tests across 11 files, all passing. Run with:
+206 tests across 11 files, all passing. Run with:
 
 ```
 pnpm -F @npm-safe/core test
@@ -244,6 +244,33 @@ can invoke them directly to scan npm packages. The skill is bundled inside
 the package at `opencode-skill/npm-safe-scan/SKILL.md` and auto-installed to
 `~/.agents/skills/` via a `postinstall` hook (`scripts/install-skill.mjs`)
 whenever the package is installed.
+
+### 3.8 Bug-fix pass (2026-08-02)
+
+A security and correctness review on 2026-08-02 found and fixed 12 issues,
+split across severities:
+
+- **Critical (2): XSS-to-RCE in the desktop GUI.** Package-controlled fields
+  were rendered into the DOM without escaping, which would let script
+  injection reach the Neutralinojs window's host API. All fields are now
+  escaped before rendering.
+- **High (2).** The LLM finding renderer carried the same XSS exposure and is
+  now escaped too. A watchlist refresh could crash on a foreign-key violation
+  when a package was removed mid-cycle; the violation is now pre-checked.
+- **Medium (3).** The dev-guard that asserts development-only invocation was
+  tightened, `setBusy` became idempotent, and the no-argument `refresh`
+  command now refreshes the watchlist to match its documented behaviour.
+- **Low (5).** A `.com` false positive in the typosquatting rule was removed;
+  `search --size` now validates and clamps 1-250 with a default of 20 (the
+  previous NaN path is gone); `levelLabel` gained a safe fallback; the
+  `callEngine` timeout was fixed; and sub-second TTLs are now honoured with
+  millisecond precision.
+- **CLI `-j` flag.** The JSON output flag was repaired as part of the same
+  pass.
+
+The suite grew from 205 to 206 tests; all pass. The source-file count under
+`packages/core/src/` is now 26 (the earlier 13 figure predated the CLI and
+LLM provider files).
 
 ---
 
