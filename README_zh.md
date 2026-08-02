@@ -57,10 +57,10 @@ npm-safe lang [en|zh]              # 查看或设置输出语言
 ```bash
 # 构建核心引擎并在开发模式下运行桌面应用
 cd packages/desktop
-pnpm run
+pnpm run run
 
 # 构建发布包
-pnpm run build:release
+pnpm run build
 ```
 
 功能特性：
@@ -162,45 +162,62 @@ Code 或任何自动加载 `~/.agents/skills/` 的代理）随后即可自动调
 ## 目录结构
 
 ```
-npm-store/
-  pnpm-workspace.yaml          # workspace = packages/*
-  tsconfig.base.json           # 共享 TypeScript 配置（ESNext, strict）
-  .codegraph/
-    .gitignore
-  .omo/                        # OpenCode 规划与证据（内部）
+npm-safe/
+  .gitignore
+  LICENSE                  # Apache-2.0
+  README.md                # 项目说明（英文）
+  README_zh.md             # 项目说明（中文）
+  pnpm-lock.yaml           # 锁文件
+  pnpm-workspace.yaml      # workspace = packages/*
+  tsconfig.base.json       # 共享 TypeScript 配置（ESNext, strict）
   packages/
     core/
-      package.json             # @npm-safe/core v0.1.0, ESM, private
-      tsconfig.json            # extends ../../tsconfig.base.json
+      package.json         # @npm-safe/core v0.1.0, ESM, private
+      tsconfig.json        # extends ../../tsconfig.base.json
+      API.md               # 公共 API 参考文档
+      ARCHITECTURE.md      # 分层架构图、数据流、数据库模式
+      SCANNER_RULES.md     # 10 条静态规则参考
+      HANDOVER.md          # 第一阶段→第二阶段交接文档（英文）
+      HANDOVER_zh.md       # 第一阶段→第二阶段交接文档（中文）
+      opencode-skill/
+        npm-safe-scan/
+          SKILL.md         # AI 技能，postinstall 自动安装
+      scripts/
+        install-skill.mjs  # postinstall 钩子
       src/
-        index.ts               # NpmSafeEngine 门面 — 统一公共 API
+        index.ts           # NpmSafeEngine 门面 — 统一公共 API
         cli/
-          cli.ts               # CLI 入口 — commander 程序 + check 简写
-          check.ts             # check 命令（与简写共用）
-          search.ts            # search 命令
-          watch.ts             # 监控列表命令（list/add/remove）
-          refresh.ts           # refresh 命令
-          settings.ts          # settings get/set 命令
-          lang.ts              # lang 命令（en/zh，持久化）
-          i18n.ts              # 中英文双语模块
-          shared.ts            # 引擎工厂 + 默认数据库路径
+          cli.ts           # CLI 入口 — commander 程序 + check 简写
+          check.ts         # check 命令（与简写共用）
+          search.ts        # search 命令
+          watch.ts         # 监控列表命令（list/add/remove）
+          refresh.ts       # refresh 命令
+          settings.ts      # settings get/set 命令
+          lang.ts          # lang 命令（en/zh，持久化）
+          i18n.ts          # 中英文双语模块
+          shared.ts        # 引擎工厂 + 默认数据库路径
+        llm/
+          provider.ts      # createLlmProvider 工厂（OpenAI / Gemini / Anthropic）
+          gemini.ts        # Gemini LLM 提供者
+          anthropic.ts     # Anthropic LLM 提供者
+          parse.ts         # LLM 响应解析辅助函数
         registry/
-          types.ts             # PackageMetadata, AbbreviatedVersion, SearchResult, NpmRegistryError
-          validator.ts         # validatePackageName, validateVersion, validateDomain, isKnownRegistryDomain
-          client.ts            # NpmRegistryClient — HTTP 请求，含重试、退避与代理支持
+          types.ts         # PackageMetadata, AbbreviatedVersion, SearchResult, NpmRegistryError
+          validator.ts     # validatePackageName, validateVersion, validateDomain, isKnownRegistryDomain
+          client.ts        # NpmRegistryClient — HTTP 请求，含重试、退避与代理支持
         scanner/
-          types.ts             # SecurityLevel, Severity, ScanFinding, ScanRule, StaticScanReport
-          static-rules.ts      # StaticAnalyzer — 10 条内置分析规则
+          types.ts         # SecurityLevel, Severity, ScanFinding, ScanRule, StaticScanReport
+          static-rules.ts  # StaticAnalyzer — 10 条内置分析规则
         scheduler/
           rate-limiter.ts      # TokenBucket — 5 tokens/s, 10 burst
           refresh-scheduler.ts # RefreshScheduler — 通过 EventEmitter 实现定时刷新监控列表
         store/
-          schema.ts            # SCHEMA_SQL (DDL), getMigrationList, getInitialMigration
-          database.ts          # DatabaseManager — better-sqlite3, WAL 模式, 迁移系统
-          cache-manager.ts     # CacheManager — 基于 TTL 的缓存读写，用于包、报告、监控列表、设置
+          schema.ts        # SCHEMA_SQL (DDL), getMigrationList, getInitialMigration
+          database.ts      # DatabaseManager — better-sqlite3, WAL 模式, 迁移系统
+          cache-manager.ts # CacheManager — 基于 TTL 的缓存读写，用于包、报告、监控列表、设置
         translator/
-          types.ts             # TranslationProvider 接口, 目标语言配置
-          provider.ts          # 内置翻译提供者实现
+          types.ts         # TranslationProvider 接口, 目标语言配置
+          provider.ts      # 内置翻译提供者实现
       test/
         validator.test.ts      # 包名/版本/域名校验测试
         static-rules.test.ts   # 10 条规则 + 评分/等级测试
@@ -220,6 +237,12 @@ npm-store/
         index.html                   # Material You 界面（Navigation Drawer）
         styles.css                   # M3 浅色/深色主题、自定义标题栏
         js/main.js                   # 前端 IPC 桥接 + 仪表盘逻辑
+        js/neutralino.js             # Neutralinojs 客户端库
+        js/neutralino.d.ts           # Neutralinojs 类型定义
+        icons/
+          appIcon.png                # 应用图标
+          trayIcon.png               # 托盘图标
+          logo.gif                   # 标志动画
         extensions/core/main.mjs     # 承载 NpmSafeEngine 的 Node.js 扩展
 ```
 
