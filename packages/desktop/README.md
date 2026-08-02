@@ -191,3 +191,9 @@ packages/desktop/
 - **WebView2 loopback error on Windows** — run the `CheckNetIsolation.exe` command from [Windows First-Run Notes](#windows-first-run-notes).
 - **Engine requests time out after 30s** — the status bar shows the timeout error; check network connectivity (a `proxy` setting may be required on restricted networks).
 - **Extension not responding** — inspect the extension log (`%TEMP%/npmsafe-extension.log`) for errors and confirm the core engine built successfully before launching.
+
+---
+
+## What's Next?
+
+What's our next surprise? **It's coming soon!**
