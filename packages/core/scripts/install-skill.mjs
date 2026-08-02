@@ -11,15 +11,25 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // --- Dev-install guard -----------------------------------------------------
-// When @npm-safe/core is installed as a workspace package (e.g. `pnpm install`
-// at the repo root during development), postinstall fires for the workspace
-// package too. Skip the skill copy in that case so dev installs do not touch
-// the global skill dir; only real installs (tarball/registry) install it.
+// Skip when this is a workspace/dev install (e.g. `pnpm install` at the repo
+// root during development): INIT_CWD points at the workspace root, which is
+// the pnpm-workspace.yaml directory. Real installs (tarball/registry) run
+// with INIT_CWD set to the user's project, which is NOT inside this package.
 const packageRoot = path.resolve(__dirname, "..");
+// Find the workspace root (dir containing pnpm-workspace.yaml), if any.
+let workspaceRoot = null;
+for (let dir = packageRoot; dir !== path.dirname(dir); dir = path.dirname(dir)) {
+  if (fs.existsSync(path.join(dir, "pnpm-workspace.yaml"))) {
+    workspaceRoot = dir;
+    break;
+  }
+}
 const initCwd = process.env.INIT_CWD ? path.resolve(process.env.INIT_CWD) : "";
 const isDevWorkspaceInstall =
   initCwd !== "" &&
-  (initCwd === packageRoot || initCwd === path.dirname(packageRoot));
+  (initCwd === packageRoot ||
+    initCwd === workspaceRoot ||
+    (workspaceRoot !== null && initCwd.startsWith(workspaceRoot + path.sep)));
 if (isDevWorkspaceInstall) {
   process.exit(0); // development install — skip skill install
 }
