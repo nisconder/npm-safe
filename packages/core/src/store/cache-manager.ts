@@ -38,7 +38,9 @@ export interface CacheManagerOptions {
   /**
    * Time-to-live for cached package metadata, in milliseconds. A row fetched
    * via {@link CacheManager.getPackage} is considered stale once `ttl_until`
-   * is in the past. Defaults to {@link DEFAULT_CACHE_TTL_MS} (1 hour).
+   * is in the past. Sub-second TTLs (e.g. `500`) are supported and stored
+   * with millisecond precision. Defaults to {@link DEFAULT_CACHE_TTL_MS}
+   * (1 hour).
    */
   readonly cacheTtlMs?: number;
 }
@@ -148,7 +150,7 @@ export class CacheManager {
   async getPackage(name: string): Promise<PackageMetadata | null> {
     const row = this.db
       .prepare<[string]>(
-        "SELECT name, latest_version, description, homepage, repository, registry_data, cached_at, ttl_until FROM packages WHERE name = ? AND ttl_until >= datetime('now')",
+        "SELECT name, latest_version, description, homepage, repository, registry_data, cached_at, ttl_until FROM packages WHERE name = ? AND ttl_until >= strftime('%Y-%m-%d %H:%M:%f', 'now')",
       )
       .get(name) as PackageRow | undefined;
     if (row === undefined) return null;
@@ -175,11 +177,16 @@ export class CacheManager {
     const homepage = meta.homepage ?? "";
     const repository = repositoryToString(meta.repository);
     const registryData = JSON.stringify(meta);
-    const ttlSeconds = Math.floor(this.cacheTtlMs / 1000);
+    // Fractional (sub-second) TTLs are supported: `datetime('now', ...)` would
+    // truncate fractional seconds to whole seconds, so the expiry is stamped
+    // via `strftime('%Y-%m-%d %H:%M:%f', ...)` which preserves milliseconds.
+    // The value is a number derived from configuration, not user input, so
+    // interpolating it into the SQL string is safe.
+    const ttlSeconds = this.cacheTtlMs / 1000;
     this.db
       .prepare<[string, string, string, string, string, string]>(
         `INSERT INTO packages (name, latest_version, description, homepage, repository, registry_data, cached_at, ttl_until)
-         VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now', '+${ttlSeconds} seconds'))
+         VALUES (?, ?, ?, ?, ?, ?, datetime('now'), strftime('%Y-%m-%d %H:%M:%f', 'now', '+${ttlSeconds} seconds'))
          ON CONFLICT(name) DO UPDATE SET
            latest_version = excluded.latest_version,
            description    = excluded.description,
@@ -187,7 +194,7 @@ export class CacheManager {
            repository      = excluded.repository,
            registry_data   = excluded.registry_data,
            cached_at       = datetime('now'),
-           ttl_until       = datetime('now', '+${ttlSeconds} seconds')`,
+           ttl_until       = strftime('%Y-%m-%d %H:%M:%f', 'now', '+${ttlSeconds} seconds')`,
       )
       .run(meta.name, latest, description, homepage, repository, registryData);
   }
@@ -404,7 +411,7 @@ export class CacheManager {
    */
   async getStalePackages(): Promise<string[]> {
     const rows = this.db
-      .prepare("SELECT name FROM packages WHERE ttl_until < datetime('now')")
+      .prepare("SELECT name FROM packages WHERE ttl_until < strftime('%Y-%m-%d %H:%M:%f', 'now')")
       .all() as ReadonlyArray<{ readonly name: string }>;
     return rows.map((r) => r.name);
   }

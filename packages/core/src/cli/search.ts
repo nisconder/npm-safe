@@ -12,7 +12,7 @@ export function registerSearchCommand(program: Command): void {
       const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
       const engine = await createEngine(opts.db, opts.proxy);
       try {
-        const size = parseInt(options.size ?? "20", 10);
+        const size = Math.max(1, Math.min(250, parseInt(options.size ?? "20", 10) || 20));
         const results = await engine.searchPackages(query, size);
 
         if (options.json ?? opts.json) {

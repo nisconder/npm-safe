@@ -19,8 +19,16 @@ export function registerRefreshCommand(program: Command): void {
             process.exitCode = 1;
           }
         } else {
-          const succeeded = await engine.refreshAll();
-          if (succeeded) {
+          // Refresh every package on the watchlist (not just stale cache
+          // entries), matching the command description. Iterate using the
+          // public API so a watched-but-never-checked package is refreshed.
+          const watchlist = await engine.getWatchlist();
+          let allSucceeded = true;
+          for (const name of watchlist) {
+            const succeeded = await engine.refreshPackage(name);
+            allSucceeded = allSucceeded && succeeded;
+          }
+          if (allSucceeded) {
             console.log(t("refresh.all"));
           } else {
             console.error(t("refresh.failedAll"));

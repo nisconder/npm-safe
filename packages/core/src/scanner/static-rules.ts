@@ -185,7 +185,7 @@ const SSH_KEY_PATTERN = /-----BEGIN (?:RSA |OPENSSH |EC |DSA )?PRIVATE KEY-----/
 
 /** Matches links to executable files in markdown. */
 const BINARY_LINK_PATTERN =
-  /\bhttps?:\/\/[^\s)]+?\.(?:exe|sh|bat|ps1|cmd|com|scr|msi)\b/i;
+  /\bhttps?:\/\/[^\s)]+?\.(?:exe|sh|bat|ps1|cmd|scr|msi)\b/i;
 
 /** Matches require/import of the child_process module. */
 const CHILD_PROCESS_PATTERN =
