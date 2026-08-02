@@ -146,7 +146,6 @@ pnpm -F @npm-safe/core test
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- 分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
 - **[API.md](packages/core/API.md)** -- 完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 12 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- 所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
-  - **[HANDOVER.md](packages/core/HANDOVER.md)** -- 第一阶段到第二阶段的交接文档。涵盖已构建的内容、被推迟的内容、已知问题、开发注意事项，以及建议的第二阶段实施顺序。另有中文版 **[HANDOVER_zh.md](packages/core/HANDOVER_zh.md)**。
   - **[README_zh.md](README_zh.md)** -- 本项目的简体中文版 README。
 
 桌面 GUI 位于 `packages/desktop/`，详见
@@ -184,8 +183,6 @@ npm-safe/
       API.md               # 公共 API 参考文档
       ARCHITECTURE.md      # 分层架构图、数据流、数据库模式
       SCANNER_RULES.md     # 10 条静态规则参考
-      HANDOVER.md          # 第一阶段→第二阶段交接文档（英文）
-      HANDOVER_zh.md       # 第一阶段→第二阶段交接文档（中文）
       opencode-skill/
         npm-safe-scan/
           SKILL.md         # AI 技能，postinstall 自动安装
