@@ -1114,6 +1114,203 @@ pre.json-output {
   letter-spacing: 0.4px;
 }
 
+/* Rules */
+.rules-summary {
+  align-self: center;
+  color: var(--md-on-surface-variant);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.25px;
+}
+
+.rule-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rule-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rule-name {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0.15px;
+  color: var(--md-on-surface);
+}
+
+.rule-id {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--md-on-surface-variant);
+  letter-spacing: 0.4px;
+  font-family: var(--md-font-mono);
+}
+
+.rule-description {
+  color: var(--md-on-surface-variant);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.25px;
+}
+
+.rule-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.rule-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--md-on-surface);
+}
+
+.rule-control select {
+  height: 32px;
+  padding: 0 8px;
+  border-radius: var(--md-radius-sm);
+  border: 1px solid var(--md-outline);
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Switch (Material 3) */
+.switch-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--md-on-surface);
+  letter-spacing: 0.25px;
+  line-height: 20px;
+}
+
+.switch-label input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch {
+  position: relative;
+  width: 52px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--md-outline-variant);
+  transition: background-color var(--md-duration-short) var(--md-ease-standard);
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--md-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform var(--md-duration-short) var(--md-ease-standard);
+}
+
+.switch-label input:checked + .switch {
+  background: var(--md-primary);
+}
+
+.switch-label input:checked + .switch::after {
+  transform: translateX(20px);
+}
+
+.switch-label input:focus-visible + .switch {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+}
+
+/* LLM config */
+.llm-card {
+  max-width: 720px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.form-row {
+  margin-top: 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.llm-result {
+  margin-top: 16px;
+}
+
+.llm-status-row {
+  border-bottom: none;
+}
+
+.text-field.outlined select {
+  width: 100%;
+  height: 56px;
+  padding: 16px 16px 16px;
+  background: transparent;
+  border: 1px solid var(--md-outline);
+  border-radius: var(--md-radius-xs);
+  color: var(--md-on-surface);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color var(--md-duration-short) var(--md-ease-standard);
+}
+
+.text-field.outlined select:focus {
+  border-color: var(--md-primary);
+  border-width: 2px;
+  padding: 15px 15px 15px;
+}
+
+.text-field.outlined select:focus + label,
+.text-field.outlined select:not(:placeholder-shown) + label {
+  top: 0;
+  left: 12px;
+  transform: translateY(-50%);
+  font-size: 12px;
+  line-height: 16px;
+  background: var(--md-surface);
+  padding: 0 4px;
+  color: var(--md-on-surface-variant);
+}
+
+.text-field.outlined select:focus + label {
+  color: var(--md-primary);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

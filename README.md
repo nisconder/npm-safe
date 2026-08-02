@@ -17,15 +17,16 @@ querying, watching, and refreshing security assessments. The engine is
 designed to operate as a library rather than a standalone service.
 
 **Status: Phase 1 complete (engine core) + Phase 2 complete.** Engine core
-delivered with 26 source files and zero TypeScript errors. Phase 2 added a
-full test suite (206 tests, all passing), a CLI binary with commands for
-`check`, `search`, `watch`, `refresh`, `settings`, and `lang`, proxy support
-for restricted networks, an optional multi-provider LLM scan provider
-(OpenAI / Gemini / Anthropic), and a Neutralinojs desktop GUI with a
-Material You dashboard, check/search/watch/settings tabs, light/dark themes,
-and persistent check history. A hardening pass (2026-08-02) fixed 12 issues
-found by a bug screen, including two critical XSS-to-RCE exposures in the
-desktop GUI (all fields are now escaped), a watchlist refresh crash, and
+delivered with 29 source files and zero TypeScript errors. Phase 2 added a
+full test suite (240 tests, all passing), a CLI binary with commands for
+`check`, `search`, `watch`, `refresh`, `settings`, `lang`, `rules`, and `llm`,
+proxy support for restricted networks, an optional multi-provider LLM scan
+provider (OpenAI / Gemini / Anthropic) with persisted configuration, and a
+Neutralinojs desktop GUI with a Material You dashboard,
+check/search/watch/rules/llm/settings tabs, light/dark themes, and persistent
+check history. A hardening pass (2026-08-02) fixed 12 issues found by a bug
+screen, including two critical XSS-to-RCE exposures in the desktop GUI (all
+fields are now escaped), a watchlist refresh crash, and
 several CLI correctness problems such as the `-j` output flag and sub-second
 TTL precision.
 
@@ -81,6 +82,13 @@ npm-safe rules list                # List scan rules with effective status
 npm-safe rules enable <rule-id>    # Enable a scan rule (persisted)
 npm-safe rules disable <rule-id>   # Disable a scan rule (persisted)
 npm-safe rules severity <rule-id> <severity>  # Override a rule's severity
+npm-safe llm status                # Show LLM provider status
+npm-safe llm enable                # Enable LLM scanning
+npm-safe llm disable               # Disable LLM scanning
+npm-safe llm set-provider <openai|gemini|anthropic>
+npm-safe llm set-key <api-key>     # Set the LLM API key
+npm-safe llm set-model <model>     # Set the LLM model identifier
+npm-safe llm test-connection       # Test the LLM connection
 ```
 
 ### Desktop Application
@@ -106,6 +114,10 @@ Features:
   straight to Check.
 - **Watch** — manage the watchlist and refresh individual packages or all
   watched packages.
+- **评价体系 (Rules)** — list all registered rules, toggle each rule, and
+  override its severity. Reload custom rule plugins from `~/.npm-safe/rules/`.
+- **LLM** — configure optional LLM scanning: enable/disable switch, provider,
+  API key, model, and base URL, with a test-connection button.
 - **Settings** — read/write arbitrary engine settings (e.g. `proxy`, `lang`).
 - **Light/Dark themes** — toggle between two independent Material You palettes
   from the custom title bar.
@@ -197,6 +209,22 @@ Plugin files are loaded at engine startup and bad files are skipped. The
 `unregisterRule`, `listRules`, `setRuleEnabled`, `setRuleSeverity`) are
 exported from `@npm-safe/core` for programmatic use.
 
+### LLM scanning
+
+LLM-based semantic scanning is optional and disabled by default. When no API
+key is configured, static analysis continues normally. Configuration is
+persisted in `~/.npm-safe/llm.json` and can also be supplied via environment
+variables (`OPENAI_API_KEY`, `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`).
+
+```bash
+npm-safe llm status                 # Show the current provider and status
+npm-safe llm enable                 # Turn LLM scanning on
+npm-safe llm set-provider openai    # Select provider
+npm-safe llm set-key $OPENAI_API_KEY
+npm-safe llm set-model gpt-4o-mini
+npm-safe llm test-connection        # Verify the provider works
+```
+
 ### Desktop first-run (Windows)
 
 If the WebView2 window fails to load with a loopback error, run once in an
@@ -212,9 +240,10 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-206 tests cover every module: validators, static rules, rate limiter, store
+240 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
-integration surface, the LLM providers, and the CLI itself.
+integration surface, the LLM providers, the LLM configuration manager, the
+rule plugin system, and the CLI itself.
 
 ---
 
@@ -223,7 +252,7 @@ integration surface, the LLM providers, and the CLI itself.
 Detailed documentation for the engine is available under `packages/core/`:
 
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- Layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.
-- **[API.md](packages/core/API.md)** -- Complete public API reference covering the `NpmSafeEngine` class (all 12 methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
+- **[API.md](packages/core/API.md)** -- Complete public API reference covering the `NpmSafeEngine` class (all 24 public methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- Comprehensive reference for all 10 built-in static analysis rules. Each rule documents its category, severity, detection logic (regex patterns), and mitigation recommendations.
 - **[README_zh.md](README_zh.md)** -- Chinese translation of the project README.
 
@@ -278,10 +307,13 @@ npm-safe/
           refresh.ts       # refresh command
           settings.ts      # settings get/set commands
           lang.ts          # lang command (en/zh, persisted)
+          rules.ts         # rules management commands
+          llm.ts           # LLM configuration commands
           i18n.ts          # en/zh localization module
           shared.ts        # engine factory + default DB path
         llm/
           provider.ts      # createLlmProvider factory (OpenAI / Gemini / Anthropic)
+          llm-config.ts    # LlmConfigManager persistence and env fallback
           gemini.ts        # Gemini LLM provider
           anthropic.ts     # Anthropic LLM provider
           parse.ts         # LLM response parsing helpers
@@ -291,7 +323,9 @@ npm-safe/
           client.ts        # NpmRegistryClient — HTTP fetch with retry, backoff & proxy support
         scanner/
           types.ts         # SecurityLevel, Severity, ScanFinding, ScanRule, StaticScanReport
-          static-rules.ts  # StaticAnalyzer — 10 built-in analysis rules
+          static-rules.ts  # StaticAnalyzer — 10 built-in analysis rules + rule registration
+          rule-config.ts   # RuleConfigManager persistence
+          rule-loader.ts   # Plugin rule discovery from ~/.npm-safe/rules/
         scheduler/
           rate-limiter.ts      # TokenBucket — 5 tokens/s, 10 burst
           refresh-scheduler.ts # RefreshScheduler — periodic watchlist refresh via EventEmitter
@@ -314,6 +348,10 @@ npm-safe/
         llm-provider.test.ts   # createLlmProvider factory + shared behaviour
         llm-gemini.test.ts     # Gemini LLM provider tests
         llm-anthropic.test.ts  # Anthropic LLM provider tests
+        llm-config.test.ts     # LLM configuration persistence and engine integration
+        rule-config.test.ts    # RuleConfigManager persistence tests
+        rule-loader.test.ts    # Plugin rule discovery tests
+        rule-plugin.test.ts    # Rule registration and engine integration tests
     desktop/                         # @npm-safe/desktop (Neutralinojs GUI)
       package.json                   # desktop workspace package
       neutralino.config.json         # Neutralino app config (borderless, extensions)
@@ -342,7 +380,7 @@ result as a single `NpmSafeEngine` class.
                            +-----------------------+
                            |      index.ts          |
                            |  NpmSafeEngine facade  |
-                           |  12 public methods     |
+                           |  24 public methods     |
                            +-----------+-----------+
                                        |
               +------------------------+------------------------+
@@ -370,10 +408,10 @@ result as a single `NpmSafeEngine` class.
 | Layer | Module(s) | Role |
 |---|---|---|
 | **Registry** | `registry/client.ts`, `registry/validator.ts`, `registry/types.ts` | HTTP communication with the npm registry API. Fetches packuments, validates package names and versions, defines all registry-facing TypeScript types. |
-| **Scanner** | `scanner/static-rules.ts`, `scanner/types.ts` | Pure static analysis of package metadata and README content. Ten built-in rules detect install scripts, obfuscation, typosquatting, secret exposure, homograph attacks, and more. |
+| **Scanner** | `scanner/static-rules.ts`, `scanner/rule-config.ts`, `scanner/rule-loader.ts`, `scanner/types.ts` | Pure static analysis of package metadata and README content. Ten built-in rules detect install scripts, obfuscation, typosquatting, secret exposure, homograph attacks, and more; plus runtime rule registration, per-rule config overrides, and plugin discovery. |
 | **Scheduler** | `scheduler/refresh-scheduler.ts`, `scheduler/rate-limiter.ts` | Manages periodic refresh cycles for watched packages. A token bucket (5 tokens/s, 10 burst) limits registry request frequency. |
 | **Store** | `store/database.ts`, `store/cache-manager.ts`, `store/schema.ts` | Persistent storage via better-sqlite3 with WAL mode. Handles migrations, TTL-based caching of metadata and scan reports, watchlist persistence, and key-value settings. |
-| **Facade** | `index.ts` | The `NpmSafeEngine` class composes all four layers. Exposes 12 public methods: `checkPackage`, `searchPackages`, watchlist CRUD, refresh operations, settings access, and lifecycle (`startAutoRefresh`, `stopAutoRefresh`, `close`). |
+| **Facade** | `index.ts` | The `NpmSafeEngine` class composes all four layers. Exposes 24 public methods: `checkPackage`, `searchPackages`, watchlist CRUD, refresh operations, settings access, lifecycle, rule management, and LLM configuration (`startAutoRefresh`, `stopAutoRefresh`, `close`). |
 
 A sixth auxiliary layer, **Translator** (`translator/types.ts`,
 `translator/provider.ts`), provides a pluggable translation interface for
@@ -402,14 +440,14 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 ## What Is Next (Phase 3)
 
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test
-suite, CLI, proxy support, the LLM scan provider, and a Neutralinojs desktop
-GUI, followed by a security hardening pass (2026-08-02) that fixed 12 issues
-found by a bug screen. Remaining work for Phase 3:
+suite, CLI, proxy support, the LLM scan provider with persisted configuration, a
+Neutralinojs desktop GUI, a plugin system for custom scan rules, and LLM
+configuration management (CLI + GUI), followed by a security hardening pass
+(2026-08-02) that fixed 12 issues found by a bug screen. Remaining work for
+Phase 3:
 
 - **Batch operations.** Multi-package `checkPackage`, bulk search export, and
   report download from the dashboard.
-- **Plugin system.** Allow third-party scan rules and output formatters to be
-  registered dynamically.
 - **CI/CD integration.** A GitHub Action or CLI tool that runs
   `@npm-safe/core` checks as part of a CI pipeline.
 

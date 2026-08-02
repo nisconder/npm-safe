@@ -2,7 +2,7 @@
 
 **日期：** 2026-08-01
 **包名：** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
-**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（17 个源文件）和 CLI（9 个文件）已交付，226 个测试全部通过，代理支持、中英文本地化、多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）、Neutralinojs 桌面 GUI（原生 JS、Material You）以及自定义扫描规则插件系统均已上线，零 TypeScript 错误。2026-08-02 的缺陷修复轮次对桌面 GUI 进行了 XSS 到 RCE 加固、增加了监控列表外键预检查、修正了 refresh 语义，并支持亚秒级 TTL（见第 3.8 节）。
+**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（17 个源文件）和 CLI（9 个文件）已交付，240 个测试全部通过，代理支持、中英文本地化、多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）、Neutralinojs 桌面 GUI（原生 JS、Material You）、自定义扫描规则插件系统，以及 LLM 配置管理（CLI + GUI）均已上线，零 TypeScript 错误。2026-08-02 的缺陷修复轮次对桌面 GUI 进行了 XSS 到 RCE 加固、增加了监控列表外键预检查、修正了 refresh 语义，并支持亚秒级 TTL（见第 3.8 节）。
 
 [English](HANDOVER.md)
 
@@ -25,6 +25,7 @@
 | Neutralinojs 图形界面（MD3） | **已完成**（2026-08-01） | 已随 `packages/desktop` 交付，基于 Neutralinojs 的窗口应用，采用 Material 3（MD3）设计体系（浅色/深色主题）。原始的 Preact+mdui 方案已被交付的原生 JS 实现取代，后者已满足 MD3 要求。 |
 | AI 技能打包 | **已完成**（2026-08-02） | 全局技能 `npm-safe-scan` 已安装于 `~/.agents/skills/npm-safe-scan/SKILL.md`；将 CLI 打包为供任意 AI 代理（opencode、Claude Code）使用的技能。 |
 | 插件系统 | **已完成**（2026-08-02） | 运行时规则注册 API、`~/.npm-safe/rules.json` 配置、`~/.npm-safe/rules/` 插件发现、`npm-safe rules` CLI，见第 3.9 节 |
+| LLM 配置管理（CLI + GUI） | **已完成**（2026-08-02） | 可选 LLM 扫描通过 `~/.npm-safe/llm.json` 配置；`npm-safe llm` 命令；桌面 GUI 评价体系与 LLM 设置页，见第 3.10 节 |
 | CI/CD 集成 | 待办 | 未来阶段 |
 | 多包批量 API | 待办 | 未来阶段 |
 | 遥测与分析 | 待办 | 未来阶段 |
@@ -42,7 +43,7 @@
 
 | 文件 | 职责 |
 |---|---|
-| `index.ts` | `NpmSafeEngine` 门面 — 组合所有依赖，暴露 12 个公共方法 |
+| `index.ts` | `NpmSafeEngine` 门面 — 组合所有依赖，暴露 24 个公共方法 |
 | `registry/types.ts` | 基础类型定义：`PackageMetadata`、`AbbreviatedVersion`、`SearchResult`、`NpmRegistryError`、`PackageIdentifier`、`ValidationResult` |
 | `registry/validator.ts` | 纯校验器：`validatePackageName`、`validateVersion`、`validateDomain`、`isKnownRegistryDomain` |
 | `registry/client.ts` | `NpmRegistryClient` — HTTP 请求，10s 超时，3 次重试，指数退避（1s/2s/4s） |
@@ -71,7 +72,7 @@
 
 辅助翻译器层（`translator/`）提供了可插拔的翻译接口，但第一阶段尚未接入核心扫描流水线。
 
-### 公共 API（`NpmSafeEngine` 上的 12 个方法）
+### 公共 API（`NpmSafeEngine` 上的 24 个方法）
 
 - `checkPackage(name)` — 缓存优先的安全检查；返回包含元数据 + 静态扫描报告的 `CheckResult`
 - `searchPackages(query, size?)` — 委托给 registry 搜索端点
@@ -94,7 +95,7 @@
 
 - 通过 `pnpm -F @npm-safe/core exec tsc --noEmit` 验证，tsc 零错误零警告
 - 模块图已解析：`index.ts` 中的 10 个相对导入均解析到现有文件，传递遍历无误
-- 12 个公共 API 方法均可通过 `NpmSafeEngine` 实例访问
+- 24 个公共 API 方法均可通过 `NpmSafeEngine` 实例访问
 - 构造函数依赖注入已验证：6 个依赖均正确实例化
 - `index.ts` 导出 3 个符号：`NpmSafeEngine`、`NpmSafeEngineOptions`、`CheckResult`
 
@@ -260,6 +261,20 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 
 测试套件从 206 个增至 226 个，全部通过。
 
+### 3.10 LLM 配置管理（CLI + GUI）（2026-08-02）
+
+LLM 扫描改为可选，并通过 CLI 与桌面 GUI 双向配置：
+
+- **持久化。** `LlmConfigManager`（`src/llm/llm-config.ts`）将配置写入 `~/.npm-safe/llm.json`（尝试设置 0600 权限）。记录 `enabled`、`provider`、`apiKey`、`baseUrl`、`model` 及各提供者专属超时参数。
+- **优雅回退。** 若持久化文件缺失或未配置 API 密钥，引擎回退到提供者专属的环境变量（`OPENAI_API_KEY`、`GEMINI_API_KEY`、`ANTHROPIC_API_KEY`）。两者皆无时，LLM 扫描被静默禁用，静态分析照常运行。
+- **运行时更新。** `NpmSafeEngine.setLlmConfig` 会重建提供者并通知刷新调度器，启用/禁用 LLM 立即生效，无需重启引擎。
+- **CLI 命令。** `npm-safe llm status | enable | disable | set-provider | set-key | set-model | set-base-url | test-connection` 管理持久化配置（中英文双语）。
+- **桌面 GUI 页面。** Navigation Drawer 新增两个标签页：
+  - **评价体系** — 列出全部已注册规则，显示来源（`builtin`/`plugin`）、描述，可启用/禁用每条规则并覆盖其严重级别。另有按钮从 `~/.npm-safe/rules/` 重新加载插件规则。
+  - **LLM** — 表单包含启用开关、提供者选择、API 密钥、模型和基础 URL 输入，以及保存/测试连接/重置操作。状态显示中的 API 密钥会被打码。
+
+测试套件从 226 个增至 240 个，全部通过。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -271,7 +286,7 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 | `README.md`（工作区根目录） | 英文项目说明：安装配置、CLI 用法、架构、设计决策、阶段状态 |
 | `README_zh.md`（工作区根目录） | 说明文档的中文翻译，与英文版互相链接 |
 | `packages/core/ARCHITECTURE.md` | 层映射、模块依赖图、数据流（热路径和刷新路径）、数据库模式、迁移系统、错误分类、设计决策 |
-| `packages/core/API.md` | 完整公共 API 参考：`NpmSafeEngine`（全部 12 个方法）、导出的接口和类型定义 |
+| `packages/core/API.md` | 完整公共 API 参考：`NpmSafeEngine`（全部 24 个方法）、导出的接口和类型定义 |
 | `packages/core/SCANNER_RULES.md` | 全部 10 条内置规则的参考：类别、严重性、检测逻辑、缓解措施 |
 | `packages/core/HANDOVER.md` | 本文档，英文版 |
 | `packages/core/HANDOVER_zh.md` | 中文交接文档 |

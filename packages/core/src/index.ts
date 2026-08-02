@@ -24,6 +24,8 @@ import { RuleConfigManager } from './scanner/rule-config.js';
 import { loadRulesFromDirectory } from './scanner/rule-loader.js';
 import { createLlmProvider } from './llm/provider.js';
 import type { LlmProviderOptions, LlmScanProvider } from './llm/provider.js';
+import { LlmConfigManager } from './llm/llm-config.js';
+import type { LlmConfig, LlmStatus } from './llm/llm-config.js';
 
 // ============================================================================
 // Exported types
@@ -72,6 +74,12 @@ export interface NpmSafeEngineOptions {
 
   /** Optional LLM security scanner configuration (OpenAI / Gemini / Anthropic). */
   readonly llm?: LlmProviderOptions;
+
+  /**
+   * Path to the LLM provider configuration JSON file.
+   * @default '~/.npm-safe/llm.json'
+   */
+  readonly llmConfigPath?: string;
 
   /**
    * Path to the per-rule configuration JSON file.
@@ -165,8 +173,10 @@ export class NpmSafeEngine {
   private readonly ruleConfig: RuleConfigManager;
   /** Auto-refresh scheduler. */
   private readonly scheduler: RefreshScheduler;
+  /** LLM provider configuration manager. */
+  private readonly llmConfig: LlmConfigManager;
   /** Optional semantic security scanner. */
-  private readonly llmProvider?: LlmScanProvider;
+  private llmProvider?: LlmScanProvider;
 
   /**
    * @param options - Optional configuration overrides; see
@@ -187,13 +197,16 @@ export class NpmSafeEngine {
     );
     this.ruleConfig = new RuleConfigManager(options?.rulesConfigPath);
     this.analyzer = new StaticAnalyzer(undefined, this.ruleConfig);
-    this.llmProvider = options?.llm ? createLlmProvider(options.llm) : undefined;
+    this.llmConfig = new LlmConfigManager(options?.llmConfigPath);
+    this.llmProvider = options?.llm
+      ? createLlmProvider(options.llm)
+      : this.llmConfig.createProvider();
     this.scheduler = new RefreshScheduler(
       this.client,
       this.cache,
       this.limiter,
       this.analyzer,
-      this.llmProvider,
+      () => this.llmProvider,
     );
     void this.loadRulePlugins(options?.rulesDir);
   }
@@ -490,6 +503,53 @@ export class NpmSafeEngine {
   }
 
   // --------------------------------------------------------------------------
+  // LLM configuration
+  // --------------------------------------------------------------------------
+
+  /**
+   * Get the raw LLM configuration, including the API key.
+   *
+   * @returns The current persisted LLM config.
+   */
+  getLlmConfig(): LlmConfig {
+    return this.llmConfig.getConfig();
+  }
+
+  /**
+   * Get a masked, display-safe view of the LLM status.
+   *
+   * @returns Status object safe to render in a UI.
+   */
+  getLlmStatus(): LlmStatus {
+    return this.llmConfig.getStatus();
+  }
+
+  /**
+   * Update the LLM configuration and recreate the provider.
+   *
+   * The change is persisted immediately. If LLM scanning is disabled or no
+   * API key is available, the provider is set to `undefined` so the rest of the
+   * engine continues unaffected.
+   *
+   * @param update - Partial config update. Pass `{ enabled: false }` to disable.
+   */
+  setLlmConfig(update: Partial<LlmConfig>): void {
+    this.llmConfig.setConfig(update);
+    this.llmProvider = this.llmConfig.createProvider();
+    this.scheduler.setLlmProvider(this.llmProvider);
+  }
+
+  /**
+   * Test whether the current LLM configuration can connect to its provider.
+   *
+   * @returns `true` if the provider is enabled, configured, and the test call
+   *   succeeds; `false` otherwise.
+   */
+  async testLlmConnection(): Promise<boolean> {
+    return this.llmConfig.testConnection();
+  }
+
+  // --------------------------------------------------------------------------
   // Auto-refresh lifecycle
   // --------------------------------------------------------------------------
 
@@ -641,6 +701,8 @@ export type {
   LlmScanInput,
   LlmScanProvider,
 } from './llm/provider.js';
+export { LlmConfigManager, getDefaultLlmConfigPath } from './llm/llm-config.js';
+export type { LlmConfig, LlmStatus } from './llm/llm-config.js';
 export { RuleConfigManager } from './scanner/rule-config.js';
 export type { RuleConfig, RuleConfigFile, RuleOptions } from './scanner/rule-config.js';
 export { loadRulesFromDirectory } from './scanner/rule-loader.js';

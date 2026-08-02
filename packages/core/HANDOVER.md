@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-01
 **Package:** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
-**Status:** All Phase 1 and Phase 2 plans complete. Engine core (17 source files) plus CLI (9 files) delivered, 226 tests passing, proxy support, en/zh localization, multi-provider LLM scanning (OpenAI / Gemini / Anthropic), a Neutralinojs desktop GUI (vanilla JS, Material You), and a plugin system for custom scan rules shipped, zero TypeScript errors. A bug-fix pass on 2026-08-02 hardened the desktop GUI against XSS-to-RCE, added a watchlist foreign-key pre-check, corrected refresh semantics, and added sub-second TTL support (see section 3.8).
+**Status:** All Phase 1 and Phase 2 plans complete. Engine core (17 source files) plus CLI (9 files) delivered, 240 tests passing, proxy support, en/zh localization, multi-provider LLM scanning (OpenAI / Gemini / Anthropic), a Neutralinojs desktop GUI (vanilla JS, Material You), a plugin system for custom scan rules, and LLM configuration management (CLI + GUI) shipped, zero TypeScript errors. A bug-fix pass on 2026-08-02 hardened the desktop GUI against XSS-to-RCE, added a watchlist foreign-key pre-check, corrected refresh semantics, and added sub-second TTL support (see section 3.8).
 
 [中文版](HANDOVER_zh.md)
 
@@ -24,7 +24,8 @@ This document records every project plan and its completion status.
 | Desktop GUI (`packages/desktop`) | **Done** (2026-08-01) | Neutralinojs + vanilla JS + Material You (M3), see section 6 |
 | Neutralinojs GUI (MD3) | **Done** (2026-08-01) | Shipped as `packages/desktop` — Neutralinojs window app with a Material 3 (MD3) design system (light/dark themes). The original Preact+mdui plan was superseded by the delivered vanilla-JS implementation, which fulfills the MD3 requirement. |
 | AI skill packaging | **Done** (2026-08-02) | Global agent skill `npm-safe-scan` installed at `~/.agents/skills/npm-safe-scan/SKILL.md`; packages the CLI for any AI agent (opencode, Claude Code). |
-| Plugin system | **Done** (2026-08-02) | Runtime rule registration API, `~/.npm-safe/rules.json` config, `~/.npm-safe/rules/` plugin discovery, `npm-safe rules` CLI, see section 3.7 |
+| Plugin system | **Done** (2026-08-02) | Runtime rule registration API, `~/.npm-safe/rules.json` config, `~/.npm-safe/rules/` plugin discovery, `npm-safe rules` CLI, see section 3.9 |
+| LLM configuration (CLI + GUI) | **Done** (2026-08-02) | Optional LLM scanning via `~/.npm-safe/llm.json`; `npm-safe llm` commands; GUI rules and LLM settings pages, see section 3.10 |
 | CI/CD integration | Pending | Future phase |
 | Multi-package batch API | Pending | Future phase |
 | Telemetry and analytics | Pending | Future phase |
@@ -42,7 +43,7 @@ All source files reside under `packages/core/src/`:
 
 | File | Role |
 |---|---|
-| `index.ts` | `NpmSafeEngine` facade, composes every dependency, exposes 12 public methods |
+| `index.ts` | `NpmSafeEngine` facade, composes every dependency, exposes 24 public methods |
 | `registry/types.ts` | Foundational types: `PackageMetadata`, `AbbreviatedVersion`, `SearchResult`, `NpmRegistryError`, `PackageIdentifier`, `ValidationResult` |
 | `registry/validator.ts` | Pure validators: `validatePackageName`, `validateVersion`, `validateDomain`, `isKnownRegistryDomain` |
 | `registry/client.ts` | `NpmRegistryClient`, HTTP fetch with 10s timeout, 3 retries, exponential backoff (1s/2s/4s) |
@@ -94,7 +95,7 @@ An auxiliary Translator layer (`translator/`) provides a pluggable translation i
 
 - `tsc --noEmit` clean via `pnpm -F @npm-safe/core exec tsc --noEmit` (zero errors, zero warnings)
 - Module graph resolved: all 10 relative imports in `index.ts` resolve to existing files, transitive walk clean
-- All 12 public API methods reachable via the `NpmSafeEngine` instance
+- All 24 public API methods reachable via the `NpmSafeEngine` instance
 - Constructor wiring verified: all 6 dependencies instantiated correctly
 - 3 exported symbols from `index.ts`: `NpmSafeEngine`, `NpmSafeEngineOptions`, `CheckResult`
 
@@ -296,6 +297,36 @@ top of the existing `ScanRule` interface:
 
 The test suite grew from 206 to 226 tests; all pass.
 
+### 3.10 LLM configuration (CLI + GUI) (2026-08-02)
+
+LLM scanning was made optional and configurable through both the CLI and the
+desktop GUI:
+
+- **Persistence.** `LlmConfigManager` (`src/llm/llm-config.ts`) stores
+  `~/.npm-safe/llm.json` with a 0o600 permission attempt. It tracks `enabled`,
+  `provider`, `apiKey`, `baseUrl`, `model`, and provider-specific timeouts.
+- **Graceful fallback.** If the persisted file is missing or no API key is
+  configured, the engine falls back to provider-specific environment variables
+  (`OPENAI_API_KEY`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`). If neither is
+  present, LLM scanning is silently disabled and static analysis continues
+  normally.
+- **Runtime updates.** `NpmSafeEngine.setLlmConfig` recreates the provider and
+  notifies the refresh scheduler, so enabling/disabling LLM takes effect
+  immediately without restarting the engine.
+- **CLI commands.** `npm-safe llm status | enable | disable | set-provider |
+  set-key | set-model | set-base-url | test-connection` manage the persisted
+  config (en/zh localized).
+- **Desktop GUI pages.** The Navigation Drawer gained two new tabs:
+  - **评价体系 (Rules)** — lists all registered rules, shows source
+    (`builtin`/`plugin`), description, and lets users toggle each rule and
+    override its severity. A button reloads plugin rules from
+    `~/.npm-safe/rules/`.
+  - **LLM** — a form with an enable switch, provider selector, API key, model,
+    and base URL inputs, plus save/test/reset actions. The API key is masked
+    in the status display.
+
+The test suite grew from 226 to 240 tests; all pass.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -307,7 +338,7 @@ The Phase 1 documentation pack, plus the Phase 2 updates, is complete:
 | `README.md` (workspace root) | English project readme: setup, CLI usage, architecture, design decisions, phase status |
 | `README_zh.md` (workspace root) | Chinese translation of the readme, cross-linked with the English version |
 | `packages/core/ARCHITECTURE.md` | Layer map, module dependency graph, data flow (hot path and refresh path), database schema, migration system, error taxonomy, design decisions |
-| `packages/core/API.md` | Complete public API reference: `NpmSafeEngine` (all 12 methods), exported interfaces, and type definitions |
+| `packages/core/API.md` | Complete public API reference: `NpmSafeEngine` (all 24 methods), exported interfaces, and type definitions |
 | `packages/core/SCANNER_RULES.md` | Reference for all 10 built-in rules: category, severity, detection logic, mitigations |
 | `packages/core/HANDOVER.md` | This document, English |
 | `packages/core/HANDOVER_zh.md` | Chinese handover document |
