@@ -167,9 +167,14 @@ async function invoke(method, data) {
       return await engine.searchPackages(data.query, data.size ?? 20);
     case "getWatchlist":
       return await engine.getWatchlist();
-    case "addToWatchlist":
+    case "addToWatchlist": {
+      const result = await engine.checkPackage(data.name);
+      if (!result.exists) {
+        throw new Error(`Package not found: ${data.name}`);
+      }
       await engine.addToWatchlist(data.name);
       return null;
+    }
     case "removeFromWatchlist":
       await engine.removeFromWatchlist(data.name);
       return null;
