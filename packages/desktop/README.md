@@ -1,5 +1,7 @@
 ﻿# @npm-safe/desktop
 
+[中文版](README_zh.md)
+
 A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core` engine. It provides a Material You dashboard for checking, searching, watching, and refreshing npm package security assessments, with persistent check history and a custom borderless window. The UI language is Chinese (zh-CN).
 
 ## Features
