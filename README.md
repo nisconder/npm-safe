@@ -89,6 +89,7 @@ npm-safe llm set-provider <openai|gemini|anthropic>
 npm-safe llm set-key <api-key>     # Set the LLM API key
 npm-safe llm set-model <model>     # Set the LLM model identifier
 npm-safe llm test-connection       # Test the LLM connection
+npm-safe ci                        # Scan dependencies, fail the build on severe findings
 ```
 
 ### Desktop Application
@@ -226,6 +227,24 @@ npm-safe llm set-model gpt-4o-mini
 npm-safe llm test-connection        # Verify the provider works
 ```
 
+### CI/CD integration
+
+`npm-safe ci` scans a project's direct dependencies and fails the build when
+any dependency reaches a configurable security level:
+
+```bash
+npm-safe ci --dir ./packages/core          # default fail level: dangerous
+npm-safe ci --fail-level suspicious        # stricter gate
+npm-safe ci --prod                         # skip devDependencies
+npm-safe ci --json                         # machine-readable report
+npm-safe ci --rate-limit 50                # registry requests per second
+```
+
+Exit codes: `0` pass, `1` usage/config error, `2` one or more dependencies
+reached the fail level (or the scan errored). A ready-to-use GitHub Actions
+workflow lives at `.github/workflows/ci.yml` — it runs the test suite, type
+checks, and a dependency security scan on every push/PR.
+
 ### Desktop first-run (Windows)
 
 If the WebView2 window fails to load with a loopback error, run once in an
@@ -241,10 +260,10 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-240 tests cover every module: validators, static rules, rate limiter, store
+247 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
 integration surface, the LLM providers, the LLM configuration manager, the
-rule plugin system, and the CLI itself.
+rule plugin system, the CI command, and the CLI itself.
 
 ---
 
@@ -442,14 +461,12 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test
 suite, CLI, proxy support, the LLM scan provider with persisted configuration, a
-Neutralinojs desktop GUI, a plugin system for custom scan rules, and LLM
-configuration management (CLI + GUI), followed by a security hardening pass
-(2026-08-02) that fixed 12 issues found by a bug screen. Remaining work for
-Phase 3:
+Neutralinojs desktop GUI, a plugin system for custom scan rules, LLM
+configuration management (CLI + GUI), and CI/CD integration, followed by a
+security hardening pass (2026-08-02) that fixed 12 issues found by a bug
+screen. Remaining work for Phase 3:
 
 - **Batch operations.** Multi-package `checkPackage`, bulk search export, and
   report download from the dashboard.
-- **CI/CD integration.** A GitHub Action or CLI tool that runs
-  `@npm-safe/core` checks as part of a CI pipeline.
 
 

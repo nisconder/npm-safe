@@ -12,6 +12,7 @@ import { registerSettingsCommand } from "./settings.js";
 import { registerLangCommand } from "./lang.js";
 import { registerRulesCommand } from "./rules.js";
 import { registerLlmCommand } from "./llm.js";
+import { registerCiCommand } from "./ci.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
@@ -41,6 +42,7 @@ registerSettingsCommand(program);
 registerLangCommand(program);
 registerRulesCommand(program);
 registerLlmCommand(program);
+registerCiCommand(program);
 
 program.parse();
 

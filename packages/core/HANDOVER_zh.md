@@ -26,7 +26,7 @@
 | AI 技能打包 | **已完成**（2026-08-02） | 全局技能 `npm-safe-scan` 已安装于 `~/.agents/skills/npm-safe-scan/SKILL.md`；将 CLI 打包为供加载 `~/.agents/skills/` 的任意 AI 代理使用的全局技能。 |
 | 插件系统 | **已完成**（2026-08-02） | 运行时规则注册 API、`~/.npm-safe/rules.json` 配置、`~/.npm-safe/rules/` 插件发现、`npm-safe rules` CLI，见第 3.9 节 |
 | LLM 配置管理（CLI + GUI） | **已完成**（2026-08-02） | 可选 LLM 扫描通过 `~/.npm-safe/llm.json` 配置；`npm-safe llm` 命令；桌面 GUI 评价体系与 LLM 设置页，见第 3.10 节 |
-| CI/CD 集成 | 待办 | 未来阶段 |
+| CI/CD 集成 | **已完成**（2026-08-02） | `npm-safe ci` 依赖扫描门禁 + GitHub Actions 工作流，见第 3.11 节 |
 | 多包批量 API | 待办 | 未来阶段 |
 | 遥测与分析 | 待办 | 未来阶段 |
 | npm 发布者配置 | 待办 | 未来阶段 |
@@ -279,6 +279,16 @@ LLM 扫描改为可选，并通过 CLI 与桌面 GUI 双向配置：
 
 测试套件从 226 个增至 240 个，全部通过。
 
+### 3.11 CI/CD 集成（2026-08-02）
+
+CI/CD 计划于 2026-08-02 交付：
+
+- **`npm-safe ci` 命令。** 扫描项目的直接依赖（`dependencies` + `devDependencies`，`--prod` 仅生产依赖），聚合各包的安全级别，当任一依赖达到可配置阈值时使构建失败。选项：`--dir`、`--json`、`--prod`、`--fail-level`（默认 `dangerous`）、`--rate-limit`（默认每秒 20 次；引擎令牌桶按此配置）。退出码：`0` 通过，`1` 用法/配置错误，`2` 有依赖达到失败级别或扫描出错。不存在的包记入警告，网络错误计入失败。
+- **GitHub Actions 工作流**（`.github/workflows/ci.yml`）：两个 job——`quality`（安装、类型检查、构建、全量测试）与 `dependency-scan`（对 `packages/core` 运行 `npm-safe ci --fail-level dangerous`），每次 push/PR 强制执行。
+- **引擎管道。** `createEngine` 新增可选的 `rateLimit` / `rateLimitBurst` 覆盖参数，使 CI 命令可高于交互式默认值进行扫描。
+
+测试套件从 240 个增至 247 个，全部通过。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -305,10 +315,9 @@ Neutralinojs 图形界面（MD3）计划已交付，不再列入下表；详见�
 
 | 优先级 | 计划 | 描述 |
 |---|---|---|
-| 1 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
-| 2 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
-| 3 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
-| 4 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
+| 1 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
+| 2 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
+| 3 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
 
 ---
 

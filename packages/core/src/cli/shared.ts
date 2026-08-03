@@ -11,6 +11,16 @@ export function getDefaultDbPath(): string {
 }
 
 /**
+ * Optional engine overrides for CLI commands.
+ */
+export interface CreateEngineOptions {
+  /** Token bucket refill rate (tokens per second). */
+  readonly rateLimit?: number;
+  /** Maximum burst size for the token bucket. */
+  readonly rateLimitBurst?: number;
+}
+
+/**
  * Create an {@link NpmSafeEngine} instance.
  *
  * The persisted locale is loaded from the engine's settings table and
@@ -23,11 +33,14 @@ export function getDefaultDbPath(): string {
 export async function createEngine(
   dbPath?: string,
   proxyUrl?: string,
+  options?: CreateEngineOptions,
 ): Promise<NpmSafeEngine> {
   const db = dbPath ?? getDefaultDbPath();
   const engine = new NpmSafeEngine({
     dbPath: db,
     proxy: proxyUrl ?? (await readPersistedProxy(db)),
+    rateLimit: options?.rateLimit,
+    rateLimitBurst: options?.rateLimitBurst,
   });
 
   try {

@@ -26,7 +26,7 @@ This document records every project plan and its completion status.
 | AI skill packaging | **Done** (2026-08-02) | Global agent skill `npm-safe-scan` installed at `~/.agents/skills/npm-safe-scan/SKILL.md`; packages the CLI as a global agent skill (any AI agent that loads `~/.agents/skills/`). |
 | Plugin system | **Done** (2026-08-02) | Runtime rule registration API, `~/.npm-safe/rules.json` config, `~/.npm-safe/rules/` plugin discovery, `npm-safe rules` CLI, see section 3.9 |
 | LLM configuration (CLI + GUI) | **Done** (2026-08-02) | Optional LLM scanning via `~/.npm-safe/llm.json`; `npm-safe llm` commands; GUI rules and LLM settings pages, see section 3.10 |
-| CI/CD integration | Pending | Future phase |
+| CI/CD integration | **Done** (2026-08-02) | `npm-safe ci` dependency scan gate + GitHub Actions workflow, see section 3.11 |
 | Multi-package batch API | Pending | Future phase |
 | Telemetry and analytics | Pending | Future phase |
 | npm publisher configuration | Pending | Future phase |
@@ -333,6 +333,29 @@ desktop GUI:
 
 The test suite grew from 226 to 240 tests; all pass.
 
+### 3.11 CI/CD integration (2026-08-02)
+
+The CI/CD plan was delivered on 2026-08-02:
+
+- **`npm-safe ci` command.** Scans a project's direct dependencies
+  (`dependencies` + `devDependencies`, or `--prod` for production only),
+  aggregates the per-package security levels, and fails the build when any
+  dependency reaches a configurable threshold. Options: `--dir`, `--json`,
+  `--prod`, `--fail-level` (default `dangerous`), `--rate-limit` (default 20
+  requests/s; the engine's token bucket is configured accordingly). Exit
+  codes: `0` pass, `1` usage/config error, `2` dependency at/above the fail
+  level or scan error. Missing packages are reported as warnings, network
+  errors count as failures.
+- **GitHub Actions workflow** (`.github/workflows/ci.yml`): two jobs —
+  `quality` (install, typecheck, build, full test suite) and
+  `dependency-scan` (runs `npm-safe ci --fail-level dangerous` on
+  `packages/core`), gating every push/PR.
+- **Engine plumbing.** `createEngine` gained optional `rateLimit` /
+  `rateLimitBurst` overrides so the CI command can scan faster than the
+  interactive default.
+
+The test suite grew from 240 to 247 tests; all pass.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -359,10 +382,9 @@ covered by the shipped desktop GUI in section 3.6.
 
 | Priority | Plan | Description |
 |---|---|---|
-| 1 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
-| 2 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
-| 3 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
-| 4 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
+| 1 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
+| 2 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
+| 3 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
 
 ---
 
