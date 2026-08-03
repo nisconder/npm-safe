@@ -1,4 +1,4 @@
-# @npm-safe/desktop
+﻿# @npm-safe/desktop
 
 [English](README.md)
 
@@ -127,7 +127,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
                         │ WebSocket IPC (extensions.dispatch)
 ┌───────────────────────▼─────────────────────────────┐
 │  扩展  resources/extensions/core/main.mjs           │
-│  承载 NpmSafeEngine 的 Node.js 进程（12 个方法）     │
+│  承载 NpmSafeEngine 的 Node.js 进程（20 个方法）   │
 │  历史持久化 → ~/.npm-safe/history.json              │
 └───────────────────────┬─────────────────────────────┘
                         │ 启动与管理
@@ -154,7 +154,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 
 - 持有基于 SQLite 的 `NpmSafeEngine` 实例，数据库位于 `~/.npm-safe/npm-safe.db`。
 - WebSocket 连接建立时广播 `engineReady`，供前端从设置表回灌持久化偏好（主题、上次标签页）。
-- 暴露 **21 个 IPC 方法**：`checkPackage`、`searchPackages`、`getWatchlist`、`addToWatchlist`、`removeFromWatchlist`、`refreshPackage`、`refreshAll`、`getSetting`、`setSetting`、`getHistory`、`addHistory`、`clearHistory`、`listRules`、`setRuleEnabled`、`setRuleSeverity`、`setRuleOptions`、`loadRulePlugins`、`getLlmStatus`、`setLlmConfig`、`testLlmConnection`。
+- 暴露 **20 个 IPC 方法**：`checkPackage`、`searchPackages`、`getWatchlist`、`addToWatchlist`、`removeFromWatchlist`、`refreshPackage`、`refreshAll`、`getSetting`、`setSetting`、`getHistory`、`addHistory`、`clearHistory`、`listRules`、`setRuleEnabled`、`setRuleSeverity`、`setRuleOptions`、`loadRulePlugins`、`getLlmStatus`、`setLlmConfig`、`testLlmConnection`。
 - 维护检查历史 `~/.npm-safe/history.json`（unshift 插入，上限 1000 条；当包存在且生成安全报告时，`checkPackage` 会自动记录一条历史）。
 - 将诊断日志写入 `%TEMP%/npmsafe-extension.log`（Windows）或 `$TMPDIR/npmsafe-extension.log`（macOS/Linux）。
 - 与服务器的 WebSocket 连接断开时，关闭引擎并退出。
@@ -214,3 +214,4 @@ packages/desktop/
 - **Windows 上出现 WebView2 回环错误** — 在[Windows 首次运行注意事项](#windows-首次运行注意事项)中运行 `CheckNetIsolation.exe` 命令。
 - **引擎请求 30 秒超时** — 状态栏会显示超时错误；请检查网络连接（受限网络可能需要设置 `proxy`）。
 - **扩展无响应** — 检查扩展日志（`%TEMP%/npmsafe-extension.log`）中的错误，并确认启动前核心引擎已成功构建。
+
