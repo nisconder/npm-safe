@@ -23,7 +23,7 @@
 | 基于 LLM 的扫描提供者 | **已完成**（2026-08-01） | 多提供者：OpenAI / Gemini / Anthropic，见第 3.5 节 |
 | 桌面 GUI（`packages/desktop`） | **已完成**（2026-08-01） | Neutralinojs + 原生 JS + Material You（M3），见第 3.6 节 |
 | Neutralinojs 图形界面（MD3） | **已完成**（2026-08-01） | 已随 `packages/desktop` 交付，基于 Neutralinojs 的窗口应用，采用 Material 3（MD3）设计体系（浅色/深色主题）。原始的 Preact+mdui 方案已被交付的原生 JS 实现取代，后者已满足 MD3 要求。 |
-| AI 技能打包 | **已完成**（2026-08-02） | 全局技能 `npm-safe-scan` 已安装于 `~/.agents/skills/npm-safe-scan/SKILL.md`；将 CLI 打包为供任意 AI 代理（opencode、Claude Code）使用的技能。 |
+| AI 技能打包 | **已完成**（2026-08-02） | 全局技能 `npm-safe-scan` 已安装于 `~/.agents/skills/npm-safe-scan/SKILL.md`；将 CLI 打包为供加载 `~/.agents/skills/` 的任意 AI 代理使用的全局技能。 |
 | 插件系统 | **已完成**（2026-08-02） | 运行时规则注册 API、`~/.npm-safe/rules.json` 配置、`~/.npm-safe/rules/` 插件发现、`npm-safe rules` CLI，见第 3.9 节 |
 | LLM 配置管理（CLI + GUI） | **已完成**（2026-08-02） | 可选 LLM 扫描通过 `~/.npm-safe/llm.json` 配置；`npm-safe llm` 命令；桌面 GUI 评价体系与 LLM 设置页，见第 3.10 节 |
 | CI/CD 集成 | 待办 | 未来阶段 |
@@ -236,9 +236,9 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 
 全局技能 `npm-safe-scan` 于 2026-08-02 安装至
 `~/.agents/skills/npm-safe-scan/SKILL.md`。它将 `npm-safe` CLI 打包为可供
-任意 AI 代理（opencode、Claude Code）使用的代理技能，暴露工具的各个命令
+加载 `~/.agents/skills/` 的任意 AI 代理使用的代理技能，暴露工具的各个命令
 （check、search、watch、refresh、settings、lang），使代理能够直接调用
-它们来扫描 npm 包。该技能随包一同分发于 `opencode-skill/npm-safe-scan/SKILL.md`，
+它们来扫描 npm 包。该技能随包一同分发于 `skill/npm-safe-scan/SKILL.md`，
 并在每次安装本包时通过 `postinstall` 钩子（`scripts/install-skill.mjs`）
 自动安装至 `~/.agents/skills/`。
 

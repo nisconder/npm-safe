@@ -222,9 +222,9 @@ pnpm -F @npm-safe/core test
 
 名为 `npm-safe-scan` 的代理技能随本包一同分发，并在**安装时自动安装**：
 安装 `@npm-safe/core` 时，`postinstall` 钩子会将
-`opencode-skill/npm-safe-scan/SKILL.md` 复制到
-`~/.agents/skills/npm-safe-scan/SKILL.md`。任何 AI 代理（opencode、Claude
-Code 或任何自动加载 `~/.agents/skills/` 的代理）随后即可自动调用
+`skill/npm-safe-scan/SKILL.md` 复制到
+`~/.agents/skills/npm-safe-scan/SKILL.md`。任何能够从用户的
+`~/.agents/skills/` 目录自动加载技能的 AI 代理随后即可自动调用
 `npm-safe` 命令来检查、搜索、监视和刷新 npm 包的安全评估。该技能文档记录
 了完整的命令集、常见工作流和 JSON 输出解读。
 
@@ -248,7 +248,7 @@ npm-safe/
       API.md               # 公共 API 参考文档
       ARCHITECTURE.md      # 分层架构图、数据流、数据库模式
       SCANNER_RULES.md     # 10 条静态规则参考
-      opencode-skill/
+      skill/
         npm-safe-scan/
           SKILL.md         # AI 技能，postinstall 自动安装
       scripts/

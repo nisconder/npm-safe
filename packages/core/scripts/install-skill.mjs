@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Installs the npm-safe-scan agent skill into the user's global agent-skill
-// directory (~/.agents/skills) so any agent (opencode, Claude Code) can
-// auto-load it. Runs as the package `postinstall` hook.
+// directory (~/.agents/skills) so any AI agent can auto-load it. Runs as
+// the package `postinstall` hook.
 
 import fs from "node:fs";
 import os from "node:os";
@@ -34,7 +34,7 @@ if (isDevWorkspaceInstall) {
   process.exit(0); // development install — skip skill install
 }
 
-const source = path.join(packageRoot, "opencode-skill", "npm-safe-scan", "SKILL.md");
+const source = path.join(packageRoot, "skill", "npm-safe-scan", "SKILL.md");
 const targetDir = path.join(os.homedir(), ".agents", "skills", "npm-safe-scan");
 const target = path.join(targetDir, "SKILL.md");
 
