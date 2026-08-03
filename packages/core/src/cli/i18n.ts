@@ -7,6 +7,11 @@ const messages: Record<Locale, Record<string, string>> = {
 
     "check.notFound": 'Package "{name}" was not found on the registry.',
     "check.noPackages": "No package names given. Pass names or use --file.",
+    "check.detailNone": "No previous batch check found. Run a multi-package check first.",
+    "check.detailOutOfRange": 'No package at index {index} (the last batch has {count} packages).',
+    "check.detailInvalidIndex": 'Invalid index "{value}". Use a positive integer.',
+    "check.detailMissingIndex": "Missing index. Usage: npm-safe check detail <index>",
+    "check.detailFailed": 'Package "{name}" failed in the last batch: {message}',
     "check.notFoundShort": "not-found",
     "check.findings": "findings",
     "check.batchSummary": "Checked {count} packages.",
@@ -89,6 +94,11 @@ const messages: Record<Locale, Record<string, string>> = {
 
     "check.notFound": '在注册表中未找到包 "{name}"。',
     "check.noPackages": "未提供包名。请传入包名或使用 --file。",
+    "check.detailNone": "没有找到上次的批量检查记录。请先执行多包检查。",
+    "check.detailOutOfRange": '索引 {index} 没有对应包（上次批量共 {count} 个包）。',
+    "check.detailInvalidIndex": '无效的索引 "{value}"。请使用正整数。',
+    "check.detailMissingIndex": "缺少索引。用法: npm-safe check detail <索引>",
+    "check.detailFailed": '包 "{name}" 在上次批量检查中失败: {message}',
     "check.notFoundShort": "未找到",
     "check.findings": "项发现",
     "check.batchSummary": "已检查 {count} 个包。",

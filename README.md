@@ -258,10 +258,14 @@ scanning concurrently (default 5) while still respecting the rate limiter:
 npm-safe check lodash express axios       # batch check
 npm-safe check --file deps.txt --concurrency 10
 npm-safe check lodash express --json      # machine-readable batch report
+npm-safe check detail 2                   # full report of the 2nd package of the last batch
 ```
 
 Programmatic consumers can use `NpmSafeEngine.checkPackages(names, options)`
-with a `concurrency` cap and an `onProgress` callback.
+with a `concurrency` cap and an `onProgress` callback. The most recent batch
+is saved to `~/.npm-safe/last-batch.json`; `check detail <n>` re-renders one
+package's full report (findings, recommendations, snippets) from it without
+re-fetching.
 
 ### Desktop first-run (Windows)
 
@@ -278,7 +282,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-257 tests cover every module: validators, static rules, rate limiter, store
+260 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
 integration surface, the LLM providers, the LLM configuration manager, the
 rule plugin system, the CI command, batch operations, and the CLI itself.

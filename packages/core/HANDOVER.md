@@ -375,8 +375,13 @@ The batch API plan was delivered on 2026-08-02:
   `dependencies` fallback) and scans every package including transitive
   dependencies; `--lockfile --prod` restricts to the direct production
   dependencies declared in `package.json`.
+- **Batch detail view.** The most recent batch result is persisted to
+  `~/.npm-safe/last-batch.json`; `npm-safe check detail <n>` re-renders the
+  full report (findings, recommendations, snippets) of the n-th package
+  without re-fetching, with index validation and error handling for failed
+  entries.
 
-The test suite grew from 247 to 257 tests; all pass.
+The test suite grew from 247 to 260 tests; all pass.
 
 ---
 

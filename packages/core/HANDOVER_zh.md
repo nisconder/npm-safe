@@ -296,8 +296,9 @@ CI/CD 计划于 2026-08-02 交付：
 - **`NpmSafeEngine.checkPackages(names, options)`。** 并行检查多个包，并发上限默认 5。每次检查消耗一个限速令牌，批量扫描遵守配置的请求预算。失败按包隔离（`{ ok: false, error }`），不会中断整个批次；结果按输入顺序返回。选项：`concurrency`、`onProgress(done, total, entry)`。
 - **批量 CLI。** `npm-safe check` 接受任意数量的包名（`check lodash express axios`），支持从文件读取列表（`--file`，每行一个，`#` 注释）与 `--concurrency`。批量 JSON 输出为 `BatchPackageResult[]`。单包输出不变。
 - **lockfile 全量扫描。** `npm-safe ci --lockfile` 解析 `package-lock.json`（npm lockfile v2/v3 的 `packages` 映射，兼容 v1 `dependencies` 回退），扫描包括间接依赖在内的全部包；`--lockfile --prod` 仅保留 `package.json` 中声明的直接生产依赖。
+- **批量详情查看。** 最近一次批量结果持久化到 `~/.npm-safe/last-batch.json`；`npm-safe check detail <n>` 无需重新拉取即可重渲染第 n 个包的完整报告（发现项、建议、代码片段），含索引校验与失败项错误处理。
 
-测试套件从 247 个增至 257 个，全部通过。
+测试套件从 247 个增至 260 个，全部通过。
 
 ---
 

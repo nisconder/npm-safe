@@ -216,10 +216,13 @@ npm-safe ci --rate-limit 50                # 每秒注册表请求数
 npm-safe check lodash express axios       # 批量检查
 npm-safe check --file deps.txt --concurrency 10
 npm-safe check lodash express --json      # 机器可读批量报告
+npm-safe check detail 2                   # 查看上次批量第 2 个包的完整详情
 ```
 
 编程使用可用 `NpmSafeEngine.checkPackages(names, options)`，支持
-`concurrency` 上限与 `onProgress` 进度回调。
+`concurrency` 上限与 `onProgress` 进度回调。最近一次批量结果保存在
+`~/.npm-safe/last-batch.json`；`check detail <n>` 可从其中重新渲染单个包
+的完整报告（发现项、建议、代码片段），无需重新拉取。
 
 ### 桌面应用首次运行（Windows）
 
@@ -235,7 +238,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-257 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作以及 CLI 本身。
+260 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作以及 CLI 本身。
 
 ---
 

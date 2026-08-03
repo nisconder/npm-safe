@@ -2,7 +2,8 @@ import { Command } from "commander";
 import { readFileSync } from "node:fs";
 import { createEngine } from "./shared.js";
 import { t } from "./i18n.js";
-import type { CheckResult } from "../index.js";
+import { loadLastBatch, saveLastBatch } from "./batch-history.js";
+import type { CheckResult, BatchPackageResult } from "../index.js";
 
 export interface RunCheckOptions {
   readonly json?: boolean;
@@ -113,6 +114,7 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
     const results = await engine.checkPackages(names, {
       concurrency: options.concurrency,
     });
+    saveLastBatch(results);
 
     if (options.json) {
       console.log(JSON.stringify(results, null, 2));
@@ -152,6 +154,45 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
   }
 }
 
+/**
+ * Re-render the full report of the package at the given 1-based index of the
+ * most recent batch check, without re-fetching from the registry.
+ */
+export async function runDetail(index: number, options: RunCheckOptions): Promise<void> {
+  const batch = loadLastBatch();
+  if (batch === null) {
+    console.error(t("check.detailNone"));
+    process.exitCode = 1;
+    return;
+  }
+  if (index < 1 || index > batch.length) {
+    console.error(t("check.detailOutOfRange", {
+      index: String(index),
+      count: String(batch.length),
+    }));
+    process.exitCode = 1;
+    return;
+  }
+
+  const entry: BatchPackageResult = batch[index - 1];
+  if (!entry.ok) {
+    console.error(t("check.detailFailed", { name: entry.name, message: entry.error ?? "" }));
+    process.exitCode = 1;
+    return;
+  }
+  const result = entry.result!;
+  if (!result.exists) {
+    console.error(t("check.notFound", { name: entry.name }));
+    process.exitCode = 1;
+    return;
+  }
+  if (options.json) {
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+  if (!printSingleResult(result, entry.name)) process.exitCode = 1;
+}
+
 export function registerCheckCommand(program: Command): void {
   program
     .command("check [package-name...]")
@@ -162,6 +203,31 @@ export function registerCheckCommand(program: Command): void {
     .option("--concurrency <n>", "Max concurrent checks for batch mode (default: 5)")
     .action(async (packageName: string[] = [], options: { json?: boolean; refresh?: boolean; file?: string; concurrency?: string }) => {
       const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
+      const runOptions: RunCheckOptions = {
+        db: opts.db,
+        proxy: opts.proxy,
+        json: options.json ?? opts.json,
+        refresh: options.refresh,
+        concurrency: options.concurrency ? parseInt(options.concurrency, 10) : undefined,
+      };
+
+      // `check detail <n>` re-renders the n-th package of the last batch.
+      if (packageName[0] === "detail") {
+        if (packageName.length < 2) {
+          console.error(t("check.detailMissingIndex"));
+          process.exitCode = 1;
+          return;
+        }
+        const index = Number(packageName[1]);
+        if (!Number.isInteger(index) || index < 1) {
+          console.error(t("check.detailInvalidIndex", { value: packageName[1] }));
+          process.exitCode = 1;
+          return;
+        }
+        await runDetail(index, runOptions);
+        return;
+      }
+
       let names = packageName;
       if (options.file) {
         try {
@@ -193,7 +259,7 @@ export function registerCheckCommand(program: Command): void {
         proxy: opts.proxy,
         json: options.json ?? opts.json,
         refresh: options.refresh,
-        concurrency,
+        concurrency: options.concurrency ? parseInt(options.concurrency, 10) : undefined,
       });
     });
 }
