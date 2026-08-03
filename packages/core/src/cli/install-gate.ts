@@ -80,11 +80,35 @@ export function registerInstallGateCommands(program: Command): void {
   gate
     .command("enable")
     .description("Enable the install gate (checks before every install)")
-    .action(async () => {
+    .option("--shell-file <path>", "Install shell wrappers into a specific config file")
+    .option("--no-shell", "Skip the automatic shell wrapper installation")
+    .action(async (options: { shellFile?: string; shell?: boolean }) => {
       const opts = program.opts<{ db?: string; proxy?: string }>();
       await writeGateConfig({ enabled: true }, opts.db, opts.proxy);
       console.log(t("gate.enabled"));
-      console.log(t("gate.enableHint"));
+
+      // Automatically install the shell wrappers so npm/pnpm/yarn add go
+      // through the gate without any further step.
+      if (options.shell !== false) {
+        const target = options.shellFile ?? detectShellConfig();
+        if (target) {
+          try {
+            const result = installShellBlock(target);
+            if (result === "created") {
+              console.log(t("gate.shell.installed", { path: target }));
+            } else if (result === "updated") {
+              console.log(t("gate.shell.updated", { path: target }));
+            } else {
+              console.log(t("gate.shell.already", { path: target }));
+            }
+            console.log(t("gate.enableHint"));
+          } catch (err) {
+            console.error(t("gate.shell.installFailed", { message: err instanceof Error ? err.message : String(err) }));
+          }
+        } else {
+          console.log(t("gate.shell.noConfig"));
+        }
+      }
     });
 
   gate
@@ -430,29 +454,25 @@ function hasShellBlock(file: string): boolean {
 function installShellBlock(file: string): "created" | "updated" | "existing" {
   const block = file.endsWith(".ps1") ? powershellWrappers() : bashWrappers();
   const existed = hasShellBlock(file);
-  try {
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    let content = "";
-    if (fs.existsSync(file)) {
-      content = fs.readFileSync(file, "utf8");
-    }
-    if (existed) {
-      // Replace the previous block in place.
-      const start = content.indexOf(SHELL_BLOCK_START);
-      const end = content.indexOf(SHELL_BLOCK_END);
-      if (start >= 0 && end >= 0) {
-        content = content.slice(0, start) + block + content.slice(end + SHELL_BLOCK_END.length);
-      } else {
-        content = `${content.trimEnd()}\n\n${block}\n`;
-      }
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  let content = "";
+  if (fs.existsSync(file)) {
+    content = fs.readFileSync(file, "utf8");
+  }
+  if (existed) {
+    // Replace the previous block in place.
+    const start = content.indexOf(SHELL_BLOCK_START);
+    const end = content.indexOf(SHELL_BLOCK_END);
+    if (start >= 0 && end >= 0) {
+      content = content.slice(0, start) + block + content.slice(end + SHELL_BLOCK_END.length);
     } else {
       content = `${content.trimEnd()}\n\n${block}\n`;
     }
-    fs.writeFileSync(file, content);
-    return existed ? "updated" : "created";
-  } catch {
-    return "existing";
+  } else {
+    content = `${content.trimEnd()}\n\n${block}\n`;
   }
+  fs.writeFileSync(file, content);
+  return existed ? "updated" : "created";
 }
 
 /** Remove the wrapper block. Returns `true` when something was removed. */

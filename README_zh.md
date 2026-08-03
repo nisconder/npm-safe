@@ -279,27 +279,20 @@ npm-safe telemetry reset          # 清空全部采集数据
 
 ```bash
 npm-safe gate status               # 查看启用状态与阈值
-npm-safe gate enable               # 开启门禁
+npm-safe gate enable               # 开启门禁（自动安装 shell 包装）
 npm-safe gate disable              # 关闭门禁
 npm-safe gate set-threshold 90     # 提高阈值
-npm-safe gate shell                # 安装 shell 包装（见下）
 npm-safe install axios             # 带门禁安装（低于阈值时提示）
 npm-safe install axios --yes       # 自动确认
 npm-safe install axios --dry-run   # 只检查+确认，不实际安装
 ```
 
-若希望 shell 中每次 `npm install` / `pnpm add` / `yarn add` 都自动经过
-门禁，运行一次：
-
-```bash
-npm-safe gate shell
-```
-
-该命令会把 `npm`、`pnpm`、`yarn` 的包装函数（幂等）写入你的 shell 配置
-（Windows 上为 PowerShell `$PROFILE`，其他平台为 `~/.zshrc` 或
-`~/.bashrc`）。重启 shell 后，任何 `pnpm add <pkg>` 或 `npm install <pkg>`
-都会先执行 `npm-safe install ...`——门禁检查包，低于阈值时确认通过后才会
-运行真正的包管理器。移除包装：
+`gate enable` 一步完成：开启检查**并**自动把 `npm`、`pnpm`、`yarn` 的
+幂等包装函数写入你的 shell 配置（Windows 上为 PowerShell `$PROFILE`，
+其他平台为 `~/.zshrc`/`~/.bashrc`；可用 `--shell-file <path>` 指定文件，
+`--no-shell` 跳过）。重启 shell 后，任何 `pnpm add <pkg>` 或
+`npm install <pkg>` 都会先执行 `npm-safe install ...`——门禁检查包，低于
+阈值时确认通过后才会运行真正的包管理器。移除包装：
 
 ```bash
 npm-safe gate shell --remove

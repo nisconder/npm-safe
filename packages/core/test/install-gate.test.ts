@@ -41,7 +41,7 @@ describe("CLI gate", () => {
     const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
     const db = path.join(home, "g.db");
     try {
-      assert.strictEqual(runCli(["--db", db, "gate", "enable"], home).status, 0);
+      assert.strictEqual(runCli(["--db", db, "gate", "enable", "--no-shell"], home).status, 0);
       assert.strictEqual(runCli(["--db", db, "gate", "set-threshold", "70"], home).status, 0);
       const after = JSON.parse(runCli(["--db", db, "gate", "status", "--json"], home).stdout) as { enabled: boolean; threshold: number };
       assert.strictEqual(after.enabled, true);
@@ -60,6 +60,38 @@ describe("CLI gate", () => {
       const { status, stderr } = runCli(["gate", "set-threshold", "150"], home);
       assert.strictEqual(status, 1);
       assert.ok(stderr.length > 0);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it("installs shell wrappers automatically when enabling with an existing config", () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
+    const db = path.join(home, "g.db");
+    const rc = path.join(home, ".bashrc");
+    try {
+      writeFileSync(rc, "# existing shell config\n");
+      const { status, stdout } = runCli(["--db", db, "gate", "enable", "--shell-file", rc], home);
+      assert.strictEqual(status, 0);
+      assert.ok(stdout.includes("Gate wrappers installed"));
+      const content = readFileSync(rc, "utf8");
+      assert.ok(content.includes("# >>> npm-safe gate >>>"));
+      assert.ok(content.includes("pnpm()"));
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it("skips wrapper installation with --no-shell", () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
+    const db = path.join(home, "g.db");
+    const rc = path.join(home, ".bashrc");
+    try {
+      writeFileSync(rc, "# existing shell config\n");
+      const { status, stdout } = runCli(["--db", db, "gate", "enable", "--no-shell", "--shell-file", rc], home);
+      assert.strictEqual(status, 0);
+      assert.ok(!stdout.includes("Gate wrappers installed"));
+      assert.ok(!readFileSync(rc, "utf8").includes("npm-safe gate"));
     } finally {
       rmSync(home, { recursive: true, force: true });
     }
@@ -111,7 +143,7 @@ describe("CLI install gate flow", () => {
     const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
     const db = path.join(home, "g.db");
     try {
-      runCli(["--db", db, "gate", "enable"], home);
+      runCli(["--db", db, "gate", "enable", "--no-shell"], home);
       const { status, stdout } = runCli(["--db", db, "install", "lodash", "--dry-run", "--threshold", "85"], home);
       assert.strictEqual(status, 0);
       assert.ok(stdout.includes("lodash is safe"));
@@ -125,7 +157,7 @@ describe("CLI install gate flow", () => {
     const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
     const db = path.join(home, "g.db");
     try {
-      runCli(["--db", db, "gate", "enable"], home);
+      runCli(["--db", db, "gate", "enable", "--no-shell"], home);
       // axios scores ~74 (< 85): an input of "n" must abort with exit code 3.
       const aborted = runCli(["--db", db, "install", "axios", "--dry-run"], home, "n\n");
       assert.strictEqual(aborted.status, 3);
@@ -144,7 +176,7 @@ describe("CLI install gate flow", () => {
     const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
     const db = path.join(home, "g.db");
     try {
-      runCli(["--db", db, "gate", "enable"], home);
+      runCli(["--db", db, "gate", "enable", "--no-shell"], home);
       const { status, stdout } = runCli(["--db", db, "install", "axios", "--dry-run", "--yes"], home);
       assert.strictEqual(status, 0);
       assert.ok(stdout.includes("[dry-run]"));
@@ -213,7 +245,7 @@ describe("CLI install gate flow", () => {
     const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
     const db = path.join(home, "g.db");
     try {
-      runCli(["--db", db, "gate", "enable"], home);
+      runCli(["--db", db, "gate", "enable", "--no-shell"], home);
       // lodash scores ~97; threshold 99 makes it "below" and requires confirmation.
       const { status, stdout, stderr } = runCli(["--db", db, "install", "lodash", "--dry-run", "--threshold", "99"], home, "n\n");
       assert.strictEqual(status, 3);
@@ -223,5 +255,6 @@ describe("CLI install gate flow", () => {
     }
   });
 });
+
 
 

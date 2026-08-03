@@ -329,28 +329,22 @@ CLI or the desktop GUI (Settings → 安装安全检查):
 
 ```bash
 npm-safe gate status               # show enabled state + threshold
-npm-safe gate enable               # turn the gate on
+npm-safe gate enable               # turn the gate on (auto-installs shell wrappers)
 npm-safe gate disable              # turn it off
 npm-safe gate set-threshold 90     # raise the bar
-npm-safe gate shell                # install shell wrappers (see below)
 npm-safe install axios             # gated install (prompts below threshold)
 npm-safe install axios --yes       # auto-confirm
 npm-safe install axios --dry-run   # check + prompt without installing
 ```
 
-To make every `npm install`/`pnpm add`/`yarn add` in your shell go through
-the gate automatically, run once:
-
-```bash
-npm-safe gate shell
-```
-
-This appends idempotent wrapper functions for `npm`, `pnpm`, and `yarn` to
-your shell config (PowerShell `$PROFILE` on Windows, `~/.zshrc` or
-`~/.bashrc` otherwise). After restarting your shell, any `pnpm add <pkg>` or
-`npm install <pkg>` first runs `npm-safe install ...` — the gate checks the
-package and asks for confirmation below the threshold before the real
-package manager runs. Remove the wrappers with:
+`gate enable` does everything in one step: it enables the check **and**
+automatically installs idempotent wrapper functions for `npm`, `pnpm`, and
+`yarn` into your shell config (PowerShell `$PROFILE` on Windows,
+`~/.zshrc`/`~/.bashrc` otherwise; pass `--shell-file <path>` to target a
+specific file, `--no-shell` to skip). After restarting your shell, any
+`pnpm add <pkg>` or `npm install <pkg>` first runs `npm-safe install ...` —
+the gate checks the package and asks for confirmation below the threshold
+before the real package manager runs. Remove the wrappers with:
 
 ```bash
 npm-safe gate shell --remove
