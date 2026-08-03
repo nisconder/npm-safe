@@ -429,6 +429,7 @@ npm-safe/
 
 - **报告导出。** 批量报告导出（CSV/JSON）与仪表盘报告下载。
 - **遥测与分析。** 结构化日志、可选的使用报告和指标导出。
-- **npm 发布者配置。** 当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。
+
+> npm 发布有意暂缓——包目前保持 `"private": true`。
 
 

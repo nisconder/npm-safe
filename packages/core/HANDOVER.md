@@ -29,7 +29,7 @@ This document records every project plan and its completion status.
 | CI/CD integration | **Done** (2026-08-02) | `npm-safe ci` dependency scan gate + GitHub Actions workflow, see section 3.11 |
 | Multi-package batch API | **Done** (2026-08-02) | `checkPackages` (parallel + rate-limited), batch `check`, `ci --lockfile`, see section 3.12 |
 | Telemetry and analytics | Pending | Future phase |
-| npm publisher configuration | Pending | Future phase |
+| npm publisher configuration | **Deferred** (2026-08-03) | On hold by decision — package stays `"private": true`, not publishing for now |
 
 ---
 
@@ -406,7 +406,10 @@ covered by the shipped desktop GUI in section 3.6.
 |---|---|---|
 | 1 | **Report export** | Batch report export (CSV/JSON) and dashboard report download. |
 | 2 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
-| 3 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
+
+> **Deferred by decision (2026-08-03):** npm publisher configuration
+> (`publishConfig`, `.npmignore`, provenance) is intentionally on hold — the
+> package stays `"private": true` and will not be published for now.
 
 ---
 

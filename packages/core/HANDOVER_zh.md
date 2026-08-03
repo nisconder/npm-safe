@@ -29,7 +29,7 @@
 | CI/CD 集成 | **已完成**（2026-08-02） | `npm-safe ci` 依赖扫描门禁 + GitHub Actions 工作流，见第 3.11 节 |
 | 多包批量 API | **已完成**（2026-08-02） | `checkPackages`（并行 + 限速）、批量 `check`、`ci --lockfile`，见第 3.12 节 |
 | 遥测与分析 | 待办 | 未来阶段 |
-| npm 发布者配置 | 待办 | 未来阶段 |
+| npm 发布者配置 | **暂缓**（2026-08-03） | 按决定暂缓——包保持 `"private": true`，暂不发布 |
 
 ---
 
@@ -327,7 +327,9 @@ Neutralinojs 图形界面（MD3）计划已交付，不再列入下表；详见�
 |---|---|---|
 | 1 | **报告导出** | 批量报告导出（CSV/JSON）与仪表盘报告下载。 |
 | 2 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
-| 3 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
+
+> **按决定暂缓（2026-08-03）：** npm 发布者配置（`publishConfig`、`.npmignore`、
+> provenance）有意暂不推进——包保持 `"private": true`，暂不发布。
 
 ---
 

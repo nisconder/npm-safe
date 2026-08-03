@@ -488,7 +488,8 @@ batch operations, followed by a security hardening pass (2026-08-02) that fixed
   download.
 - **Telemetry and analytics.** Structured logging, optional usage reporting,
   and metrics export.
-- **npm publisher configuration.** Add `publishConfig`, `.npmignore`, and
-  provenance setup when publishing is wanted.
+
+> npm publishing is intentionally deferred — the package remains
+> `"private": true` for now.
 
 
