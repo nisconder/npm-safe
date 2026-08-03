@@ -361,8 +361,10 @@ An agent skill named `npm-safe-scan` is bundled with this package and
 `@npm-safe/core` copies `skill/npm-safe-scan/SKILL.md` to
 `~/.agents/skills/npm-safe-scan/SKILL.md`. Any AI agent that auto-loads skills
 from the user's `~/.agents/skills/` directory can then automatically invoke
-`npm-safe` commands to check, search, watch, and refresh npm package security
-assessments. The skill documents the full command surface, common workflows,
+`npm-safe` commands. The skill's trigger is biased towards install intent: a
+coding agent is expected to run `npm-safe check <name>` **before installing
+any npm package**, and it documents the full command surface (check, batch
+check, ci, report, rules, llm, watch, settings, telemetry), common workflows,
 and JSON output interpretation.
 
 ---

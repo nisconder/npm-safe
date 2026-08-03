@@ -308,8 +308,10 @@ pnpm -F @npm-safe/core test
 `skill/npm-safe-scan/SKILL.md` 复制到
 `~/.agents/skills/npm-safe-scan/SKILL.md`。任何能够从用户的
 `~/.agents/skills/` 目录自动加载技能的 AI 代理随后即可自动调用
-`npm-safe` 命令来检查、搜索、监视和刷新 npm 包的安全评估。该技能文档记录
-了完整的命令集、常见工作流和 JSON 输出解读。
+`npm-safe` 命令。技能的触发场景偏向安装意图：编码代理在**安装任何 npm 包
+之前**应自动运行 `npm-safe check <name>`。该技能文档记录了完整的命令集
+（check、批量 check、ci、report、rules、llm、watch、settings、telemetry）、
+常见工作流和 JSON 输出解读。
 
 ---
 
