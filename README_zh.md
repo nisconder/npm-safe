@@ -42,6 +42,12 @@ pnpm -F @npm-safe/core run build
 cd packages/core && npm link
 ```
 
+> **Windows PATH 说明：** `npm link` 会把 `npm-safe` 安装到 npm 全局 bin
+> 目录（`%APPDATA%\npm`），外部终端需要该目录在 `PATH` 中才能找到它。
+> 官方 Node.js MSI 安装器会自动添加；自定义安装（如 Node 解压到自定义目录）
+> 需手动添加：`setx PATH "%APPDATA%\npm;%PATH%"`，然后重新打开终端。
+> 如有异常可运行 `npm-safe doctor` 诊断。
+
 ### 命令
 
 ```bash
@@ -74,6 +80,7 @@ npm-safe report lodash express     # 导出安全报告（JSON/CSV）
 npm-safe telemetry status          # 查看遥测状态（可选，仅本地）
 npm-safe gate status               # 查看安装门禁状态（可选）
 npm-safe install axios             # 带门禁安装（启用后生效）
+npm-safe doctor                    # 诊断 PATH / 门禁 / shim 配置
 ```
 
 ### 桌面应用

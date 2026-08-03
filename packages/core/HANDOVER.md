@@ -473,6 +473,27 @@ agents:
 
 The test suite grew from 291 to 296 tests; all pass.
 
+### 3.17 doctor command (2026-08-03)
+
+`npm-safe doctor` diagnoses installation and gate setup in one shot:
+
+- **npm global bin in PATH** — checks `%APPDATA%\npm` (or `npm prefix -g`)
+  is reachable; suggests `setx PATH ...` otherwise. This catches the common
+  Windows issue where `npm-safe` works in VS Code's integrated terminal (its
+  environment differs) but not in external terminals (fresh shells read the
+  registry PATH).
+- **Install gate** — enabled/disabled + threshold.
+- **Shims / wrappers** — on Windows: shim files exist in `~/.npm-safe/bin`,
+  the directory is on PATH, and it precedes the real npm directory (so the
+  gate actually intercepts); elsewhere: the shell profile contains the
+  wrapper block.
+- **Database** — the shared `~/.npm-safe/npm-safe.db` is writable.
+
+Exits non-zero when any check fails and prints actionable fixes.
+README/README_zh gained a Windows PATH setup note.
+
+The test suite grew from 296 to 303 tests; all pass.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)

@@ -16,6 +16,7 @@ import { registerCiCommand } from "./ci.js";
 import { registerTelemetryCommand } from "./telemetry.js";
 import { registerReportCommand } from "./report.js";
 import { registerInstallGateCommands } from "./install-gate.js";
+import { registerDoctorCommand } from "./doctor.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
@@ -50,6 +51,7 @@ registerCiCommand(program);
 registerTelemetryCommand(program);
 registerReportCommand(program);
 registerInstallGateCommands(program);
+registerDoctorCommand(program);
 
 program.parse();
 

@@ -65,6 +65,13 @@ pnpm -F @npm-safe/core run build
 cd packages/core && npm link
 ```
 
+> **Windows PATH note:** `npm link` installs `npm-safe` into the npm global
+> bin directory (`%APPDATA%\npm`), which must be on your `PATH` for external
+> terminals to find it. The official Node.js MSI adds it automatically; for
+> custom installs (e.g. Node unpacked to a custom folder) add it yourself:
+> `setx PATH "%APPDATA%\npm;%PATH%"`, then reopen the terminal. If anything
+> looks off, run `npm-safe doctor` for a diagnosis.
+
 ### Commands
 
 ```bash
@@ -97,6 +104,7 @@ npm-safe report lodash express     # Export security reports (JSON/CSV)
 npm-safe telemetry status          # Show telemetry status (opt-in, local only)
 npm-safe gate status               # Show install gate status (opt-in)
 npm-safe install axios             # Install with the security gate (if enabled)
+npm-safe doctor                    # Diagnose PATH / gate / shim setup
 ```
 
 ### Desktop Application

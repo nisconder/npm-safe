@@ -17,7 +17,7 @@ interface GateConfig {
   readonly threshold: number;
 }
 
-async function readGateConfig(db?: string, proxy?: string): Promise<GateConfig> {
+export async function readGateConfig(db?: string, proxy?: string): Promise<GateConfig> {
   const engine = await createEngine(db, proxy);
   try {
     const enabled = (await engine.getSetting(GATE_ENABLED_KEY)) === "true";
@@ -495,7 +495,7 @@ ${SHELL_BLOCK_END}`;
  * Detect the shell configuration file for the current user:
  * PowerShell profile on Windows, ~/.zshrc or ~/.bashrc otherwise.
  */
-function detectShellConfig(): string | null {
+export function detectShellConfig(): string | null {
   if (process.platform === "win32") {
     const home = process.env.USERPROFILE ?? process.env.HOME;
     if (!home) return null;
@@ -517,7 +517,7 @@ function detectShellConfig(): string | null {
 }
 
 /** True when the file already contains the gate wrapper block. */
-function hasShellBlock(file: string): boolean {
+export function hasShellBlock(file: string): boolean {
   try {
     const content = fs.readFileSync(file, "utf8");
     return content.includes(SHELL_BLOCK_START);
@@ -572,7 +572,7 @@ function removeShellBlock(file: string): boolean {
 // ---------------------------------------------------------------------------
 
 /** Directory holding the npm-safe command shims. */
-function getShimDir(): string {
+export function getShimDir(): string {
   return path.join(os.homedir(), ".npm-safe", "bin");
 }
 
@@ -629,4 +629,5 @@ function removeShims(): boolean {
   }
   return removed;
 }
+
 

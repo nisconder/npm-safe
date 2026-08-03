@@ -343,6 +343,19 @@ CI/CD 计划于 2026-08-02 交付：
 
 测试套件从 291 个增至 296 个，全部通过。
 
+### 3.17 doctor 诊断命令（2026-08-03）
+
+`npm-safe doctor` 一键诊断安装与门禁配置：
+
+- **npm 全局 bin 是否在 PATH 中** —— 检查 `%APPDATA%\npm`（或 `npm prefix -g`）可达性，否则提示 `setx PATH ...`。这能捕获常见的 Windows 问题：`npm-safe` 在 VS Code 集成终端可用（其环境不同），但外部终端找不到（新 shell 从注册表读取 PATH）。
+- **安装门禁** —— 启用状态 + 阈值。
+- **shim / 包装** —— Windows 上：`~/.npm-safe/bin` 下 shim 文件存在、该目录在 PATH 中且位于真实 npm 目录之前（门禁确实拦截）；其他平台：shell profile 包含包装块。
+- **数据库** —— 共享的 `~/.npm-safe/npm-safe.db` 可写。
+
+任一检查失败时非零退出并打印可执行的修复建议。README/README_zh 补充了 Windows PATH 配置说明。
+
+测试套件从 296 个增至 303 个，全部通过。
+
 ---
 
 ## 4. 文档交付物（已完成）
