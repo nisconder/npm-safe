@@ -9,9 +9,9 @@
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
 
-@npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
+@npm-safe 是一个**本地优先**的 npm 包安全分析引擎，专门用来检测供应链攻击模式。它从 npm 公共注册表拉取包元数据，对元数据和 README 执行静态规则扫描，结果缓存到本地 SQLite，并通过类型化 API 提供查询、监控和刷新等能力。引擎以库的形式运行，而非独立服务。
 
-**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，29 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（247 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`、`rules`、`llm`、`ci` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic）及持久化配置，以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/评价体系/LLM/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
+**第一阶段（引擎核心）+ 第二阶段已完成。** 引擎核心交付 29 个源文件，零 TypeScript 错误。第二阶段新增完整测试套件（**247 个测试全部通过**）、CLI 工具、代理支持、多后端 LLM 扫描（OpenAI / Gemini / Anthropic），以及基于 Neutralinojs 的桌面 GUI——包含 Material You 风格的总览仪表盘、检查/搜索/监控/规则/LLM/设置标签页、浅色/深色主题和持久化检查历史。2026-08-02 完成一轮安全加固，修复 12 个问题，包括桌面 GUI 中两处严重的 XSS-to-RCE 漏洞（所有字段已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等 CLI 正确性问题。
 
 ---
 
@@ -45,17 +45,17 @@ cd packages/core && npm link
 ### 命令
 
 ```bash
-npm-safe <package>                 # check 的简写
-npm-safe check <package>           # 检查包的安全性
+npm-safe <package>                 # 简写形式，等同于 check
+npm-safe check <package>           # 检查包安全状态
 npm-safe search <query>            # 搜索 npm 注册表
 npm-safe watch list                # 查看监控列表
-npm-safe watch add <package>       # 添加监控
-npm-safe watch remove <package>    # 移除监控
+npm-safe watch add <package>       # 添加包到监控列表
+npm-safe watch remove <package>    # 从监控列表移除包
 npm-safe refresh [package]         # 刷新单个（或全部监控）包
 npm-safe settings get <key>        # 读取设置
 npm-safe settings set <key> <val>  # 写入设置
 npm-safe lang [en|zh]              # 查看或设置输出语言
-npm-safe rules list                # 列出扫描规则及生效状态
+npm-safe rules list                # 列出所有扫描规则及状态
 npm-safe rules enable <rule-id>    # 启用扫描规则（持久化）
 npm-safe rules disable <rule-id>   # 禁用扫描规则（持久化）
 npm-safe rules severity <rule-id> <severity>  # 覆盖规则严重级别
@@ -84,11 +84,11 @@ pnpm run build
 
 功能特性：
 
-- **总览仪表盘** — 平均安全评分半圆仪表、最近检查列表、近7日检查柱状图、总检查次数、风险分布。
+- **总览仪表盘** — 平均安全评分半圆仪表、最近检查列表、近 7 日检查柱状图、总检查次数、风险分布。
 - **检查** — 输入包名，查看安全等级、分数和发现项。
 - **搜索** — 关键词搜索 npm 注册表；点击结果直接跳转检查。
 - **监控** — 管理监控列表，刷新单个或全部监控包。
-- **评价体系** — 列出所有注册规则，启用/禁用每个规则，覆盖其严重级别；可重新加载 `~/.npm-safe/rules/` 下的插件规则。
+- **规则配置** — 列出所有注册规则，启用/禁用每个规则，覆盖其严重级别；可重新加载 `~/.npm-safe/rules/` 下的插件规则。
 - **LLM** — 配置可选 LLM 扫描：启用开关、提供者、API 密钥、模型和基础 URL，并提供测试连接按钮。
 - **设置** — 读取/写入任意引擎设置（如 `proxy`、`lang`）。
 - **浅色/深色主题** — 自定义标题栏一键切换两套独立的 Material You 配色；主题与上次打开的标签页会在会话间记住（localStorage + 引擎设置表）。
@@ -154,15 +154,15 @@ npm-safe rules severity typosquatting critical  # 覆盖规则严重级别
 // ~/.npm-safe/rules/my-rule.mjs
 export const rule = {
   id: "my-rule",
-  name: "My rule",
-  description: "Detects something bad",
+  name: "自定义规则",
+  description: "检测可疑的 postinstall 脚本",
   severity: "high",
-  category: "informational",
+  category: "安全",
   enabled: true,
   match(readme, packageJson) {
     return packageJson?.scripts?.postinstall?.includes("wget")
-      ? [{ ruleId: "my-rule", ruleName: "My rule", severity: "high",
-           message: "postinstall uses wget", category: "informational" }]
+      ? [{ ruleId: "my-rule", ruleName: "自定义规则", severity: "high",
+           message: "postinstall 脚本包含 wget 调用", category: "安全" }]
       : [];
   },
 };
@@ -174,7 +174,7 @@ export const rule = {
 
 ### LLM 扫描
 
-基于 LLM 的语义扫描是可选功能，默认禁用。当未配置 API 密钥时，静态分析
+基于 LLM 的语义扫描是可选功能，默认禁用。未配置 API 密钥时，静态分析
 照常运行。配置持久化在 `~/.npm-safe/llm.json`，也可通过环境变量提供
 （`OPENAI_API_KEY`、`GEMINI_API_KEY` 或 `ANTHROPIC_API_KEY`）。
 
@@ -200,7 +200,7 @@ npm-safe ci --rate-limit 50                # 每秒注册表请求数
 ```
 
 退出码：`0` 通过，`1` 用法/配置错误，`2` 有依赖达到失败级别（或扫描出错）。
-仓库自带可直接使用的 GitHub Actions 工作流（`.github/workflows/ci.yml`）——
+仓库提供开箱即用的 GitHub Actions 工作流（`.github/workflows/ci.yml`）——
 每次 push/PR 自动运行测试套件、类型检查与依赖安全扫描。
 
 ### 桌面应用首次运行（Windows）
@@ -227,7 +227,7 @@ pnpm -F @npm-safe/core test
 
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- 分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
 - **[API.md](packages/core/API.md)** -- 完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 24 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
-- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- 所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
+- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- 所有 10 条内置静态分析规则的完整参考。每条规则均记录了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
   - **[README_zh.md](README_zh.md)** -- 本项目的简体中文版 README。
 
 桌面 GUI 位于 `packages/desktop/`，详见
@@ -350,7 +350,7 @@ npm-safe/
 
 ## 架构
 
-引擎由五层组成。每层仅依赖其下方的层。`index.ts` 门面层组合所有依赖并将结果暴露为单一的 `NpmSafeEngine` 类。
+引擎采用五层架构，每层仅依赖下层。`index.ts` 门面层组合所有依赖并将结果暴露为单一的 `NpmSafeEngine` 类。
 
 ```
                            +-----------------------+
@@ -393,7 +393,7 @@ npm-safe/
 
 ---
 
-## 关键设计决策
+## 设计决策
 
 | 决策 | 理由 |
 |---|---|
@@ -412,11 +412,6 @@ npm-safe/
 
 ## 下一步计划（第三阶段）
 
-第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）以及 CI/CD 集成，随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段剩余工作：
+第一阶段交付了可用的、零 TypeScript 错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）以及 CI/CD 集成，随后于 2026-08-02 完成一轮安全加固，修复 12 个问题。第三阶段剩余工作：
 
-- **批量操作。** 多包 `checkPackage`、批量搜索导出、仪表盘报告下载。
-
-
-
-
-
+- **批量操作**。多包 `checkPackage`、批量搜索导出、仪表盘报告下载。
