@@ -1,11 +1,11 @@
-﻿﻿# @npm-safe — Local npm Package Security Engine
+﻿﻿﻿# @npm-safe — Local npm Package Security Engine
 
 [中文版](README_zh.md)
 
 ![Version](https://img.shields.io/badge/version-v0.1.0-2196F3)
 ![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
 ![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-240%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-247%20passing-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
 
@@ -18,8 +18,9 @@ designed to operate as a library rather than a standalone service.
 
 **Status: Phase 1 complete (engine core) + Phase 2 complete.** Engine core
 delivered with 29 source files and zero TypeScript errors. Phase 2 added a
-full test suite (240 tests, all passing), a CLI binary with commands for
-`check`, `search`, `watch`, `refresh`, `settings`, `lang`, `rules`, and `llm`,
+full test suite (247 tests, all passing), a CLI binary with commands for
+`check`, `search`, `watch`, `refresh`, `settings`, `lang`, `rules`, `llm`, and
+`ci` (CI/CD dependency scan),
 proxy support for restricted networks, an optional multi-provider LLM scan
 provider (OpenAI / Gemini / Anthropic) with persisted configuration, and a
 Neutralinojs desktop GUI with a Material You dashboard,
@@ -298,6 +299,9 @@ and JSON output interpretation.
 
 ```
 npm-safe/
+  .github/
+    workflows/
+      ci.yml               # CI workflow — typecheck, tests, dependency scan
   .gitignore
   LICENSE                  # Apache-2.0
   README.md                # project README (English)
@@ -329,6 +333,7 @@ npm-safe/
           lang.ts          # lang command (en/zh, persisted)
           rules.ts         # rules management commands
           llm.ts           # LLM configuration commands
+          ci.ts            # ci command — dependency scan for CI pipelines
           i18n.ts          # en/zh localization module
           shared.ts        # engine factory + default DB path
         llm/
@@ -365,6 +370,7 @@ npm-safe/
         refresh-scheduler.test.ts # scheduler event tests
         engine.test.ts         # NpmSafeEngine integration tests
         cli.test.ts            # CLI tests (commands, lang, shorthand)
+        ci.test.ts             # ci command tests (exit codes, thresholds)
         llm-provider.test.ts   # createLlmProvider factory + shared behaviour
         llm-gemini.test.ts     # Gemini LLM provider tests
         llm-anthropic.test.ts  # Anthropic LLM provider tests
@@ -468,6 +474,7 @@ screen. Remaining work for Phase 3:
 
 - **Batch operations.** Multi-package `checkPackage`, bulk search export, and
   report download from the dashboard.
+
 
 
 
