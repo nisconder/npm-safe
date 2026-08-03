@@ -1311,6 +1311,15 @@ pre.json-output {
   color: var(--md-primary);
 }
 
+.field-hint {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  color: var(--md-on-surface-variant);
+  margin-top: 4px;
+  min-height: 16px;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

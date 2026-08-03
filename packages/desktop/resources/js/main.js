@@ -553,7 +553,9 @@ async function renderLlmConfig() {
     enabledInput.checked = status.enabled;
     providerInput.value = status.provider;
     apiKeyInput.value = "";
-    apiKeyInput.placeholder = status.apiKey ? "已配置（输入新值覆盖）" : "未配置";
+    apiKeyInput.placeholder = " ";
+    const hint = document.getElementById("llm-api-key-hint");
+    if (hint) hint.textContent = status.apiKey ? `已配置 (${status.apiKey})` : "未配置";
     modelInput.value = status.model ?? "";
     baseUrlInput.value = status.baseUrl ?? "";
 
