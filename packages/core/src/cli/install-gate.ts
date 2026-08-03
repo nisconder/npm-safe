@@ -174,10 +174,11 @@ export function registerInstallGateCommands(program: Command): void {
     .action(async (args: string[]) => {
       const opts = program.opts<{ db?: string; proxy?: string }>();
 
-      // --yes / --dry-run / --threshold / --dir are consumed here; everything
-      // else is passed through to the package manager (e.g. -D, --save-dev).
+      // --yes / --dry-run / --threshold / --dir / --json are consumed here;
+      // everything else is passed through to the package manager.
       let yes = false;
       let dryRun = false;
+      let json = false;
       let dir: string | undefined;
       let thresholdRaw: string | undefined;
       const passthrough: string[] = [];
@@ -187,6 +188,8 @@ export function registerInstallGateCommands(program: Command): void {
           yes = true;
         } else if (arg === "--dry-run") {
           dryRun = true;
+        } else if (arg === "--json") {
+          json = true;
         } else if (arg === "--dir") {
           dir = args[++i];
         } else if (arg.startsWith("--dir=")) {
@@ -220,17 +223,27 @@ export function registerInstallGateCommands(program: Command): void {
 
       const config = await readGateConfig(opts.db, opts.proxy);
       if (!config.enabled || packageNames.length === 0) {
-        if (dryRun) {
+      if (dryRun) {
+        if (!json) {
           console.log(t("install.dryRun", { command: `${installCommand} ${passthrough.join(" ")}`.trim() }));
-          return;
         }
+        return;
+      }
         process.exitCode = runPackageManager(pm, pmVerb(pm), passthrough, installDir);
         return;
       }
 
       // Gate enabled: check every target package.
+      interface CheckedPackage {
+        readonly name: string;
+        readonly version: string;
+        readonly level: string;
+        readonly score: number;
+        readonly findings: number;
+        readonly belowThreshold: boolean;
+      }
       const engine = await createEngine(opts.db, opts.proxy);
-      const below: Array<{ name: string; score: number; level: string }> = [];
+      const checked: CheckedPackage[] = [];
       try {
         for (const name of packageNames) {
           try {
@@ -240,14 +253,26 @@ export function registerInstallGateCommands(program: Command): void {
               process.exitCode = 1;
               return;
             }
-            if (result.security.overallScore < threshold) {
-              below.push({
-                name,
-                score: result.security.overallScore,
-                level: result.security.overallLevel,
-              });
-            } else {
-              console.log(t("install.safe", { name, score: String(result.security.overallScore) }));
+            const score = result.security.overallScore;
+            const entry: CheckedPackage = {
+              name,
+              version: result.latestVersion,
+              level: result.security.overallLevel,
+              score,
+              findings: result.security.staticScan?.findings.length ?? 0,
+              belowThreshold: score < threshold,
+            };
+            checked.push(entry);
+            if (!json) {
+              console.log(
+                t("install.summary", {
+                  name,
+                  version: entry.version,
+                  level: entry.level,
+                  score: String(score),
+                  findings: String(entry.findings),
+                }),
+              );
             }
           } catch (err) {
             console.error(t("install.checkFailed", { name, message: err instanceof Error ? err.message : String(err) }));
@@ -259,10 +284,15 @@ export function registerInstallGateCommands(program: Command): void {
         engine.close();
       }
 
+      if (json) {
+        console.log(JSON.stringify({ threshold, packages: checked }, null, 2));
+      }
+
+      const below = checked.filter((c) => c.belowThreshold);
       if (below.length > 0) {
         console.error(t("install.belowThreshold", { threshold: String(threshold) }));
         for (const p of below) {
-          console.error(`  [${p.level}] ${p.name} 鈥?${p.score}/100`);
+          console.error(`  [${p.level}] ${p.name} — ${p.score}/100`);
         }
         if (!yes) {
           const ok = await confirm(t("install.confirm"));
@@ -275,7 +305,9 @@ export function registerInstallGateCommands(program: Command): void {
       }
 
       if (dryRun) {
-        console.log(t("install.dryRun", { command: `${installCommand} ${passthrough.join(" ")}`.trim() }));
+        if (!json) {
+          console.log(t("install.dryRun", { command: `${installCommand} ${passthrough.join(" ")}`.trim() }));
+        }
         return;
       }
       process.exitCode = runPackageManager(pm, pmVerb(pm), passthrough, installDir);

@@ -146,8 +146,30 @@ describe("CLI install gate flow", () => {
       runCli(["--db", db, "gate", "enable", "--no-shell"], home);
       const { status, stdout } = runCli(["--db", db, "install", "lodash", "--dry-run", "--threshold", "85"], home);
       assert.strictEqual(status, 0);
-      assert.ok(stdout.includes("lodash is safe"));
+      // Safe packages still print the full check result (level, version, score, findings).
+      assert.ok(stdout.includes("[safe] lodash@"));
+      assert.ok(stdout.includes("/100"));
       assert.ok(stdout.includes("[dry-run]"));
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it("--json prints the full check results for every package", () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
+    const db = path.join(home, "g.db");
+    try {
+      runCli(["--db", db, "gate", "enable", "--no-shell"], home);
+      const { status, stdout } = runCli(["--db", db, "install", "lodash", "express", "--dry-run", "--json"], home);
+      assert.strictEqual(status, 0);
+      const report = JSON.parse(stdout) as {
+        threshold: number;
+        packages: Array<{ name: string; level: string; score: number; belowThreshold: boolean }>;
+      };
+      assert.strictEqual(report.threshold, 85);
+      assert.strictEqual(report.packages.length, 2);
+      assert.ok(report.packages.every((p) => p.name && p.level && typeof p.score === "number"));
+      assert.ok(report.packages.every((p) => p.belowThreshold === false));
     } finally {
       rmSync(home, { recursive: true, force: true });
     }
