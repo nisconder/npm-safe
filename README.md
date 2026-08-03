@@ -1,10 +1,10 @@
-﻿# @npm-safe — Local npm Package Security Engine
+﻿﻿# @npm-safe — Local npm Package Security Engine
 
 [中文版](README_zh.md)
 
 ![Version](https://img.shields.io/badge/version-v0.1.0-2196F3)
 ![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
-![Language](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-240%20passing-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
@@ -451,6 +451,7 @@ Phase 3:
   report download from the dashboard.
 - **CI/CD integration.** A GitHub Action or CLI tool that runs
   `@npm-safe/core` checks as part of a CI pipeline.
+
 
 
 
