@@ -181,6 +181,7 @@ describe("TokenBucket", () => {
       // With 500 tokens/s refill and 100ms tick, should resolve within ~200ms max.
       assert.ok(elapsed < 500, `expected < 500ms, got ${elapsed}ms`);
       assert.ok(bucket.getStats().available >= 0);
+      bucket.dispose();
     });
 
     it("services consumers in FIFO order", async () => {
@@ -195,6 +196,7 @@ describe("TokenBucket", () => {
 
       await Promise.all([p1, p2, p3]);
       assert.deepStrictEqual(results, [1, 2, 3]);
+      bucket.dispose();
     });
   });
 });
