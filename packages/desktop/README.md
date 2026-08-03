@@ -13,7 +13,8 @@ A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core
 - **评价体系 (Rules)** — list every registered scan rule with its source and description; toggle each rule on/off and override its severity; reload plugin rules from `~/.npm-safe/rules/`.
 - **LLM** — configure the optional LLM scan: enable/disable switch, provider (OpenAI / Gemini / Anthropic), API key, model, and base URL, plus a test-connection button. The API key is masked in the status display.
 - **Settings** — read/write arbitrary engine settings (e.g. `proxy`, `lang`).
-- **Material You theming** — independent light/dark palettes (seed `#4f8cff`), toggled from the custom title bar and persisted in `localStorage`.
+- **Material You theming** — independent light/dark palettes (seed `#4f8cff`), toggled from the custom title bar and remembered across sessions.
+- **Remembered preferences** — the theme and the last active tab are persisted in both `localStorage` (instant startup) and the engine settings table (survives webview cache clears).
 - **Custom window chrome** — borderless, transparent, draggable title bar with minimize and close buttons.
 - **Persistent check history** — stored in `~/.npm-safe/history.json` (capped at 1000 entries) by the Node.js extension process.
 
@@ -144,7 +145,7 @@ The desktop app is a three-layer Neutralinojs application:
 - `js/main.js` — frontend logic:
   - `callEngine(method, data)` dispatches every engine call to the extension with a `_requestId` and a **30-second timeout**.
   - `registerEngineEvents()` / `registerHistoryEvents()` wire the `:response` / `:error` events back to pending promises.
-  - Tab navigation, title-bar window controls (`setDraggableRegion`, `minimize`, `app.exit`), theme persistence under the `npm-safe-theme` key.
+  - Tab navigation, title-bar window controls (`setDraggableRegion`, `minimize`, `app.exit`), and preference persistence (`npm-safe-theme` / `npm-safe-last-tab` keys mirrored to the engine settings table).
   - All user-provided strings are HTML-escaped before rendering (`escapeHtml` / `escapeAttr`) to prevent XSS.
 - `js/neutralino.js` / `js/neutralino.d.ts` — Neutralinojs client library and types (6.9.0).
 
@@ -153,7 +154,8 @@ The desktop app is a three-layer Neutralinojs application:
 A Node.js process spawned by the Neutralinojs server (declared in `neutralino.config.json` as `js.npmsafe.core`). It:
 
 - Owns the `NpmSafeEngine` instance backed by SQLite at `~/.npm-safe/npm-safe.db`.
-- Exposes **12 IPC methods**: `checkPackage`, `searchPackages`, `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`, `refreshPackage`, `refreshAll`, `getSetting`, `setSetting`, `getHistory`, `addHistory`, `clearHistory`.
+- Broadcasts `engineReady` on WebSocket connect so the frontend can hydrate persisted preferences (theme, last tab) from the settings table.
+- Exposes **21 IPC methods**: `checkPackage`, `searchPackages`, `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`, `refreshPackage`, `refreshAll`, `getSetting`, `setSetting`, `getHistory`, `addHistory`, `clearHistory`, `listRules`, `setRuleEnabled`, `setRuleSeverity`, `setRuleOptions`, `loadRulePlugins`, `getLlmStatus`, `setLlmConfig`, `testLlmConnection`.
 - Maintains check history in `~/.npm-safe/history.json` (unshift, capped at 1000 entries; `checkPackage` records an entry automatically when the package exists and a security report is produced).
 - Writes diagnostic logs to `%TEMP%/npmsafe-extension.log` (Windows) or `$TMPDIR/npmsafe-extension.log` (macOS/Linux).
 - Closes the engine and exits when the WebSocket connection to the server drops.
@@ -164,6 +166,7 @@ A Node.js process spawned by the Neutralinojs server (declared in `neutralino.co
 frontend → extension:  { "event": "<method>", "data": <params> }
 extension → frontend:  { "event": "<method>:response", "data": { requestId, result } }
 extension → frontend:  { "event": "<method>:error", "data": { requestId, message } }
+extension → frontend:  { "event": "engineReady", "data": {} }   (on WebSocket connect)
 ```
 
 ### App Configuration (`neutralino.config.json`)
@@ -181,7 +184,12 @@ extension → frontend:  { "event": "<method>:error", "data": { requestId, messa
 | SQLite database | `~/.npm-safe/npm-safe.db` |
 | Check history | `~/.npm-safe/history.json` |
 | Extension log | `%TEMP%/npmsafe-extension.log` (Windows) / `$TMPDIR/npmsafe-extension.log` (macOS/Linux) |
-| Theme preference | `localStorage` key `npm-safe-theme` |
+| Theme preference | Settings table key `theme` + `localStorage` key `npm-safe-theme` |
+| Last active tab | Settings table key `lastTab` + `localStorage` key `npm-safe-last-tab` |
+
+Preferences are written to both layers; on startup the app applies
+`localStorage` immediately, then hydrates from the settings table once the
+extension broadcasts `engineReady` (backend wins).
 
 ## Directory Structure
 

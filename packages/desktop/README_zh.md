@@ -13,7 +13,8 @@
 - **评价体系（Rules）** — 列出所有已注册规则及其来源与描述；启用/禁用每条规则并覆盖其严重级别；可重新加载 `~/.npm-safe/rules/` 下的插件规则。
 - **LLM** — 配置可选 LLM 扫描：启用开关、提供者（OpenAI / Gemini / Anthropic）、API 密钥、模型和基础 URL，以及测试连接按钮。状态显示中的 API 密钥会被打码。
 - **设置（Settings）** — 读取/写入任意引擎设置（如 `proxy`、`lang`）。
-- **Material You 主题** — 独立浅色/深色配色（seed `#4f8cff`），通过自定义标题栏切换，并持久化到 `localStorage`。
+- **Material You 主题** — 独立浅色/深色配色（seed `#4f8cff`），通过自定义标题栏切换，并在会话间记住选择。
+- **偏好记忆** — 主题与上次打开的标签页同时持久化到 `localStorage`（启动即应用）和引擎设置表（WebView 缓存被清也不丢失）。
 - **自定义窗口边框** — 无边框透明窗口，标题栏可拖动，含最小化和关闭按钮。
 - **持久化检查历史** — 由 Node.js 扩展进程存储到 `~/.npm-safe/history.json`（上限 1000 条）。
 
@@ -143,7 +144,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 - `js/main.js` — 前端逻辑：
   - `callEngine(method, data)` 将每个引擎调用以 `_requestId` 分发给扩展，并带有 **30 秒超时**。
   - `registerEngineEvents()` / `registerHistoryEvents()` 将 `:response` / `:error` 事件回接到待处理的 Promise。
-  - 标签页导航、标题栏窗口控制（`setDraggableRegion`、`minimize`、`app.exit`）、主题持久化（`npm-safe-theme` 键）。
+  - 标签页导航、标题栏窗口控制（`setDraggableRegion`、`minimize`、`app.exit`）、偏好持久化（`npm-safe-theme` / `npm-safe-last-tab` 键并镜像写入引擎设置表）。
   - 所有用户输入字符串在渲染前均经过 HTML 转义（`escapeHtml` / `escapeAttr`）以防止 XSS。
 - `js/neutralino.js` / `js/neutralino.d.ts` — Neutralinojs 客户端库与类型定义（6.9.0）。
 
@@ -152,7 +153,8 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 由 Neutralinojs 服务器启动的 Node.js 进程（在 `neutralino.config.json` 中声明为 `js.npmsafe.core`）。它：
 
 - 持有基于 SQLite 的 `NpmSafeEngine` 实例，数据库位于 `~/.npm-safe/npm-safe.db`。
-- 暴露 **12 个 IPC 方法**：`checkPackage`、`searchPackages`、`getWatchlist`、`addToWatchlist`、`removeFromWatchlist`、`refreshPackage`、`refreshAll`、`getSetting`、`setSetting`、`getHistory`、`addHistory`、`clearHistory`。
+- WebSocket 连接建立时广播 `engineReady`，供前端从设置表回灌持久化偏好（主题、上次标签页）。
+- 暴露 **21 个 IPC 方法**：`checkPackage`、`searchPackages`、`getWatchlist`、`addToWatchlist`、`removeFromWatchlist`、`refreshPackage`、`refreshAll`、`getSetting`、`setSetting`、`getHistory`、`addHistory`、`clearHistory`、`listRules`、`setRuleEnabled`、`setRuleSeverity`、`setRuleOptions`、`loadRulePlugins`、`getLlmStatus`、`setLlmConfig`、`testLlmConnection`。
 - 维护检查历史 `~/.npm-safe/history.json`（unshift 插入，上限 1000 条；当包存在且生成安全报告时，`checkPackage` 会自动记录一条历史）。
 - 将诊断日志写入 `%TEMP%/npmsafe-extension.log`（Windows）或 `$TMPDIR/npmsafe-extension.log`（macOS/Linux）。
 - 与服务器的 WebSocket 连接断开时，关闭引擎并退出。
@@ -163,6 +165,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 前端 → 扩展:  { "event": "<method>", "data": <params> }
 扩展 → 前端:  { "event": "<method>:response", "data": { requestId, result } }
 扩展 → 前端:  { "event": "<method>:error", "data": { requestId, message } }
+扩展 → 前端:  { "event": "engineReady", "data": {} }   （WebSocket 连接建立时）
 ```
 
 ### 应用配置（`neutralino.config.json`）
@@ -180,7 +183,10 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 | SQLite 数据库 | `~/.npm-safe/npm-safe.db` |
 | 检查历史 | `~/.npm-safe/history.json` |
 | 扩展日志 | `%TEMP%/npmsafe-extension.log`（Windows）/ `$TMPDIR/npmsafe-extension.log`（macOS/Linux） |
-| 主题偏好 | `localStorage` 键 `npm-safe-theme` |
+| 主题偏好 | 设置表键 `theme` + `localStorage` 键 `npm-safe-theme` |
+| 上次标签页 | 设置表键 `lastTab` + `localStorage` 键 `npm-safe-last-tab` |
+
+偏好会同时写入两层；启动时先应用 `localStorage`，待扩展广播 `engineReady` 后从设置表回灌（后端优先）。
 
 ## 目录结构
 

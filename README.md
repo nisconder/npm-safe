@@ -120,7 +120,8 @@ Features:
   API key, model, and base URL, with a test-connection button.
 - **Settings** — read/write arbitrary engine settings (e.g. `proxy`, `lang`).
 - **Light/Dark themes** — toggle between two independent Material You palettes
-  from the custom title bar.
+  from the custom title bar; the choice and the last active tab are remembered
+  across sessions (localStorage + engine settings table).
 - **Custom window chrome** — borderless window with draggable title bar, minimize
   and close buttons (Windows loopback exemption is required for WebView2; see
   setup notes below).

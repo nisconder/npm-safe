@@ -215,10 +215,14 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
   （`resources/extensions/core/main.mjs`）承载 `NpmSafeEngine`。前端通过
   `Neutralino.extensions.dispatch` 经 WebSocket IPC 与扩展通信。
 - **视图：** 总览仪表盘（平均评分半圆仪表、最近检查、近7日柱状图、总数、
-  风险分布）、检查、搜索、监控和设置。
+  风险分布）、检查、搜索、监控、评价体系（规则）、LLM 和设置。
 - **窗口边框：** 无边框窗口配自定义标题栏——可拖动区域、最小化和关闭按钮，
   以及浅色/深色主题切换。两套独立的 M3 配色：深色种子 `#4f8cff`，浅色
   种子 `#7c2d12`。
+- **偏好持久化（2026-08-02）：** 主题与上次打开的标签页会在会话间记住。
+  它们同时写入 `localStorage`（启动立即应用）和 `~/.npm-safe/npm-safe.db`
+  引擎设置表（WebView 缓存被清也不丢失）。扩展连接后广播 `engineReady`，
+  前端从设置表回灌偏好，后端值优先。
 - **历史记录：** 每次成功的 `checkPackage` 由扩展记录到
   `~/.npm-safe/history.json`（最多 1000 条），仪表盘通过 `getHistory`
   事件读取。

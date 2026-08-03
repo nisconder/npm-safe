@@ -223,10 +223,16 @@ Apache-2.0.
   `Neutralino.extensions.dispatch`.
 - **Views:** Overview dashboard (half-circle average-score gauge, recent
   checks, 7-day histogram, total count, risk breakdown), Check, Search,
-  Watch, and Settings.
+  Watch, 评价体系 (Rules), LLM, and Settings.
 - **Window chrome:** Borderless window with a custom title bar — draggable
   region, minimize and close buttons, and a light/dark theme toggle. Two
   independent M3 palettes: dark seed `#4f8cff`, light seed `#7c2d12`.
+- **Persisted preferences (2026-08-02):** the theme choice and the last
+  active tab are remembered across sessions. They are written to both
+  `localStorage` (applied instantly at startup) and the engine settings
+  table in `~/.npm-safe/npm-safe.db` (survives webview cache clears). On
+  connect the extension broadcasts `engineReady`; the frontend then hydrates
+  the preferences from the settings table, with the backend value winning.
 - **History:** every successful `checkPackage` is recorded by the extension
   to `~/.npm-safe/history.json` (latest 1000 entries), read by the dashboard
   via the `getHistory` event.
