@@ -1282,6 +1282,44 @@ interface RefreshErrorPayload {
 }
 ```
 
+### Telemetry Manager
+
+**Source:** `src/telemetry/telemetry.ts`
+
+Opt-in, local-only usage telemetry used by the CLI. Disabled by default;
+nothing is ever sent anywhere.
+
+```ts
+class TelemetryManager {
+  constructor(filePath?: string); // default ~/.npm-safe/telemetry.json
+  isEnabled(): boolean;
+  enable(): void;
+  disable(): void;
+  record(event: TelemetryEvent): void; // no-op while disabled
+  getState(): TelemetryState;
+  reset(): void;
+}
+
+interface TelemetryEvent {
+  readonly event: string;          // e.g. "check", "ci"
+  readonly timestamp: string;
+  readonly packageCount?: number;
+  readonly durationMs?: number;
+  readonly levels?: Readonly<Record<string, number>>;
+  readonly error?: string;
+}
+
+interface TelemetryState {
+  readonly enabled: boolean;
+  readonly since?: string;
+  readonly counts: Readonly<Record<string, number>>;
+  readonly totalPackagesScanned: number;
+  readonly levelTotals: Readonly<Record<string, number>>;
+  readonly totalErrors: number;
+  readonly recentEvents: readonly TelemetryEvent[]; // capped at 200
+}
+```
+
 ### Validator Functions
 
 **Source:** `src/registry/validator.ts`

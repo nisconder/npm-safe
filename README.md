@@ -93,6 +93,8 @@ npm-safe llm set-model <model>     # Set the LLM model identifier
 npm-safe llm test-connection       # Test the LLM connection
 npm-safe ci                        # Scan dependencies, fail the build on severe findings
 npm-safe ci --lockfile             # Scan every dependency (incl. transitive) in package-lock.json
+npm-safe report lodash express     # Export security reports (JSON/CSV)
+npm-safe telemetry status          # Show telemetry status (opt-in, local only)
 ```
 
 ### Desktop Application
@@ -267,6 +269,38 @@ is saved to `~/.npm-safe/last-batch.json`; `check detail <n>` re-renders one
 package's full report (findings, recommendations, snippets) from it without
 re-fetching.
 
+### Report export
+
+Export security reports for any set of packages as JSON or CSV, to stdout or
+a file:
+
+```bash
+npm-safe report lodash express                    # JSON to stdout
+npm-safe report --format csv lodash express       # CSV
+npm-safe report --file deps.txt --format csv --output report.csv
+npm-safe report --batch                           # export the last batch check
+```
+
+JSON output includes the full per-package results (`BatchPackageResult[]`);
+CSV rows are `name,version,level,score,findingCount`.
+
+### Telemetry and analytics
+
+Local, opt-in usage telemetry (disabled by default, nothing is sent anywhere):
+
+```bash
+npm-safe telemetry status         # show whether enabled + aggregated stats
+npm-safe telemetry enable         # start collecting (local only)
+npm-safe telemetry disable        # stop collecting (keeps existing data)
+npm-safe telemetry export         # dump the collected data as JSON
+npm-safe telemetry reset          # clear all collected data
+```
+
+When enabled, `check` and `ci` runs are recorded to
+`~/.npm-safe/telemetry.json`: per-event counters, total packages scanned,
+security-level distribution, error counts, and a rolling window of the last
+200 events.
+
 ### Desktop first-run (Windows)
 
 If the WebView2 window fails to load with a loopback error, run once in an
@@ -282,10 +316,11 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-260 tests cover every module: validators, static rules, rate limiter, store
+277 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
 integration surface, the LLM providers, the LLM configuration manager, the
-rule plugin system, the CI command, batch operations, and the CLI itself.
+rule plugin system, the CI command, batch operations, report export, the
+telemetry manager, and the CLI itself.
 
 ---
 
@@ -488,10 +523,9 @@ configuration management (CLI + GUI), CI/CD integration, and multi-package
 batch operations, followed by a security hardening pass (2026-08-02) that fixed
 12 issues found by a bug screen. Remaining work for Phase 3:
 
-- **Report export.** Batch report export (CSV/JSON) and dashboard report
-  download.
-- **Telemetry and analytics.** Structured logging, optional usage reporting,
-  and metrics export.
+- **Telemetry and analytics.** Structured logging and metrics export are now
+  covered by the local telemetry module; remaining items: structured JSONL
+  logs for commands.
 
 > npm publishing is intentionally deferred — the package remains
 > `"private": true` for now.

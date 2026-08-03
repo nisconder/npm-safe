@@ -70,6 +70,8 @@ npm-safe llm set-model <model>     # 设置 LLM 模型
 npm-safe llm test-connection       # 测试 LLM 连接
 npm-safe ci                        # 扫描依赖，严重问题时使构建失败
 npm-safe ci --lockfile             # 扫描 package-lock.json 中全部依赖（含间接）
+npm-safe report lodash express     # 导出安全报告（JSON/CSV）
+npm-safe telemetry status          # 查看遥测状态（可选，仅本地）
 ```
 
 ### 桌面应用
@@ -224,6 +226,36 @@ npm-safe check detail 2                   # 查看上次批量第 2 个包的完
 `~/.npm-safe/last-batch.json`；`check detail <n>` 可从其中重新渲染单个包
 的完整报告（发现项、建议、代码片段），无需重新拉取。
 
+### 报告导出
+
+将任意包集合的安全报告导出为 JSON 或 CSV，输出到 stdout 或文件：
+
+```bash
+npm-safe report lodash express                    # JSON 到 stdout
+npm-safe report --format csv lodash express       # CSV
+npm-safe report --file deps.txt --format csv --output report.csv
+npm-safe report --batch                           # 导出上次批量检查
+```
+
+JSON 输出包含完整的逐包结果（`BatchPackageResult[]`）；CSV 行格式为
+`name,version,level,score,findingCount`。
+
+### 遥测与分析
+
+本地、可选的用量遥测（默认关闭，数据不会发送到任何地方）：
+
+```bash
+npm-safe telemetry status         # 查看是否启用及聚合统计
+npm-safe telemetry enable         # 开始采集（仅本地）
+npm-safe telemetry disable        # 停止采集（保留已有数据）
+npm-safe telemetry export         # 以 JSON 导出已采集数据
+npm-safe telemetry reset          # 清空全部采集数据
+```
+
+启用后，`check` 与 `ci` 运行会记录到 `~/.npm-safe/telemetry.json`：按事件
+计数的计数器、已扫描包总数、安全级别分布、错误计数，以及最近 200 条事件
+的滚动窗口。
+
 ### 桌面应用首次运行（Windows）
 
 如果 WebView2 窗口因回环隔离错误无法加载，请以管理员身份运行一次 PowerShell：
@@ -238,7 +270,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-260 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作以及 CLI 本身。
+277 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作、报告导出、遥测管理器以及 CLI 本身。
 
 ---
 
@@ -430,8 +462,7 @@ npm-safe/
 
 第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）、CI/CD 集成与多包批量操作，随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段剩余工作：
 
-- **报告导出。** 批量报告导出（CSV/JSON）与仪表盘报告下载。
-- **遥测与分析。** 结构化日志、可选的使用报告和指标导出。
+- **结构化命令日志。** 为命令补充结构化 JSONL 日志（遥测模块已覆盖使用统计与指标导出）。
 
 > npm 发布有意暂缓——包目前保持 `"private": true`。
 

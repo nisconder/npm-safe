@@ -28,7 +28,8 @@
 | LLM 配置管理（CLI + GUI） | **已完成**（2026-08-02） | 可选 LLM 扫描通过 `~/.npm-safe/llm.json` 配置；`npm-safe llm` 命令；桌面 GUI 评价体系与 LLM 设置页，见第 3.10 节 |
 | CI/CD 集成 | **已完成**（2026-08-02） | `npm-safe ci` 依赖扫描门禁 + GitHub Actions 工作流，见第 3.11 节 |
 | 多包批量 API | **已完成**（2026-08-02） | `checkPackages`（并行 + 限速）、批量 `check`、`ci --lockfile`，见第 3.12 节 |
-| 遥测与分析 | 待办 | 未来阶段 |
+| 报告导出 | **已完成**（2026-08-03） | `npm-safe report`（JSON/CSV，--file/--batch/--output），见第 3.13 节 |
+| 遥测与分析 | **已完成**（2026-08-03） | 可选的本地遥测、`npm-safe telemetry` CLI，见第 3.13 节 |
 | npm 发布者配置 | **暂缓**（2026-08-03） | 按决定暂缓——包保持 `"private": true`，暂不发布 |
 
 ---
@@ -300,6 +301,15 @@ CI/CD 计划于 2026-08-02 交付：
 
 测试套件从 247 个增至 260 个，全部通过。
 
+### 3.13 报告导出 + 遥测（2026-08-03）
+
+两个第三阶段计划于 2026-08-03 交付：
+
+- **报告导出（`npm-safe report`）。** 将任意包集合的安全报告导出为 JSON（完整 `BatchPackageResult[]`）或 CSV（`name,version,level,score,findingCount`）。包来源：位置参数、`--file`（每行一个）或 `--batch`（上次批量检查）。输出到 stdout 或 `--output <path>`；`--concurrency` 控制扫描并行度。无效条目以 `error` 行导出。
+- **遥测与分析。** `TelemetryManager`（`src/telemetry/telemetry.ts`）在 `~/.npm-safe/telemetry.json` 中聚合可选、仅本地的用量数据：按事件计数（`check`、`ci`）、已扫描包总数、安全级别分布、错误计数，以及最近 200 条事件的滚动窗口。默认关闭，数据不发送到任何地方。CLI：`npm-safe telemetry status | enable | disable | export | reset`。启用后，`check`（单包与批量）与 `ci` 自动记录事件。
+
+测试套件从 260 个增至 277 个，全部通过。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -326,8 +336,7 @@ Neutralinojs 图形界面（MD3）计划已交付，不再列入下表；详见�
 
 | 优先级 | 计划 | 描述 |
 |---|---|---|
-| 1 | **报告导出** | 批量报告导出（CSV/JSON）与仪表盘报告下载。 |
-| 2 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
+| 1 | **结构化命令日志** | 为 CLI 命令补充 JSONL 结构化日志；用量统计与指标导出已由遥测模块覆盖。 |
 
 > **按决定暂缓（2026-08-03）：** npm 发布者配置（`publishConfig`、`.npmignore`、
 > provenance）有意暂不推进——包保持 `"private": true`，暂不发布。

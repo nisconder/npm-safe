@@ -28,7 +28,8 @@ This document records every project plan and its completion status.
 | LLM configuration (CLI + GUI) | **Done** (2026-08-02) | Optional LLM scanning via `~/.npm-safe/llm.json`; `npm-safe llm` commands; GUI rules and LLM settings pages, see section 3.10 |
 | CI/CD integration | **Done** (2026-08-02) | `npm-safe ci` dependency scan gate + GitHub Actions workflow, see section 3.11 |
 | Multi-package batch API | **Done** (2026-08-02) | `checkPackages` (parallel + rate-limited), batch `check`, `ci --lockfile`, see section 3.12 |
-| Telemetry and analytics | Pending | Future phase |
+| Report export | **Done** (2026-08-03) | `npm-safe report` (JSON/CSV, --file/--batch/--output), see section 3.13 |
+| Telemetry and analytics | **Done** (2026-08-03) | Opt-in local telemetry, `npm-safe telemetry` CLI, see section 3.13 |
 | npm publisher configuration | **Deferred** (2026-08-03) | On hold by decision — package stays `"private": true`, not publishing for now |
 
 ---
@@ -383,6 +384,27 @@ The batch API plan was delivered on 2026-08-02:
 
 The test suite grew from 247 to 260 tests; all pass.
 
+### 3.13 Report export + telemetry (2026-08-03)
+
+Two Phase-3 plans were delivered on 2026-08-03:
+
+- **Report export (`npm-safe report`).** Exports security reports for any
+  package set as JSON (full `BatchPackageResult[]`) or CSV
+  (`name,version,level,score,findingCount`). Package sources: positional
+  names, `--file` (one per line), or `--batch` (the last batch check). Output
+  goes to stdout or `--output <path>`; `--concurrency` controls scan
+  parallelism. Invalid entries are exported as `error` rows.
+- **Telemetry and analytics.** `TelemetryManager`
+  (`src/telemetry/telemetry.ts`) aggregates opt-in, local-only usage data in
+  `~/.npm-safe/telemetry.json`: per-event counters (`check`, `ci`), total
+  packages scanned, security-level distribution, error counts, and a rolling
+  window of the last 200 events. Disabled by default; nothing is sent
+  anywhere. CLI: `npm-safe telemetry status | enable | disable | export |
+  reset`. `check` (single and batch) and `ci` record events automatically
+  once enabled.
+
+The test suite grew from 260 to 277 tests; all pass.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -409,8 +431,7 @@ covered by the shipped desktop GUI in section 3.6.
 
 | Priority | Plan | Description |
 |---|---|---|
-| 1 | **Report export** | Batch report export (CSV/JSON) and dashboard report download. |
-| 2 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
+| 1 | **Structured command logs** | JSONL logs for CLI commands; usage stats and metrics export are already covered by the telemetry module. |
 
 > **Deferred by decision (2026-08-03):** npm publisher configuration
 > (`publishConfig`, `.npmignore`, provenance) is intentionally on hold — the

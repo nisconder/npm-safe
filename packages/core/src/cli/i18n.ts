@@ -86,6 +86,22 @@ const messages: Record<Locale, Record<string, string>> = {
     "ci.notFound": "not found on the registry",
     "ci.passed": "All dependencies are below the {level} threshold. Passed.",
     "ci.failed": "One or more dependencies reach the {level} threshold. Failed.",
+
+    "telemetry.status.enabled": "Enabled",
+    "telemetry.status.since": "Since",
+    "telemetry.status.events": "Events",
+    "telemetry.status.packages": "Packages scanned",
+    "telemetry.status.errors": "Errors",
+    "telemetry.enabled": "Telemetry collection enabled (local only).",
+    "telemetry.disabled": "Telemetry collection disabled.",
+    "telemetry.exported": 'Telemetry exported to "{path}".',
+    "telemetry.exportFailed": "Export failed: {message}",
+    "telemetry.reset": "Telemetry data cleared.",
+
+    "report.noPackages": "No packages to export. Pass names, use --file, or --batch.",
+    "report.exported": 'Report written to "{path}".',
+    "report.exportFailed": "Export failed: {message}",
+    "report.unsupportedFormat": 'Unsupported format "{format}". Supported: json, csv.',
   },
 
   zh: {
@@ -173,6 +189,22 @@ const messages: Record<Locale, Record<string, string>> = {
     "ci.notFound": "注册表中不存在",
     "ci.passed": "所有依赖均低于 {level} 阈值。通过。",
     "ci.failed": "存在达到 {level} 阈值的依赖。失败。",
+
+    "telemetry.status.enabled": "已启用",
+    "telemetry.status.since": "启用时间",
+    "telemetry.status.events": "事件数",
+    "telemetry.status.packages": "已扫描包数",
+    "telemetry.status.errors": "错误数",
+    "telemetry.enabled": "遥测采集已启用（仅本地）。",
+    "telemetry.disabled": "遥测采集已禁用。",
+    "telemetry.exported": '遥测数据已导出到 "{path}"。',
+    "telemetry.exportFailed": "导出失败: {message}",
+    "telemetry.reset": "遥测数据已清空。",
+
+    "report.noPackages": "没有可导出的包。请传入包名、使用 --file 或 --batch。",
+    "report.exported": '报告已写入 "{path}"。',
+    "report.exportFailed": "导出失败: {message}",
+    "report.unsupportedFormat": '不支持的格式 "{format}"。支持: json, csv。',
   },
 };
 

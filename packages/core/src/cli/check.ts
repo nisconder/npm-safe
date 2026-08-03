@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { createEngine } from "./shared.js";
 import { t } from "./i18n.js";
 import { loadLastBatch, saveLastBatch } from "./batch-history.js";
+import { TelemetryManager } from "../telemetry/telemetry.js";
 import type { CheckResult, BatchPackageResult } from "../index.js";
 
 export interface RunCheckOptions {
@@ -91,6 +92,7 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
   const names = [...new Set(packageNames)].filter((n) => n.trim().length > 0);
   if (names.length === 0) return;
   const single = names.length === 1 && !options.refresh;
+  const startedAt = Date.now();
 
   const engine = await createEngine(options.db, options.proxy);
   try {
@@ -103,6 +105,7 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
     if (single) {
       const name = names[0];
       const result = await engine.checkPackage(name);
+      recordTelemetry("check", [{ name, ok: true, result }], startedAt);
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
         return;
@@ -115,6 +118,7 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
       concurrency: options.concurrency,
     });
     saveLastBatch(results);
+    recordTelemetry("check", results, startedAt);
 
     if (options.json) {
       console.log(JSON.stringify(results, null, 2));
@@ -262,4 +266,37 @@ export function registerCheckCommand(program: Command): void {
         concurrency: options.concurrency ? parseInt(options.concurrency, 10) : undefined,
       });
     });
+}
+
+/**
+ * Record a check telemetry event (no-op unless telemetry is enabled).
+ */
+function recordTelemetry(
+  event: string,
+  results: readonly BatchPackageResult[],
+  startedAt: number,
+): void {
+  try {
+    const levels: Record<string, number> = {};
+    let errors = 0;
+    for (const entry of results) {
+      if (!entry.ok || !entry.result?.exists) {
+        errors++;
+        continue;
+      }
+      const level = entry.result.security.overallLevel;
+      levels[level] = (levels[level] ?? 0) + 1;
+    }
+    const telemetry = new TelemetryManager();
+    telemetry.record({
+      event,
+      timestamp: new Date().toISOString(),
+      packageCount: results.length,
+      durationMs: Date.now() - startedAt,
+      levels,
+      error: errors > 0 ? `${errors} package(s) failed` : undefined,
+    });
+  } catch {
+    // Telemetry must never break the command.
+  }
 }

@@ -251,6 +251,25 @@ export function registerCiCommand(program: Command): void {
           (r) => r.exists && LEVEL_RANK[r.level] !== undefined && LEVEL_RANK[r.level] <= failRank,
         );
 
+      try {
+        const { TelemetryManager } = await import("../telemetry/telemetry.js");
+        const telemetry = new TelemetryManager();
+        telemetry.record({
+          event: "ci",
+          timestamp: new Date().toISOString(),
+          packageCount: deps.length,
+          levels: {
+            safe: summary.safe,
+            suspicious: summary.suspicious,
+            dangerous: summary.dangerous,
+            unknown: summary.unknown,
+          },
+          error: summary.errors > 0 ? `${summary.errors} package(s) failed` : undefined,
+        });
+      } catch {
+        // Telemetry must never break the command.
+      }
+
       const report: CiReport = {
         dir,
         scannedAt: new Date().toISOString(),

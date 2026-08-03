@@ -13,6 +13,8 @@ import { registerLangCommand } from "./lang.js";
 import { registerRulesCommand } from "./rules.js";
 import { registerLlmCommand } from "./llm.js";
 import { registerCiCommand } from "./ci.js";
+import { registerTelemetryCommand } from "./telemetry.js";
+import { registerReportCommand } from "./report.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
@@ -43,6 +45,8 @@ registerLangCommand(program);
 registerRulesCommand(program);
 registerLlmCommand(program);
 registerCiCommand(program);
+registerTelemetryCommand(program);
+registerReportCommand(program);
 
 program.parse();
 
