@@ -15,7 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { NpmSafeEngine } from "@npm-safe/core";
+import { NpmSafeEngine, DatabaseManager, CacheManager } from "@npm-safe/core";
 
 // ---------------------------------------------------------------------------
 // Startup: read connectivity info passed via stdin by the Neutralinojs server
@@ -31,8 +31,29 @@ const NL_EXTID = processInput.nlExtensionId;
 // Engine lifecycle
 // ---------------------------------------------------------------------------
 
+const DB_PATH = path.join(os.homedir(), ".npm-safe", "npm-safe.db");
+
+/**
+ * Read the persisted `proxy` setting so the desktop app honours the same
+ * configuration as the CLI (proxy resolution: persisted setting > env).
+ */
+async function readPersistedProxy() {
+  try {
+    const dbm = new DatabaseManager(DB_PATH);
+    try {
+      const cache = new CacheManager(dbm);
+      return (await cache.getSetting("proxy")) ?? undefined;
+    } finally {
+      dbm.close();
+    }
+  } catch {
+    return undefined;
+  }
+}
+
 const engine = new NpmSafeEngine({
-  dbPath: path.join(os.homedir(), ".npm-safe", "npm-safe.db"),
+  dbPath: DB_PATH,
+  proxy: await readPersistedProxy(),
 });
 
 // ---------------------------------------------------------------------------

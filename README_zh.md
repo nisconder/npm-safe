@@ -266,6 +266,9 @@ npm-safe telemetry reset          # 清空全部采集数据
 `engine.recordCheckHistory(result)`、`engine.getCheckHistory()`、
 `engine.clearCheckHistory()`。
 
+桌面扩展在启动时也会读取持久化的 `proxy` 设置并配置引擎——在 GUI 或通过
+`npm-safe settings set proxy ...` 配置的代理同样作用于桌面端扫描。
+
 ### 桌面应用首次运行（Windows）
 
 如果 WebView2 窗口因回环隔离错误无法加载，请以管理员身份运行一次 PowerShell：

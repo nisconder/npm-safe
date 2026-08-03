@@ -312,6 +312,11 @@ Legacy `~/.npm-safe/history.json` data is migrated into the database once on
 first launch. Programmatic access: `engine.recordCheckHistory(result)`,
 `engine.getCheckHistory()`, `engine.clearCheckHistory()`.
 
+The desktop extension also honours the persisted `proxy` setting: on startup
+it reads the settings table and configures the engine, so a proxy configured
+in the GUI or via `npm-safe settings set proxy ...` applies to desktop
+scans too.
+
 ### Desktop first-run (Windows)
 
 If the WebView2 window fails to load with a loopback error, run once in an

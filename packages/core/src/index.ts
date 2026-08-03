@@ -855,3 +855,6 @@ export type { RuleConfig, RuleConfigFile, RuleOptions } from './scanner/rule-con
 export { loadRulesFromDirectory } from './scanner/rule-loader.js';
 export type { LoadedRuleFile, RuleModuleExport } from './scanner/rule-loader.js';
 export type { RuleDescriptor } from './scanner/static-rules.js';
+export { DatabaseManager } from './store/database.js';
+export { CacheManager, DEFAULT_CACHE_TTL_MS, MAX_CHECK_HISTORY } from './store/cache-manager.js';
+export type { CacheManagerOptions } from './store/cache-manager.js';
