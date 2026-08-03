@@ -14,13 +14,18 @@ import { NpmRegistryClient } from './registry/client.js';
 import { NpmRegistryError } from './registry/types.js';
 import type { PackageMetadata, PackageRepository, SearchResult } from './registry/types.js';
 import { TokenBucket } from './scheduler/rate-limiter.js';
-import { StaticAnalyzer } from './scanner/static-rules.js';
+import { StaticAnalyzer, type RuleDescriptor } from './scanner/static-rules.js';
+import type { ScanRule } from './scanner/types.js';
 import { RefreshScheduler } from './scheduler/refresh-scheduler.js';
-import { SecurityLevel } from './scanner/types.js';
+import { SecurityLevel, Severity } from './scanner/types.js';
 import type { StaticScanReport } from './scanner/types.js';
 import type { LlmScanReport } from './scanner/types.js';
+import { RuleConfigManager } from './scanner/rule-config.js';
+import { loadRulesFromDirectory } from './scanner/rule-loader.js';
 import { createLlmProvider } from './llm/provider.js';
 import type { LlmProviderOptions, LlmScanProvider } from './llm/provider.js';
+import { LlmConfigManager } from './llm/llm-config.js';
+import type { LlmConfig, LlmStatus } from './llm/llm-config.js';
 
 // ============================================================================
 // Exported types
@@ -69,6 +74,24 @@ export interface NpmSafeEngineOptions {
 
   /** Optional LLM security scanner configuration (OpenAI / Gemini / Anthropic). */
   readonly llm?: LlmProviderOptions;
+
+  /**
+   * Path to the LLM provider configuration JSON file.
+   * @default '~/.npm-safe/llm.json'
+   */
+  readonly llmConfigPath?: string;
+
+  /**
+   * Path to the per-rule configuration JSON file.
+   * @default '~/.npm-safe/rules.json'
+   */
+  readonly rulesConfigPath?: string;
+
+  /**
+   * Directory scanned for third-party rule plugin files (`*.mjs` / `*.js`).
+   * @default '~/.npm-safe/rules/'
+   */
+  readonly rulesDir?: string;
 }
 
 /**
@@ -146,10 +169,14 @@ export class NpmSafeEngine {
   private readonly limiter: TokenBucket;
   /** Static analysis engine. */
   private readonly analyzer: StaticAnalyzer;
+  /** Per-rule configuration (enabled / severity / options). */
+  private readonly ruleConfig: RuleConfigManager;
   /** Auto-refresh scheduler. */
   private readonly scheduler: RefreshScheduler;
+  /** LLM provider configuration manager. */
+  private readonly llmConfig: LlmConfigManager;
   /** Optional semantic security scanner. */
-  private readonly llmProvider?: LlmScanProvider;
+  private llmProvider?: LlmScanProvider;
 
   /**
    * @param options - Optional configuration overrides; see
@@ -168,15 +195,20 @@ export class NpmSafeEngine {
       options?.rateLimit ?? 5,
       options?.rateLimitBurst ?? 10,
     );
-    this.analyzer = new StaticAnalyzer();
-    this.llmProvider = options?.llm ? createLlmProvider(options.llm) : undefined;
+    this.ruleConfig = new RuleConfigManager(options?.rulesConfigPath);
+    this.analyzer = new StaticAnalyzer(undefined, this.ruleConfig);
+    this.llmConfig = new LlmConfigManager(options?.llmConfigPath);
+    this.llmProvider = options?.llm
+      ? createLlmProvider(options.llm)
+      : this.llmConfig.createProvider();
     this.scheduler = new RefreshScheduler(
       this.client,
       this.cache,
       this.limiter,
       this.analyzer,
-      this.llmProvider,
+      () => this.llmProvider,
     );
+    void this.loadRulePlugins(options?.rulesDir);
   }
 
   // --------------------------------------------------------------------------
@@ -375,6 +407,149 @@ export class NpmSafeEngine {
   }
 
   // --------------------------------------------------------------------------
+  // Rule plugin management
+  // --------------------------------------------------------------------------
+
+  /**
+   * Register a scan rule at runtime. A rule with the same id replaces the
+   * existing one.
+   *
+   * @param rule - The rule to register.
+   */
+  registerRule(rule: ScanRule): void {
+    this.analyzer.registerRule(rule);
+  }
+
+  /**
+   * Remove a scan rule by id.
+   *
+   * @param ruleId - Id of the rule to remove.
+   * @returns `true` if a rule was removed, `false` if no such rule exists.
+   */
+  unregisterRule(ruleId: string): boolean {
+    return this.analyzer.unregisterRule(ruleId);
+  }
+
+  /**
+   * Describe every registered rule with its effective status.
+   *
+   * @returns Rule descriptors in registration order.
+   */
+  listRules(): RuleDescriptor[] {
+    return this.analyzer.listRules();
+  }
+
+  /**
+   * Enable or disable a rule (persisted in the rules config file).
+   *
+   * @param ruleId - Id of the rule.
+   * @param enabled - Whether the rule should run.
+   */
+  setRuleEnabled(ruleId: string, enabled: boolean): void {
+    this.ruleConfig.setEnabled(ruleId, enabled);
+  }
+
+  /**
+   * Override a rule's severity (persisted). Pass `undefined` to clear the
+   * override and return to the rule's default severity.
+   *
+   * @param ruleId - Id of the rule.
+   * @param severity - Severity override, or `undefined` to clear.
+   */
+  setRuleSeverity(ruleId: string, severity: Severity | undefined): void {
+    this.ruleConfig.setSeverity(ruleId, severity);
+  }
+
+  /**
+   * Set free-form options for a rule (persisted). Rule implementations can
+   * read these via the rule config manager.
+   *
+   * @param ruleId - Id of the rule.
+   * @param options - Free-form options.
+   */
+  setRuleOptions(ruleId: string, options: Readonly<Record<string, unknown>>): void {
+    this.ruleConfig.setOptions(ruleId, options);
+  }
+
+  /**
+   * Access the rule configuration manager for low-level inspection.
+   *
+   * @returns The rule configuration manager backing this engine.
+   */
+  getRuleConfig(): RuleConfigManager {
+    return this.ruleConfig;
+  }
+
+  /**
+   * Load third-party rules from a directory of ES module files.
+   *
+   * Each `*.mjs` / `*.js` file may export a `rule`, `rules`, or `default`
+   * binding holding one or more {@link ScanRule}s. Files that fail to load
+   * are skipped.
+   *
+   * @param dir - Directory to scan. Defaults to `~/.npm-safe/rules/`.
+   * @returns The number of rules loaded.
+   */
+  async loadRulePlugins(dir?: string): Promise<number> {
+    const results = await loadRulesFromDirectory(dir);
+    let count = 0;
+    for (const result of results) {
+      for (const rule of result.rules) {
+        this.analyzer.registerRule(rule);
+        count++;
+      }
+    }
+    return count;
+  }
+
+  // --------------------------------------------------------------------------
+  // LLM configuration
+  // --------------------------------------------------------------------------
+
+  /**
+   * Get the raw LLM configuration, including the API key.
+   *
+   * @returns The current persisted LLM config.
+   */
+  getLlmConfig(): LlmConfig {
+    return this.llmConfig.getConfig();
+  }
+
+  /**
+   * Get a masked, display-safe view of the LLM status.
+   *
+   * @returns Status object safe to render in a UI.
+   */
+  getLlmStatus(): LlmStatus {
+    return this.llmConfig.getStatus();
+  }
+
+  /**
+   * Update the LLM configuration and recreate the provider.
+   *
+   * The change is persisted immediately. If LLM scanning is disabled or no
+   * API key is available, the provider is set to `undefined` so the rest of the
+   * engine continues unaffected.
+   *
+   * @param update - Partial config update. Pass `{ enabled: false }` to disable.
+   */
+  setLlmConfig(update: Partial<LlmConfig>): void {
+    this.llmConfig.setConfig(update);
+    this.llmProvider = this.llmConfig.createProvider();
+    this.scheduler.setLlmProvider(this.llmProvider);
+  }
+
+  /**
+   * Test whether the current LLM configuration can connect to its provider.
+   *
+   * @returns `true` if the provider is enabled, configured, and the test call
+   *   succeeds; `false` otherwise.
+   */
+  async testLlmConnection(): Promise<boolean> {
+    return this.llmConfig.testConnection();
+  }
+
+  // --------------------------------------------------------------------------
   // Auto-refresh lifecycle
   // --------------------------------------------------------------------------
 
@@ -526,3 +701,10 @@ export type {
   LlmScanInput,
   LlmScanProvider,
 } from './llm/provider.js';
+export { LlmConfigManager, getDefaultLlmConfigPath } from './llm/llm-config.js';
+export type { LlmConfig, LlmStatus } from './llm/llm-config.js';
+export { RuleConfigManager } from './scanner/rule-config.js';
+export type { RuleConfig, RuleConfigFile, RuleOptions } from './scanner/rule-config.js';
+export { loadRulesFromDirectory } from './scanner/rule-loader.js';
+export type { LoadedRuleFile, RuleModuleExport } from './scanner/rule-loader.js';
+export type { RuleDescriptor } from './scanner/static-rules.js';

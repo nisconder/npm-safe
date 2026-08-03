@@ -10,14 +10,17 @@
 - **检查（Check）** — 输入包名（回车或点击「检查」），查看安全等级、分数和详细发现项。
 - **搜索（Search）** — 针对 npm 注册表的关键词搜索（1-250 条结果，默认 20 条）；点击结果可直接跳转到检查。
 - **监控（Watch）** — 添加/移除监控包，刷新单个或全部监控包。
+- **评价体系（Rules）** — 列出所有已注册规则及其来源与描述；启用/禁用每条规则并覆盖其严重级别；可重新加载 `~/.npm-safe/rules/` 下的插件规则。
+- **LLM** — 配置可选 LLM 扫描：启用开关、提供者（OpenAI / Gemini / Anthropic）、API 密钥、模型和基础 URL，以及测试连接按钮。状态显示中的 API 密钥会被打码。
 - **设置（Settings）** — 读取/写入任意引擎设置（如 `proxy`、`lang`）。
-- **Material You 主题** — 独立浅色/深色配色（seed `#4f8cff`），通过自定义标题栏切换，并持久化到 `localStorage`。
+- **Material You 主题** — 独立浅色/深色配色（seed `#4f8cff`），通过自定义标题栏切换，并在会话间记住选择。
+- **偏好记忆** — 主题与上次打开的标签页同时持久化到 `localStorage`（启动即应用）和引擎设置表（WebView 缓存被清也不丢失）。
 - **自定义窗口边框** — 无边框透明窗口，标题栏可拖动，含最小化和关闭按钮。
 - **持久化检查历史** — 由 Node.js 扩展进程存储到 `~/.npm-safe/history.json`（上限 1000 条）。
 
 ## 页面（标签页导航）
 
-应用使用常驻导航抽屉，共五个标签页：
+应用使用常驻导航抽屉，共七个标签页：
 
 ### 总览 (Overview)
 
@@ -49,6 +52,20 @@
 - 输入包名并点击「添加」将其加入监控列表（该包必须存在于注册表）。
 - 每个列表项提供「检查」（跳转到检查页）和「移除」操作。
 - 「刷新全部」一次性刷新所有监控包；请求期间按钮会显示「处理中...」忙碌状态。
+
+### 评价体系 (Rules)
+
+- 列出所有已注册规则，含名称、ID、来源（`builtin` / `plugin`）、描述、启用状态和生效严重级别。
+- 「启用」开关持久化启用/禁用状态；严重级别下拉框持久化严重级别覆盖。两者在下次扫描时生效。
+- 「重新加载插件」重新扫描 `~/.npm-safe/rules/` 并注册新发现的插件规则。
+
+### LLM
+
+- 「启用 LLM 扫描」开关及提供者 / API 密钥 / 模型 / 基础 URL 字段持久化到 `~/.npm-safe/llm.json`。
+- 「保存」立即应用配置（运行时重建引擎提供者）。
+- 「测试连接」向配置的提供者发送测试请求。
+- 「重置」清除未保存的编辑并恢复当前持久化配置。
+- 若未配置 API 密钥，LLM 扫描保持禁用，静态分析照常运行。
 
 ### 设置 (Settings)
 
@@ -122,12 +139,12 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 
 ### 前端（`resources/`）
 
-- `index.html` — Material You UI：常驻导航抽屉（5 个标签页）、自定义标题栏（拖动区域、主题切换、最小化/关闭按钮）、顶部应用栏、各标签页面板以及底部状态栏。
+- `index.html` — Material You UI：常驻导航抽屉（7 个标签页）、自定义标题栏（拖动区域、主题切换、最小化/关闭按钮）、顶部应用栏、各标签页面板以及底部状态栏。
 - `styles.css` — 基于 seed `#4f8cff` 的 Material 3 色调色板，含独立的浅色/深色变量集、M3 抬升色调以及安全/可疑/危险状态颜色。
 - `js/main.js` — 前端逻辑：
   - `callEngine(method, data)` 将每个引擎调用以 `_requestId` 分发给扩展，并带有 **30 秒超时**。
   - `registerEngineEvents()` / `registerHistoryEvents()` 将 `:response` / `:error` 事件回接到待处理的 Promise。
-  - 标签页导航、标题栏窗口控制（`setDraggableRegion`、`minimize`、`app.exit`）、主题持久化（`npm-safe-theme` 键）。
+  - 标签页导航、标题栏窗口控制（`setDraggableRegion`、`minimize`、`app.exit`）、偏好持久化（`npm-safe-theme` / `npm-safe-last-tab` 键并镜像写入引擎设置表）。
   - 所有用户输入字符串在渲染前均经过 HTML 转义（`escapeHtml` / `escapeAttr`）以防止 XSS。
 - `js/neutralino.js` / `js/neutralino.d.ts` — Neutralinojs 客户端库与类型定义（6.9.0）。
 
@@ -136,7 +153,8 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 由 Neutralinojs 服务器启动的 Node.js 进程（在 `neutralino.config.json` 中声明为 `js.npmsafe.core`）。它：
 
 - 持有基于 SQLite 的 `NpmSafeEngine` 实例，数据库位于 `~/.npm-safe/npm-safe.db`。
-- 暴露 **12 个 IPC 方法**：`checkPackage`、`searchPackages`、`getWatchlist`、`addToWatchlist`、`removeFromWatchlist`、`refreshPackage`、`refreshAll`、`getSetting`、`setSetting`、`getHistory`、`addHistory`、`clearHistory`。
+- WebSocket 连接建立时广播 `engineReady`，供前端从设置表回灌持久化偏好（主题、上次标签页）。
+- 暴露 **21 个 IPC 方法**：`checkPackage`、`searchPackages`、`getWatchlist`、`addToWatchlist`、`removeFromWatchlist`、`refreshPackage`、`refreshAll`、`getSetting`、`setSetting`、`getHistory`、`addHistory`、`clearHistory`、`listRules`、`setRuleEnabled`、`setRuleSeverity`、`setRuleOptions`、`loadRulePlugins`、`getLlmStatus`、`setLlmConfig`、`testLlmConnection`。
 - 维护检查历史 `~/.npm-safe/history.json`（unshift 插入，上限 1000 条；当包存在且生成安全报告时，`checkPackage` 会自动记录一条历史）。
 - 将诊断日志写入 `%TEMP%/npmsafe-extension.log`（Windows）或 `$TMPDIR/npmsafe-extension.log`（macOS/Linux）。
 - 与服务器的 WebSocket 连接断开时，关闭引擎并退出。
@@ -147,6 +165,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 前端 → 扩展:  { "event": "<method>", "data": <params> }
 扩展 → 前端:  { "event": "<method>:response", "data": { requestId, result } }
 扩展 → 前端:  { "event": "<method>:error", "data": { requestId, message } }
+扩展 → 前端:  { "event": "engineReady", "data": {} }   （WebSocket 连接建立时）
 ```
 
 ### 应用配置（`neutralino.config.json`）
@@ -164,7 +183,10 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 | SQLite 数据库 | `~/.npm-safe/npm-safe.db` |
 | 检查历史 | `~/.npm-safe/history.json` |
 | 扩展日志 | `%TEMP%/npmsafe-extension.log`（Windows）/ `$TMPDIR/npmsafe-extension.log`（macOS/Linux） |
-| 主题偏好 | `localStorage` 键 `npm-safe-theme` |
+| 主题偏好 | 设置表键 `theme` + `localStorage` 键 `npm-safe-theme` |
+| 上次标签页 | 设置表键 `lastTab` + `localStorage` 键 `npm-safe-last-tab` |
+
+偏好会同时写入两层；启动时先应用 `localStorage`，待扩展广播 `engineReady` 后从设置表回灌（后端优先）。
 
 ## 目录结构
 

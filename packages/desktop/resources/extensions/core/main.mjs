@@ -45,6 +45,9 @@ const ws = new WebSocket(
 
 ws.onopen = () => {
   log("Connected to Neutralinojs server");
+  // Notify the frontend that the engine is ready so it can hydrate
+  // persisted user preferences (theme, last tab) from the settings table.
+  send("engineReady", {});
 };
 
 ws.onclose = async () => {
@@ -78,6 +81,14 @@ const SUPPORTED_METHODS = new Set([
   "getHistory",
   "addHistory",
   "clearHistory",
+  "listRules",
+  "setRuleEnabled",
+  "setRuleSeverity",
+  "setRuleOptions",
+  "loadRulePlugins",
+  "getLlmStatus",
+  "setLlmConfig",
+  "testLlmConnection",
 ]);
 
 const HISTORY_DIR = path.join(os.homedir(), ".npm-safe");
@@ -196,6 +207,26 @@ async function invoke(method, data) {
     case "clearHistory":
       writeHistory([]);
       return null;
+    case "listRules":
+      return engine.listRules();
+    case "setRuleEnabled":
+      engine.setRuleEnabled(data.ruleId, data.enabled);
+      return null;
+    case "setRuleSeverity":
+      engine.setRuleSeverity(data.ruleId, data.severity);
+      return null;
+    case "setRuleOptions":
+      engine.setRuleOptions(data.ruleId, data.options);
+      return null;
+    case "loadRulePlugins":
+      return await engine.loadRulePlugins(data.dir);
+    case "getLlmStatus":
+      return engine.getLlmStatus();
+    case "setLlmConfig":
+      engine.setLlmConfig(data);
+      return null;
+    case "testLlmConnection":
+      return await engine.testLlmConnection();
     default:
       throw new Error(`Unknown method: ${method}`);
   }

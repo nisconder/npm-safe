@@ -10,6 +10,8 @@ import { registerWatchCommand } from "./watch.js";
 import { registerRefreshCommand } from "./refresh.js";
 import { registerSettingsCommand } from "./settings.js";
 import { registerLangCommand } from "./lang.js";
+import { registerRulesCommand } from "./rules.js";
+import { registerLlmCommand } from "./llm.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
@@ -37,6 +39,8 @@ registerWatchCommand(program);
 registerRefreshCommand(program);
 registerSettingsCommand(program);
 registerLangCommand(program);
+registerRulesCommand(program);
+registerLlmCommand(program);
 
 program.parse();
 

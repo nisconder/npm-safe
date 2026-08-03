@@ -73,6 +73,14 @@ function registerEngineEvents() {
     "refreshAll",
     "getSetting",
     "setSetting",
+    "listRules",
+    "setRuleEnabled",
+    "setRuleSeverity",
+    "setRuleOptions",
+    "loadRulePlugins",
+    "getLlmStatus",
+    "setLlmConfig",
+    "testLlmConnection",
   ];
 
   for (const name of events) {
@@ -127,44 +135,102 @@ const TAB_TITLES = {
   check: "检查",
   search: "搜索",
   watch: "监控",
+  rules: "评价体系",
+  llm: "LLM",
   settings: "设置",
 };
 
-const HISTORY_KEY = "npm-safe-theme";
+const THEME_KEY = "npm-safe-theme";
+const LAST_TAB_KEY = "npm-safe-last-tab";
+
+// Preferences are persisted in two layers:
+//   1. localStorage — applied instantly at startup (fast, synchronous).
+//   2. Engine settings table (~/.npm-safe/npm-safe.db) — survives webview
+//      cache clears and is the source of truth once the engine connects.
+function persistPref(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // ignore quota / privacy-mode failures
+  }
+  if (engineReady) {
+    try {
+      void callEngine("setSetting", { key, value });
+    } catch {
+      // best effort
+    }
+  }
+}
+
+function applyTheme(isLight) {
+  document.body.classList.toggle("light-theme", isLight);
+}
 
 function setTheme(isLight) {
-  if (isLight) {
-    document.body.classList.add("light-theme");
-  } else {
-    document.body.classList.remove("light-theme");
-  }
-  localStorage.setItem(HISTORY_KEY, isLight ? "light" : "dark");
+  applyTheme(isLight);
+  persistPref(THEME_KEY, isLight ? "light" : "dark");
 }
 
 function loadTheme() {
-  const saved = localStorage.getItem(HISTORY_KEY);
-  if (saved) {
-    setTheme(saved === "light");
-    return;
-  }
-  setTheme(false);
+  const saved = localStorage.getItem(THEME_KEY);
+  applyTheme(saved === "light");
 }
 
 function toggleTheme() {
   setTheme(!document.body.classList.contains("light-theme"));
 }
 
+function switchTab(tab) {
+  const btn = document.querySelector(`.nav-item[data-tab='${tab}']`);
+  if (!btn || !TAB_TITLES[tab]) return false;
+  document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById(`tab-${tab}`).classList.add("active");
+  const title = document.getElementById("top-title");
+  if (title) title.textContent = TAB_TITLES[tab];
+  persistPref(LAST_TAB_KEY, tab);
+  if (tab === "overview") renderOverview();
+  if (tab === "rules") renderRules();
+  if (tab === "llm") renderLlmConfig();
+  return true;
+}
+
+function restoreLastTab() {
+  const saved = localStorage.getItem(LAST_TAB_KEY);
+  if (saved && switchTab(saved)) return;
+  switchTab("overview");
+}
+
+// Hydrate preferences from the engine settings table once the extension
+// signals it is ready. Backend values win over localStorage.
+async function hydratePrefs() {
+  engineReady = true;
+  try {
+    const theme = await callEngine("getSetting", { key: "theme" });
+    if (theme === "light" || theme === "dark") applyTheme(theme === "light");
+
+    const tab = await callEngine("getSetting", { key: "lastTab" });
+    if (tab && TAB_TITLES[tab]) switchTab(tab);
+  } catch {
+    // Engine not reachable — localStorage values already applied.
+  }
+}
+
+function initPrefs() {
+  Neutralino.events.on("engineReady", () => {
+    void hydratePrefs();
+  });
+  // Fallback in case the extension is an older build that never broadcasts.
+  setTimeout(() => {
+    if (!engineReady) void hydratePrefs();
+  }, 2500);
+}
+
 function initTabs() {
   document.querySelectorAll(".nav-item").forEach((btn) => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
-      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
-      btn.classList.add("active");
-      const tab = btn.dataset.tab;
-      document.getElementById(`tab-${tab}`).classList.add("active");
-      const title = document.getElementById("top-title");
-      if (title && TAB_TITLES[tab]) title.textContent = TAB_TITLES[tab];
-      if (tab === "overview") renderOverview();
+      switchTab(btn.dataset.tab);
     });
   });
 }
@@ -418,6 +484,195 @@ async function handleSettingSet() {
 }
 
 // ---------------------------------------------------------------------------
+// Rules
+// ---------------------------------------------------------------------------
+
+const SEVERITY_LABELS = {
+  low: "低",
+  medium: "中",
+  high: "高",
+  critical: "严重",
+};
+
+let rulesCache = [];
+
+async function renderRules() {
+  const list = document.getElementById("rules-list");
+  const summary = document.getElementById("rules-summary");
+  list.innerHTML = `<div class="loading">正在加载规则...</div>`;
+  summary.textContent = "";
+  try {
+    const rules = await callEngine("listRules", {});
+    rulesCache = rules;
+    const enabledCount = rules.filter((r) => r.enabled).length;
+    summary.textContent = `共 ${rules.length} 条规则，已启用 ${enabledCount} 条`;
+
+    if (rules.length === 0) {
+      list.innerHTML = `<div class="empty">没有已注册的规则。</div>`;
+      return;
+    }
+
+    list.innerHTML = rules
+      .map(
+        (r) => `
+        <div class="card rule-card" data-rule-id="${escapeAttr(r.id)}">
+          <div class="rule-header">
+            <span class="rule-name">${escapeHtml(r.name)}</span>
+            <span class="badge ${r.enabled ? "safe" : "unknown"}">${r.enabled ? "已启用" : "已禁用"}</span>
+            <span class="badge ${escapeAttr(r.severity)}">${escapeHtml(SEVERITY_LABELS[r.severity] ?? r.severity)}</span>
+            <span class="rule-id">${escapeHtml(r.id)} · ${escapeHtml(r.source)}</span>
+          </div>
+          <div class="rule-description">${escapeHtml(r.description)}</div>
+          <div class="rule-controls">
+            <label class="switch-label">
+              <input type="checkbox" class="rule-toggle" ${r.enabled ? "checked" : ""} />
+              <span class="switch"></span>
+              <span class="switch-text">启用</span>
+            </label>
+            <div class="rule-control">
+              <label for="rule-severity-${escapeAttr(r.id)}">严重级别</label>
+              <select id="rule-severity-${escapeAttr(r.id)}" class="rule-severity">
+                <option value="low" ${r.severity === "low" ? "selected" : ""}>低</option>
+                <option value="medium" ${r.severity === "medium" ? "selected" : ""}>中</option>
+                <option value="high" ${r.severity === "high" ? "selected" : ""}>高</option>
+                <option value="critical" ${r.severity === "critical" ? "selected" : ""}>严重</option>
+              </select>
+            </div>
+          </div>
+        </div>`
+      )
+      .join("");
+
+    list.querySelectorAll(".rule-card").forEach((card) => {
+      const ruleId = card.dataset.ruleId;
+      const toggle = card.querySelector(".rule-toggle");
+      const severity = card.querySelector(".rule-severity");
+
+      toggle.addEventListener("change", async () => {
+        try {
+          await callEngine("setRuleEnabled", { ruleId, enabled: toggle.checked });
+          setStatus(`规则 ${ruleId} ${toggle.checked ? "已启用" : "已禁用"}`, "success");
+          await renderRules();
+        } catch (err) {
+          setStatus(err.message, "error");
+          toggle.checked = !toggle.checked;
+        }
+      });
+
+      severity.addEventListener("change", async () => {
+        try {
+          await callEngine("setRuleSeverity", { ruleId, severity: severity.value });
+          setStatus(`规则 ${ruleId} 严重级别已更新`, "success");
+          await renderRules();
+        } catch (err) {
+          setStatus(err.message, "error");
+        }
+      });
+    });
+  } catch (err) {
+    list.innerHTML = `<div class="card"><div class="card-title" style="color:var(--md-error)">加载失败</div>${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function handleLoadRulePlugins() {
+  const btn = document.getElementById("rules-load-btn");
+  setBusy(btn, true);
+  setStatus("正在加载插件规则...");
+  try {
+    const count = await callEngine("loadRulePlugins", {});
+    await renderRules();
+    setStatus(`已加载 ${count} 条插件规则`, "success");
+  } catch (err) {
+    setStatus(err.message, "error");
+  } finally {
+    setBusy(btn, false);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// LLM configuration
+// ---------------------------------------------------------------------------
+
+async function renderLlmConfig() {
+  const statusText = document.getElementById("llm-status-text");
+  const enabledInput = document.getElementById("llm-enabled");
+  const providerInput = document.getElementById("llm-provider");
+  const apiKeyInput = document.getElementById("llm-api-key");
+  const modelInput = document.getElementById("llm-model");
+  const baseUrlInput = document.getElementById("llm-base-url");
+  const resultArea = document.getElementById("llm-result");
+
+  try {
+    const status = await callEngine("getLlmStatus", {});
+    enabledInput.checked = status.enabled;
+    providerInput.value = status.provider;
+    apiKeyInput.value = "";
+    apiKeyInput.placeholder = " ";
+    const hint = document.getElementById("llm-api-key-hint");
+    if (hint) hint.textContent = status.apiKey ? `已配置 (${status.apiKey})` : "未配置";
+    modelInput.value = status.model ?? "";
+    baseUrlInput.value = status.baseUrl ?? "";
+
+    const configured = status.configured ? "已配置" : "未配置";
+    statusText.innerHTML = `<span class="badge ${status.enabled && status.configured ? "safe" : "unknown"}">${status.enabled ? "已启用" : "已禁用"}</span> ${status.provider} · ${configured}`;
+    resultArea.innerHTML = "";
+  } catch (err) {
+    resultArea.innerHTML = `<div class="card"><div class="card-title" style="color:var(--md-error)">加载失败</div>${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function handleLlmSave() {
+  const btn = document.getElementById("llm-save-btn");
+  setBusy(btn, true);
+  setStatus("正在保存 LLM 配置...");
+  try {
+    const update = {
+      enabled: document.getElementById("llm-enabled").checked,
+      provider: document.getElementById("llm-provider").value,
+      model: document.getElementById("llm-model").value.trim() || undefined,
+      baseUrl: document.getElementById("llm-base-url").value.trim() || undefined,
+    };
+    const apiKey = document.getElementById("llm-api-key").value.trim();
+    if (apiKey) update.apiKey = apiKey;
+    await callEngine("setLlmConfig", update);
+    await renderLlmConfig();
+    setStatus("LLM 配置已保存", "success");
+  } catch (err) {
+    setStatus(err.message, "error");
+  } finally {
+    setBusy(btn, false);
+  }
+}
+
+async function handleLlmTest() {
+  const btn = document.getElementById("llm-test-btn");
+  setBusy(btn, true);
+  setStatus("正在测试 LLM 连接...");
+  const resultArea = document.getElementById("llm-result");
+  try {
+    const ok = await callEngine("testLlmConnection", {});
+    if (ok) {
+      resultArea.innerHTML = `<div class="card"><div class="card-title" style="color:var(--md-safe)">连接成功</div>LLM 连接测试通过。</div>`;
+      setStatus("LLM 连接正常", "success");
+    } else {
+      resultArea.innerHTML = `<div class="card"><div class="card-title" style="color:var(--md-error)">连接失败</div>未启用或未配置 API 密钥。</div>`;
+      setStatus("LLM 连接失败", "error");
+    }
+  } catch (err) {
+    resultArea.innerHTML = `<div class="card"><div class="card-title" style="color:var(--md-error)">连接失败</div>${escapeHtml(err.message)}</div>`;
+    setStatus(err.message, "error");
+  } finally {
+    setBusy(btn, false);
+  }
+}
+
+async function handleLlmReset() {
+  document.getElementById("llm-api-key").value = "";
+  await renderLlmConfig();
+  setStatus("已恢复当前保存的配置", "success");
+}
+
+// ---------------------------------------------------------------------------
 // Overview Dashboard
 // ---------------------------------------------------------------------------
 
@@ -568,10 +823,12 @@ Neutralino.events.on("windowClose", () => {
 
 (async function init() {
   loadTheme();
+  initPrefs();
   initTabs();
   initTitleBar();
   registerEngineEvents();
   registerHistoryEvents();
+  restoreLastTab();
 
   document.getElementById("check-btn").addEventListener("click", handleCheck);
   document.getElementById("check-name").addEventListener("keydown", (e) => {
@@ -601,6 +858,12 @@ Neutralino.events.on("windowClose", () => {
   });
   document.getElementById("setting-get-btn").addEventListener("click", handleSettingGet);
   document.getElementById("setting-set-btn").addEventListener("click", handleSettingSet);
+
+  document.getElementById("rules-load-btn").addEventListener("click", handleLoadRulePlugins);
+
+  document.getElementById("llm-save-btn").addEventListener("click", handleLlmSave);
+  document.getElementById("llm-test-btn").addEventListener("click", handleLlmTest);
+  document.getElementById("llm-reset-btn").addEventListener("click", handleLlmReset);
 
   await renderWatchlist();
   await renderOverview();

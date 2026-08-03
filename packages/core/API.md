@@ -205,6 +205,102 @@ close(): void
 
 Release all resources held by the engine. Stops the auto-refresh scheduler, disposes the rate limiter timer, and closes the database connection. Idempotent. After calling this method the engine instance must not be used for further operations.
 
+#### registerRule
+
+```ts
+registerRule(rule: ScanRule): void
+```
+
+Register a scan rule at runtime. A rule with the same id replaces the existing one (keeping its position in the registration order).
+
+#### unregisterRule
+
+```ts
+unregisterRule(ruleId: string): boolean
+```
+
+Remove a scan rule by id. Returns `true` if a rule was removed, `false` if no such rule exists.
+
+#### listRules
+
+```ts
+listRules(): RuleDescriptor[]
+```
+
+Describe every registered rule with its effective status (enabled state and severity after config overrides, plus `source: 'builtin' | 'plugin'`), in registration order.
+
+#### setRuleEnabled
+
+```ts
+setRuleEnabled(ruleId: string, enabled: boolean): void
+```
+
+Enable or disable a rule. Persisted in the rules config file (`~/.npm-safe/rules.json` by default).
+
+#### setRuleSeverity
+
+```ts
+setRuleSeverity(ruleId: string, severity: Severity | undefined): void
+```
+
+Override a rule's severity. Persisted. Pass `undefined` to clear the override and return to the rule's default severity.
+
+#### setRuleOptions
+
+```ts
+setRuleOptions(ruleId: string, options: Readonly<Record<string, unknown>>): void
+```
+
+Set free-form options for a rule. Persisted. Rule implementations can read these via `RuleConfigManager`.
+
+#### getRuleConfig
+
+```ts
+getRuleConfig(): RuleConfigManager
+```
+
+Access the rule configuration manager for low-level inspection.
+
+#### loadRulePlugins
+
+```ts
+loadRulePlugins(dir?: string): Promise<number>
+```
+
+Load third-party rules from a directory of ES module files (`*.mjs` / `*.js`). Each file may export `rule`, `rules`, or `default` holding one or more `ScanRule`s. Files that fail to load are skipped. Defaults to `~/.npm-safe/rules/`. Returns the number of rules loaded. Also invoked automatically at engine startup.
+
+#### getLlmConfig
+
+```ts
+getLlmConfig(): LlmConfig
+```
+
+Returns the current persisted LLM configuration, including the raw API key. This is useful for programmatic editing; prefer `getLlmStatus()` for display.
+
+#### getLlmStatus
+
+```ts
+getLlmStatus(): LlmStatus
+```
+
+Returns a masked, display-safe view of the LLM configuration: enabled state, provider, whether an API key is configured, effective model, base URL, and a masked API key.
+
+#### setLlmConfig
+
+```ts
+setLlmConfig(update: Partial<LlmConfig>): void
+```
+
+Update the persisted LLM configuration and recreate the provider. Pass `{ enabled: false }` to disable LLM scanning entirely. The provider is re-evaluated immediately, so the next `checkPackage` or refresh will use the new configuration.
+
+#### testLlmConnection
+
+```ts
+testLlmConnection(): Promise<boolean>
+```
+
+Send a test request to the configured LLM provider. Returns `true` if the provider is enabled, configured, and the test request succeeds. Returns `false` when disabled or unconfigured.
+
 ---
 
 ## NpmSafeEngineOptions
@@ -219,6 +315,9 @@ interface NpmSafeEngineOptions {
   readonly rateLimitBurst?: number;
   readonly cacheTtlMs?: number;
   readonly llm?: LlmProviderOptions;
+  readonly llmConfigPath?: string;
+  readonly rulesConfigPath?: string;
+  readonly rulesDir?: string;
 }
 ```
 
@@ -229,14 +328,12 @@ interface NpmSafeEngineOptions {
 | `rateLimit` | `number` | `5` | Token bucket refill rate (tokens per second). |
 | `rateLimitBurst` | `number` | `10` | Maximum burst size for the token bucket. |
 | `cacheTtlMs` | `number` | `3600000` | Cache TTL for package metadata in milliseconds. |
-| `llm` | `LlmProviderOptions` | unset | Optional semantic security scan backed by any supported LLM provider. |
+| `llm` | `LlmProviderOptions` | unset | Optional programmatic semantic security scan backed by any supported LLM provider. |
+| `llmConfigPath` | `string` | `'~/.npm-safe/llm.json'` | Path to the LLM provider configuration JSON file. |
+| `rulesConfigPath` | `string` | `'~/.npm-safe/rules.json'` | Path to the per-rule configuration JSON file. |
+| `rulesDir` | `string` | `'~/.npm-safe/rules/'` | Directory scanned for third-party rule plugin files. |
 
-When using the CLI, LLM scanning is configured through environment variables:
-set `OPENAI_API_KEY` (plus optional `OPENAI_BASE_URL` and `OPENAI_MODEL`) for
-OpenAI-compatible endpoints, `GEMINI_API_KEY` for Google Gemini, or
-`ANTHROPIC_API_KEY` for Anthropic Claude. The CLI auto-detects the provider
-from whichever key is present. LLM analysis is optional and static scanning
-remains available when no provider is configured.
+LLM scanning is optional. The engine loads configuration from `~/.npm-safe/llm.json` (or `llmConfigPath`). Each provider also falls back to its conventional environment variable (`OPENAI_API_KEY`, `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`) when no API key is persisted. When no key is configured, LLM scanning is silently disabled and static scanning remains available.
 
 ---
 
@@ -560,6 +657,40 @@ interface LlmProviderOptions {
 The deprecated alias `OpenAICompatibleLlmOptions` is kept for backward
 compatibility and is identical to `LlmProviderOptions`.
 
+### LlmConfig
+
+Persisted LLM configuration read from `~/.npm-safe/llm.json` (or the path
+configured via `NpmSafeEngineOptions.llmConfigPath`).
+
+```ts
+interface LlmConfig {
+  readonly enabled: boolean;
+  readonly provider: LlmProviderType;
+  readonly apiKey?: string;
+  readonly baseUrl?: string;
+  readonly model?: string;
+  readonly timeoutMs?: number;
+  readonly maxInputChars?: number;
+  readonly maxTokens?: number;
+}
+```
+
+### LlmStatus
+
+Display-safe view of the LLM configuration. Returned by
+`NpmSafeEngine.getLlmStatus()`.
+
+```ts
+interface LlmStatus {
+  readonly enabled: boolean;
+  readonly provider: LlmProviderType;
+  readonly configured: boolean;
+  readonly model?: string;
+  readonly baseUrl?: string;
+  readonly apiKey?: string; // masked, e.g. "sk-****1234"
+}
+```
+
 ### createLlmProvider
 
 ```ts
@@ -616,9 +747,10 @@ class LlmProviderError extends Error {
 
 ### Environment Variables
 
-The CLI resolves LLM configuration from environment variables in priority
-order: `ANTHROPIC_API_KEY`, then `GEMINI_API_KEY`, then `OPENAI_API_KEY`.
-When none is present, LLM scanning is disabled.
+The engine and CLI resolve LLM configuration from `~/.npm-safe/llm.json`
+first, then fall back to provider-specific environment variables. If neither a
+persisted key nor an environment variable is present, LLM scanning is
+silently disabled and static scanning continues normally.
 
 | Variable | Provider | Purpose |
 |---|---|---|

@@ -10,14 +10,17 @@ A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core
 - **Check** — enter a package name (press Enter or click 检查) and view its security level, score, and detailed findings.
 - **Search** — keyword search against the npm registry (1-250 results, default 20); click a result to jump straight to Check.
 - **Watch** — add/remove packages from the watchlist and refresh individual or all watched packages.
+- **评价体系 (Rules)** — list every registered scan rule with its source and description; toggle each rule on/off and override its severity; reload plugin rules from `~/.npm-safe/rules/`.
+- **LLM** — configure the optional LLM scan: enable/disable switch, provider (OpenAI / Gemini / Anthropic), API key, model, and base URL, plus a test-connection button. The API key is masked in the status display.
 - **Settings** — read/write arbitrary engine settings (e.g. `proxy`, `lang`).
-- **Material You theming** — independent light/dark palettes (seed `#4f8cff`), toggled from the custom title bar and persisted in `localStorage`.
+- **Material You theming** — independent light/dark palettes (seed `#4f8cff`), toggled from the custom title bar and remembered across sessions.
+- **Remembered preferences** — the theme and the last active tab are persisted in both `localStorage` (instant startup) and the engine settings table (survives webview cache clears).
 - **Custom window chrome** — borderless, transparent, draggable title bar with minimize and close buttons.
 - **Persistent check history** — stored in `~/.npm-safe/history.json` (capped at 1000 entries) by the Node.js extension process.
 
 ## Screens (Tab Navigation)
 
-The app uses a permanent navigation drawer with five tabs:
+The app uses a permanent navigation drawer with seven tabs:
 
 ### 总览 (Overview)
 
@@ -49,6 +52,20 @@ The dashboard is re-rendered every time you navigate back to the tab.
 - Type a package name and click **添加** to add it to the watchlist (the package must exist on the registry).
 - Each list item offers **检查** (jump to Check) and **移除** (remove) actions.
 - **刷新全部** refreshes all watched packages at once; the button shows a "处理中..." busy state during the request.
+
+### 评价体系 (Rules)
+
+- Lists every registered rule with its name, id, source (`builtin` / `plugin`), description, enabled state, and effective severity.
+- The **启用** switch persists the enabled/disabled state; the severity dropdown persists the severity override. Both take effect on the next scan.
+- **重新加载插件** re-scans `~/.npm-safe/rules/` and registers any new plugin rules.
+
+### LLM
+
+- The **启用 LLM 扫描** switch and the provider / API key / model / base URL fields persist to `~/.npm-safe/llm.json`.
+- **保存** applies the configuration immediately (the engine provider is recreated at runtime).
+- **测试连接** sends a test request to the configured provider.
+- **重置** clears unsaved edits and restores the current persisted configuration.
+- If no API key is configured, LLM scanning stays disabled and static analysis continues normally.
 
 ### 设置 (Settings)
 
@@ -123,12 +140,12 @@ The desktop app is a three-layer Neutralinojs application:
 
 ### Frontend (`resources/`)
 
-- `index.html` — Material You UI: permanent navigation drawer (5 tabs), custom title bar (drag region, theme toggle, minimize/close buttons), top app bar, per-tab panels, and a bottom status bar.
+- `index.html` — Material You UI: permanent navigation drawer (7 tabs), custom title bar (drag region, theme toggle, minimize/close buttons), top app bar, per-tab panels, and a bottom status bar.
 - `styles.css` — Material 3 tonal palette from seed `#4f8cff` with dedicated light/dark variable sets; M3 elevation tints; safe/suspicious/dangerous state colors.
 - `js/main.js` — frontend logic:
   - `callEngine(method, data)` dispatches every engine call to the extension with a `_requestId` and a **30-second timeout**.
   - `registerEngineEvents()` / `registerHistoryEvents()` wire the `:response` / `:error` events back to pending promises.
-  - Tab navigation, title-bar window controls (`setDraggableRegion`, `minimize`, `app.exit`), theme persistence under the `npm-safe-theme` key.
+  - Tab navigation, title-bar window controls (`setDraggableRegion`, `minimize`, `app.exit`), and preference persistence (`npm-safe-theme` / `npm-safe-last-tab` keys mirrored to the engine settings table).
   - All user-provided strings are HTML-escaped before rendering (`escapeHtml` / `escapeAttr`) to prevent XSS.
 - `js/neutralino.js` / `js/neutralino.d.ts` — Neutralinojs client library and types (6.9.0).
 
@@ -137,7 +154,8 @@ The desktop app is a three-layer Neutralinojs application:
 A Node.js process spawned by the Neutralinojs server (declared in `neutralino.config.json` as `js.npmsafe.core`). It:
 
 - Owns the `NpmSafeEngine` instance backed by SQLite at `~/.npm-safe/npm-safe.db`.
-- Exposes **12 IPC methods**: `checkPackage`, `searchPackages`, `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`, `refreshPackage`, `refreshAll`, `getSetting`, `setSetting`, `getHistory`, `addHistory`, `clearHistory`.
+- Broadcasts `engineReady` on WebSocket connect so the frontend can hydrate persisted preferences (theme, last tab) from the settings table.
+- Exposes **21 IPC methods**: `checkPackage`, `searchPackages`, `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`, `refreshPackage`, `refreshAll`, `getSetting`, `setSetting`, `getHistory`, `addHistory`, `clearHistory`, `listRules`, `setRuleEnabled`, `setRuleSeverity`, `setRuleOptions`, `loadRulePlugins`, `getLlmStatus`, `setLlmConfig`, `testLlmConnection`.
 - Maintains check history in `~/.npm-safe/history.json` (unshift, capped at 1000 entries; `checkPackage` records an entry automatically when the package exists and a security report is produced).
 - Writes diagnostic logs to `%TEMP%/npmsafe-extension.log` (Windows) or `$TMPDIR/npmsafe-extension.log` (macOS/Linux).
 - Closes the engine and exits when the WebSocket connection to the server drops.
@@ -148,6 +166,7 @@ A Node.js process spawned by the Neutralinojs server (declared in `neutralino.co
 frontend → extension:  { "event": "<method>", "data": <params> }
 extension → frontend:  { "event": "<method>:response", "data": { requestId, result } }
 extension → frontend:  { "event": "<method>:error", "data": { requestId, message } }
+extension → frontend:  { "event": "engineReady", "data": {} }   (on WebSocket connect)
 ```
 
 ### App Configuration (`neutralino.config.json`)
@@ -165,7 +184,12 @@ extension → frontend:  { "event": "<method>:error", "data": { requestId, messa
 | SQLite database | `~/.npm-safe/npm-safe.db` |
 | Check history | `~/.npm-safe/history.json` |
 | Extension log | `%TEMP%/npmsafe-extension.log` (Windows) / `$TMPDIR/npmsafe-extension.log` (macOS/Linux) |
-| Theme preference | `localStorage` key `npm-safe-theme` |
+| Theme preference | Settings table key `theme` + `localStorage` key `npm-safe-theme` |
+| Last active tab | Settings table key `lastTab` + `localStorage` key `npm-safe-last-tab` |
+
+Preferences are written to both layers; on startup the app applies
+`localStorage` immediately, then hydrates from the settings table once the
+extension broadcasts `engineReady` (backend wins).
 
 ## Directory Structure
 

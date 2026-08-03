@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-01
 **Package:** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
-**Status:** All Phase 1 and Phase 2 plans complete. Engine core (17 source files) plus CLI (9 files) delivered, 206 tests passing, proxy support, en/zh localization, and multi-provider LLM scanning (OpenAI / Gemini / Anthropic) shipped, zero TypeScript errors. A Neutralinojs desktop GUI (vanilla JS, Material You) ships under `packages/desktop/`. A bug-fix pass on 2026-08-02 hardened the desktop GUI against XSS-to-RCE, added a watchlist foreign-key pre-check, corrected refresh semantics, and added sub-second TTL support (see section 3.8).
+**Status:** All Phase 1 and Phase 2 plans complete. Engine core (17 source files) plus CLI (9 files) delivered, 240 tests passing, proxy support, en/zh localization, multi-provider LLM scanning (OpenAI / Gemini / Anthropic), a Neutralinojs desktop GUI (vanilla JS, Material You), a plugin system for custom scan rules, and LLM configuration management (CLI + GUI) shipped, zero TypeScript errors. A bug-fix pass on 2026-08-02 hardened the desktop GUI against XSS-to-RCE, added a watchlist foreign-key pre-check, corrected refresh semantics, and added sub-second TTL support (see section 3.8).
 
 [中文版](HANDOVER_zh.md)
 
@@ -24,7 +24,8 @@ This document records every project plan and its completion status.
 | Desktop GUI (`packages/desktop`) | **Done** (2026-08-01) | Neutralinojs + vanilla JS + Material You (M3), see section 6 |
 | Neutralinojs GUI (MD3) | **Done** (2026-08-01) | Shipped as `packages/desktop` — Neutralinojs window app with a Material 3 (MD3) design system (light/dark themes). The original Preact+mdui plan was superseded by the delivered vanilla-JS implementation, which fulfills the MD3 requirement. |
 | AI skill packaging | **Done** (2026-08-02) | Global agent skill `npm-safe-scan` installed at `~/.agents/skills/npm-safe-scan/SKILL.md`; packages the CLI as a global agent skill (any AI agent that loads `~/.agents/skills/`). |
-| Plugin system | Pending | Future phase |
+| Plugin system | **Done** (2026-08-02) | Runtime rule registration API, `~/.npm-safe/rules.json` config, `~/.npm-safe/rules/` plugin discovery, `npm-safe rules` CLI, see section 3.9 |
+| LLM configuration (CLI + GUI) | **Done** (2026-08-02) | Optional LLM scanning via `~/.npm-safe/llm.json`; `npm-safe llm` commands; GUI rules and LLM settings pages, see section 3.10 |
 | CI/CD integration | Pending | Future phase |
 | Multi-package batch API | Pending | Future phase |
 | Telemetry and analytics | Pending | Future phase |
@@ -42,7 +43,7 @@ All source files reside under `packages/core/src/`:
 
 | File | Role |
 |---|---|
-| `index.ts` | `NpmSafeEngine` facade, composes every dependency, exposes 12 public methods |
+| `index.ts` | `NpmSafeEngine` facade, composes every dependency, exposes 24 public methods |
 | `registry/types.ts` | Foundational types: `PackageMetadata`, `AbbreviatedVersion`, `SearchResult`, `NpmRegistryError`, `PackageIdentifier`, `ValidationResult` |
 | `registry/validator.ts` | Pure validators: `validatePackageName`, `validateVersion`, `validateDomain`, `isKnownRegistryDomain` |
 | `registry/client.ts` | `NpmRegistryClient`, HTTP fetch with 10s timeout, 3 retries, exponential backoff (1s/2s/4s) |
@@ -94,7 +95,7 @@ An auxiliary Translator layer (`translator/`) provides a pluggable translation i
 
 - `tsc --noEmit` clean via `pnpm -F @npm-safe/core exec tsc --noEmit` (zero errors, zero warnings)
 - Module graph resolved: all 10 relative imports in `index.ts` resolve to existing files, transitive walk clean
-- All 12 public API methods reachable via the `NpmSafeEngine` instance
+- All 24 public API methods reachable via the `NpmSafeEngine` instance
 - Constructor wiring verified: all 6 dependencies instantiated correctly
 - 3 exported symbols from `index.ts`: `NpmSafeEngine`, `NpmSafeEngineOptions`, `CheckResult`
 
@@ -222,10 +223,16 @@ Apache-2.0.
   `Neutralino.extensions.dispatch`.
 - **Views:** Overview dashboard (half-circle average-score gauge, recent
   checks, 7-day histogram, total count, risk breakdown), Check, Search,
-  Watch, and Settings.
+  Watch, 评价体系 (Rules), LLM, and Settings.
 - **Window chrome:** Borderless window with a custom title bar — draggable
   region, minimize and close buttons, and a light/dark theme toggle. Two
   independent M3 palettes: dark seed `#4f8cff`, light seed `#7c2d12`.
+- **Persisted preferences (2026-08-02):** the theme choice and the last
+  active tab are remembered across sessions. They are written to both
+  `localStorage` (applied instantly at startup) and the engine settings
+  table in `~/.npm-safe/npm-safe.db` (survives webview cache clears). On
+  connect the extension broadcasts `engineReady`; the frontend then hydrates
+  the preferences from the settings table, with the backend value winning.
 - **History:** every successful `checkPackage` is recorded by the extension
   to `~/.npm-safe/history.json` (latest 1000 entries), read by the dashboard
   via the `getHistory` event.
@@ -272,6 +279,60 @@ The suite grew from 205 to 206 tests; all pass. The source-file count under
 `packages/core/src/` is now 26 (the earlier 13 figure predated the CLI and
 LLM provider files).
 
+### 3.9 Plugin system (2026-08-02)
+
+The plugin system plan was delivered on 2026-08-02. It adds three layers on
+top of the existing `ScanRule` interface:
+
+- **Runtime registration API.** `StaticAnalyzer` gained `registerRule`,
+  `unregisterRule`, and `listRules`. `NpmSafeEngine` exposes the same surface
+  plus `setRuleEnabled`, `setRuleSeverity`, `setRuleOptions`, `getRuleConfig`,
+  and `loadRulePlugins`.
+- **Per-rule configuration.** `RuleConfigManager`
+  (`src/scanner/rule-config.ts`) persists enable/disable, severity overrides,
+  and free-form options to `~/.npm-safe/rules.json`. Overrides are applied at
+  analysis time: disabled rules are skipped and finding severities are
+  remapped.
+- **Plugin discovery.** `loadRulesFromDirectory`
+  (`src/scanner/rule-loader.ts`) scans `~/.npm-safe/rules/` for `*.mjs` /
+  `*.js` ES modules. Each file may export `rule`, `rules`, or `default`
+  holding one or more `ScanRule`s. Files are loaded in lexical order; invalid
+  files are skipped. The engine loads plugins automatically at startup.
+- **CLI.** `npm-safe rules list | enable | disable | severity` manages the
+  persisted config (en/zh localized).
+
+The test suite grew from 206 to 226 tests; all pass.
+
+### 3.10 LLM configuration (CLI + GUI) (2026-08-02)
+
+LLM scanning was made optional and configurable through both the CLI and the
+desktop GUI:
+
+- **Persistence.** `LlmConfigManager` (`src/llm/llm-config.ts`) stores
+  `~/.npm-safe/llm.json` with a 0o600 permission attempt. It tracks `enabled`,
+  `provider`, `apiKey`, `baseUrl`, `model`, and provider-specific timeouts.
+- **Graceful fallback.** If the persisted file is missing or no API key is
+  configured, the engine falls back to provider-specific environment variables
+  (`OPENAI_API_KEY`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`). If neither is
+  present, LLM scanning is silently disabled and static analysis continues
+  normally.
+- **Runtime updates.** `NpmSafeEngine.setLlmConfig` recreates the provider and
+  notifies the refresh scheduler, so enabling/disabling LLM takes effect
+  immediately without restarting the engine.
+- **CLI commands.** `npm-safe llm status | enable | disable | set-provider |
+  set-key | set-model | set-base-url | test-connection` manage the persisted
+  config (en/zh localized).
+- **Desktop GUI pages.** The Navigation Drawer gained two new tabs:
+  - **评价体系 (Rules)** — lists all registered rules, shows source
+    (`builtin`/`plugin`), description, and lets users toggle each rule and
+    override its severity. A button reloads plugin rules from
+    `~/.npm-safe/rules/`.
+  - **LLM** — a form with an enable switch, provider selector, API key, model,
+    and base URL inputs, plus save/test/reset actions. The API key is masked
+    in the status display.
+
+The test suite grew from 226 to 240 tests; all pass.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -283,7 +344,7 @@ The Phase 1 documentation pack, plus the Phase 2 updates, is complete:
 | `README.md` (workspace root) | English project readme: setup, CLI usage, architecture, design decisions, phase status |
 | `README_zh.md` (workspace root) | Chinese translation of the readme, cross-linked with the English version |
 | `packages/core/ARCHITECTURE.md` | Layer map, module dependency graph, data flow (hot path and refresh path), database schema, migration system, error taxonomy, design decisions |
-| `packages/core/API.md` | Complete public API reference: `NpmSafeEngine` (all 12 methods), exported interfaces, and type definitions |
+| `packages/core/API.md` | Complete public API reference: `NpmSafeEngine` (all 24 methods), exported interfaces, and type definitions |
 | `packages/core/SCANNER_RULES.md` | Reference for all 10 built-in rules: category, severity, detection logic, mitigations |
 | `packages/core/HANDOVER.md` | This document, English |
 | `packages/core/HANDOVER_zh.md` | Chinese handover document |
@@ -298,11 +359,10 @@ covered by the shipped desktop GUI in section 3.6.
 
 | Priority | Plan | Description |
 |---|---|---|
-| 1 | **Plugin system** | Dynamic third-party `ScanRule` registration. The `StaticAnalyzer` constructor already accepts an optional `ScanRule[]` array; add discovery, a registration API, and a configuration file. |
-| 2 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
-| 3 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
-| 4 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
-| 5 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
+| 1 | **CI/CD integration** | A GitHub Action or CLI tool that runs `@npm-safe/core` checks as part of a CI pipeline. |
+| 2 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
+| 3 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
+| 4 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
 
 ---
 

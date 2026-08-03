@@ -101,8 +101,8 @@ export class RefreshScheduler extends EventEmitter {
   private readonly limiter: TokenBucket;
   /** Static analyzer re-run on each refreshed package. */
   private readonly analyzer: StaticAnalyzer;
-  /** Optional semantic analyzer for refreshed packages. */
-  private readonly llmProvider?: LlmScanProvider;
+  /** Optional semantic analyzer for refreshed packages (mutable at runtime). */
+  private llmProvider: (() => LlmScanProvider | undefined) | undefined;
   /** Handle to the recurring refresh interval, or `null` when stopped. */
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
@@ -113,20 +113,44 @@ export class RefreshScheduler extends EventEmitter {
    * @param limiter - Token bucket rate limiter; one token is consumed per
    *   registry fetch.
    * @param analyzer - Static analyzer re-run on each refreshed package.
+   * @param llmProvider - Optional semantic analyzer for refreshed packages, or
+   *   a getter that returns the current provider. A getter is preferred when the
+   *   provider can be changed at runtime.
    */
   constructor(
     client: NpmRegistryClient,
     cache: CacheManager,
     limiter: TokenBucket,
     analyzer: StaticAnalyzer,
-    llmProvider?: LlmScanProvider,
+    llmProvider?: LlmScanProvider | (() => LlmScanProvider | undefined),
   ) {
     super();
     this.client = client;
     this.cache = cache;
     this.limiter = limiter;
     this.analyzer = analyzer;
-    this.llmProvider = llmProvider;
+    this.llmProvider = llmProvider
+      ? typeof llmProvider === 'function'
+        ? llmProvider
+        : () => llmProvider
+      : undefined;
+  }
+
+  /**
+   * Replace the LLM provider used during refreshes.
+   *
+   * Safe to call while the scheduler is running; the next refresh cycle uses
+   * the new provider.
+   *
+   * @param provider - The new provider, or `undefined` to disable LLM scanning.
+   */
+  setLlmProvider(provider?: LlmScanProvider): void {
+    this.llmProvider = provider ? () => provider : undefined;
+  }
+
+  /** Resolve the current LLM provider. */
+  private getLlmProvider(): LlmScanProvider | undefined {
+    return this.llmProvider?.();
   }
 
   /**
@@ -213,7 +237,8 @@ export class RefreshScheduler extends EventEmitter {
       const report = this.analyzer.analyze(readme, packageJson);
 
       await this.cache.setSecurityReport(report);
-      const llmScan = this.llmProvider
+      const llmProvider = this.getLlmProvider();
+      const llmScan = llmProvider
         ? await this.scanWithLlm(meta, latestVersion)
         : undefined;
 
@@ -237,12 +262,13 @@ export class RefreshScheduler extends EventEmitter {
   meta: PackageMetadata,
   version: string,
   ): Promise<LlmScanReport> {
-  if (!this.llmProvider) {
+  const provider = this.getLlmProvider();
+  if (!provider) {
     return { enabled: false, reason: 'LLM provider is not configured.' };
   }
   try {
     const manifest = meta.versions[version];
-    const report = await this.llmProvider.scan({
+    const report = await provider.scan({
       packageName: meta.name,
       version,
       description: meta.description ?? '',

@@ -11,7 +11,7 @@
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
-**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，26 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（206 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic），以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
+**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，29 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（240 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`、`rules`、`llm` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic）及持久化配置，以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/评价体系/LLM/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
 
 ---
 
@@ -55,6 +55,17 @@ npm-safe refresh [package]         # 刷新单个（或全部监控）包
 npm-safe settings get <key>        # 读取设置
 npm-safe settings set <key> <val>  # 写入设置
 npm-safe lang [en|zh]              # 查看或设置输出语言
+npm-safe rules list                # 列出扫描规则及生效状态
+npm-safe rules enable <rule-id>    # 启用扫描规则（持久化）
+npm-safe rules disable <rule-id>   # 禁用扫描规则（持久化）
+npm-safe rules severity <rule-id> <severity>  # 覆盖规则严重级别
+npm-safe llm status                # 查看 LLM 提供者状态
+npm-safe llm enable                # 启用 LLM 扫描
+npm-safe llm disable               # 禁用 LLM 扫描
+npm-safe llm set-provider <openai|gemini|anthropic>
+npm-safe llm set-key <api-key>     # 设置 LLM API 密钥
+npm-safe llm set-model <model>     # 设置 LLM 模型
+npm-safe llm test-connection       # 测试 LLM 连接
 ```
 
 ### 桌面应用
@@ -76,8 +87,10 @@ pnpm run build
 - **检查** — 输入包名，查看安全等级、分数和发现项。
 - **搜索** — 关键词搜索 npm 注册表；点击结果直接跳转检查。
 - **监控** — 管理监控列表，刷新单个或全部监控包。
+- **评价体系** — 列出所有注册规则，启用/禁用每个规则，覆盖其严重级别；可重新加载 `~/.npm-safe/rules/` 下的插件规则。
+- **LLM** — 配置可选 LLM 扫描：启用开关、提供者、API 密钥、模型和基础 URL，并提供测试连接按钮。
 - **设置** — 读取/写入任意引擎设置（如 `proxy`、`lang`）。
-- **浅色/深色主题** — 自定义标题栏一键切换两套独立的 Material You 配色。
+- **浅色/深色主题** — 自定义标题栏一键切换两套独立的 Material You 配色；主题与上次打开的标签页会在会话间记住（localStorage + 引擎设置表）。
 - **自定义窗口边框** — 无边框窗口，支持标题栏拖动、最小化和关闭按钮（Windows 需设置 WebView2 回环豁免，见下文）。
 
 检查历史由 Node.js 扩展进程持久化到 `~/.npm-safe/history.json`。
@@ -121,6 +134,58 @@ npm-safe lang zh       # 切换为中文（持久化）
 npm-safe lang en       # 切换为英文（持久化）
 ```
 
+### 规则与插件
+
+扫描规则可在运行时管理，配置持久化在 `~/.npm-safe/rules.json`：
+
+```bash
+npm-safe rules list                          # 查看所有规则及状态
+npm-safe rules disable install-script        # 禁用规则
+npm-safe rules enable install-script         # 重新启用
+npm-safe rules severity typosquatting critical  # 覆盖规则严重级别
+```
+
+第三方规则插件可放入 `~/.npm-safe/rules/` 目录（`*.mjs` / `*.js` ES 模块文件）。
+每个文件可导出 `rule`、`rules` 或 `default`，内容为一个或多个符合
+`ScanRule` 接口的规则：
+
+```js
+// ~/.npm-safe/rules/my-rule.mjs
+export const rule = {
+  id: "my-rule",
+  name: "My rule",
+  description: "Detects something bad",
+  severity: "high",
+  category: "informational",
+  enabled: true,
+  match(readme, packageJson) {
+    return packageJson?.scripts?.postinstall?.includes("wget")
+      ? [{ ruleId: "my-rule", ruleName: "My rule", severity: "high",
+           message: "postinstall uses wget", category: "informational" }]
+      : [];
+  },
+};
+```
+
+插件文件在引擎启动时自动加载，损坏的文件会被跳过。`ScanRule` 接口及完整
+的引擎规则 API（`registerRule`、`unregisterRule`、`listRules`、
+`setRuleEnabled`、`setRuleSeverity`）均从 `@npm-safe/core` 导出，供编程使用。
+
+### LLM 扫描
+
+基于 LLM 的语义扫描是可选功能，默认禁用。当未配置 API 密钥时，静态分析
+照常运行。配置持久化在 `~/.npm-safe/llm.json`，也可通过环境变量提供
+（`OPENAI_API_KEY`、`GEMINI_API_KEY` 或 `ANTHROPIC_API_KEY`）。
+
+```bash
+npm-safe llm status                 # 查看当前状态
+npm-safe llm enable                 # 开启 LLM 扫描
+npm-safe llm set-provider openai    # 选择提供者
+npm-safe llm set-key $OPENAI_API_KEY
+npm-safe llm set-model gpt-4o-mini
+npm-safe llm test-connection        # 验证连接
+```
+
 ### 桌面应用首次运行（Windows）
 
 如果 WebView2 窗口因回环隔离错误无法加载，请以管理员身份运行一次 PowerShell：
@@ -135,7 +200,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-206 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者以及 CLI 本身。
+240 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统以及 CLI 本身。
 
 ---
 
@@ -144,7 +209,7 @@ pnpm -F @npm-safe/core test
 引擎的详细文档位于 `packages/core/` 目录下：
 
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- 分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
-- **[API.md](packages/core/API.md)** -- 完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 12 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
+- **[API.md](packages/core/API.md)** -- 完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 24 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- 所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
   - **[README_zh.md](README_zh.md)** -- 本项目的简体中文版 README。
 
@@ -198,10 +263,13 @@ npm-safe/
           refresh.ts       # refresh 命令
           settings.ts      # settings get/set 命令
           lang.ts          # lang 命令（en/zh，持久化）
+          rules.ts         # 规则管理命令
+          llm.ts           # LLM 配置命令
           i18n.ts          # 中英文双语模块
           shared.ts        # 引擎工厂 + 默认数据库路径
         llm/
           provider.ts      # createLlmProvider 工厂（OpenAI / Gemini / Anthropic）
+          llm-config.ts    # LlmConfigManager 持久化与环境变量回退
           gemini.ts        # Gemini LLM 提供者
           anthropic.ts     # Anthropic LLM 提供者
           parse.ts         # LLM 响应解析辅助函数
@@ -211,7 +279,9 @@ npm-safe/
           client.ts        # NpmRegistryClient — HTTP 请求，含重试、退避与代理支持
         scanner/
           types.ts         # SecurityLevel, Severity, ScanFinding, ScanRule, StaticScanReport
-          static-rules.ts  # StaticAnalyzer — 10 条内置分析规则
+          static-rules.ts  # StaticAnalyzer — 10 条内置分析规则 + 规则注册
+          rule-config.ts   # RuleConfigManager 持久化
+          rule-loader.ts   # 从 ~/.npm-safe/rules/ 发现插件规则
         scheduler/
           rate-limiter.ts      # TokenBucket — 5 tokens/s, 10 burst
           refresh-scheduler.ts # RefreshScheduler — 通过 EventEmitter 实现定时刷新监控列表
@@ -234,6 +304,10 @@ npm-safe/
         llm-provider.test.ts   # createLlmProvider 工厂 + 共享行为测试
         llm-gemini.test.ts     # Gemini LLM 提供者测试
         llm-anthropic.test.ts  # Anthropic LLM 提供者测试
+        llm-config.test.ts     # LLM 配置持久化与引擎集成测试
+        rule-config.test.ts    # RuleConfigManager 持久化测试
+        rule-loader.test.ts    # 插件规则发现测试
+        rule-plugin.test.ts    # 规则注册与引擎集成测试
     desktop/                         # @npm-safe/desktop（Neutralinojs 桌面 GUI）
       package.json                   # 桌面工作区包
       neutralino.config.json         # Neutralino 应用配置（无边框、扩展）
@@ -260,7 +334,7 @@ npm-safe/
                            +-----------------------+
                            |      index.ts          |
                            |  NpmSafeEngine 门面    |
-                           |  12 个公共方法          |
+                           |  24 个公共方法          |
                            +-----------+-----------+
                                        |
               +------------------------+------------------------+
@@ -288,10 +362,10 @@ npm-safe/
 | 层级 | 模块 | 职责 |
 |---|---|---|
 | **Registry（注册表层）** | `registry/client.ts`, `registry/validator.ts`, `registry/types.ts` | 与 npm 注册表 API 进行 HTTP 通信。获取包数据，验证包名和版本，定义所有面向注册表的 TypeScript 类型。 |
-| **Scanner（扫描器层）** | `scanner/static-rules.ts`, `scanner/types.ts` | 对包元数据和 README 内容进行纯静态分析。十条内置规则可检测安装脚本、代码混淆、仿冒包名、密钥泄露、同形字符攻击等。 |
+| **Scanner（扫描器层）** | `scanner/static-rules.ts`, `scanner/rule-config.ts`, `scanner/rule-loader.ts`, `scanner/types.ts` | 对包元数据和 README 内容进行纯静态分析。十条内置规则可检测安装脚本、代码混淆、仿冒包名、密钥泄露、同形字符攻击等；支持规则注册、配置覆盖和插件发现。 |
 | **Scheduler（调度器层）** | `scheduler/refresh-scheduler.ts`, `scheduler/rate-limiter.ts` | 管理被监控包的定时刷新周期。令牌桶（5 tokens/s, 10 burst）限制注册表请求频率。 |
 | **Store（存储层）** | `store/database.ts`, `store/cache-manager.ts`, `store/schema.ts` | 基于 better-sqlite3 的持久化存储，使用 WAL 模式。处理数据库迁移、基于 TTL 的元数据和扫描报告缓存、监控列表持久化，以及键值设置。 |
-| **Facade（门面层）** | `index.ts` | `NpmSafeEngine` 类组合上述四层。暴露 12 个公共方法：`checkPackage`、`searchPackages`、监控列表 CRUD、刷新操作、设置访问，以及生命周期管理（`startAutoRefresh`、`stopAutoRefresh`、`close`）。 |
+| **Facade（门面层）** | `index.ts` | `NpmSafeEngine` 类组合上述四层。暴露 24 个公共方法：`checkPackage`、`searchPackages`、监控列表 CRUD、刷新操作、设置访问、规则管理、LLM 配置以及生命周期管理（`startAutoRefresh`、`stopAutoRefresh`、`close`）。 |
 
 第六层为辅助层 **Translator（翻译器）**（`translator/types.ts`、`translator/provider.ts`），提供可插拔的翻译接口，用于将发现结果和摘要转换为不同语言。该层在第一阶段尚未接入核心扫描流水线，但已完整定义类型并可导入使用。
 
@@ -316,10 +390,9 @@ npm-safe/
 
 ## 下一步计划（第三阶段）
 
-第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者和 Neutralinojs 桌面 GUI，随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段剩余工作：
+第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统，以及 LLM 配置管理（CLI + GUI），随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段剩余工作：
 
 - **批量操作。** 多包 `checkPackage`、批量搜索导出、仪表盘报告下载。
-- **插件系统。** 允许第三方扫描规则和输出格式化器动态注册。
 - **CI/CD 集成。** 提供 GitHub Action 或 CLI 工具，在 CI 流水线中执行 `@npm-safe/core` 检查。
 
 

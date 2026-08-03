@@ -2,7 +2,7 @@
 
 **日期：** 2026-08-01
 **包名：** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
-**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（17 个源文件）和 CLI（9 个文件）已交付，206 个测试全部通过，代理支持、中英文本地化以及多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）已上线，零 TypeScript 错误。基于 Neutralinojs 的桌面 GUI（原生 JS、Material You）已随 `packages/desktop/` 交付。2026-08-02 的缺陷修复轮次对桌面 GUI 进行了 XSS 到 RCE 加固、增加了监控列表外键预检查、修正了 refresh 语义，并支持亚秒级 TTL（见第 3.8 节）。
+**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（17 个源文件）和 CLI（9 个文件）已交付，240 个测试全部通过，代理支持、中英文本地化、多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）、Neutralinojs 桌面 GUI（原生 JS、Material You）、自定义扫描规则插件系统，以及 LLM 配置管理（CLI + GUI）均已上线，零 TypeScript 错误。2026-08-02 的缺陷修复轮次对桌面 GUI 进行了 XSS 到 RCE 加固、增加了监控列表外键预检查、修正了 refresh 语义，并支持亚秒级 TTL（见第 3.8 节）。
 
 [English](HANDOVER.md)
 
@@ -24,7 +24,8 @@
 | 桌面 GUI（`packages/desktop`） | **已完成**（2026-08-01） | Neutralinojs + 原生 JS + Material You（M3），见第 3.6 节 |
 | Neutralinojs 图形界面（MD3） | **已完成**（2026-08-01） | 已随 `packages/desktop` 交付，基于 Neutralinojs 的窗口应用，采用 Material 3（MD3）设计体系（浅色/深色主题）。原始的 Preact+mdui 方案已被交付的原生 JS 实现取代，后者已满足 MD3 要求。 |
 | AI 技能打包 | **已完成**（2026-08-02） | 全局技能 `npm-safe-scan` 已安装于 `~/.agents/skills/npm-safe-scan/SKILL.md`；将 CLI 打包为供加载 `~/.agents/skills/` 的任意 AI 代理使用的全局技能。 |
-| 插件系统 | 待办 | 未来阶段 |
+| 插件系统 | **已完成**（2026-08-02） | 运行时规则注册 API、`~/.npm-safe/rules.json` 配置、`~/.npm-safe/rules/` 插件发现、`npm-safe rules` CLI，见第 3.9 节 |
+| LLM 配置管理（CLI + GUI） | **已完成**（2026-08-02） | 可选 LLM 扫描通过 `~/.npm-safe/llm.json` 配置；`npm-safe llm` 命令；桌面 GUI 评价体系与 LLM 设置页，见第 3.10 节 |
 | CI/CD 集成 | 待办 | 未来阶段 |
 | 多包批量 API | 待办 | 未来阶段 |
 | 遥测与分析 | 待办 | 未来阶段 |
@@ -42,7 +43,7 @@
 
 | 文件 | 职责 |
 |---|---|
-| `index.ts` | `NpmSafeEngine` 门面 — 组合所有依赖，暴露 12 个公共方法 |
+| `index.ts` | `NpmSafeEngine` 门面 — 组合所有依赖，暴露 24 个公共方法 |
 | `registry/types.ts` | 基础类型定义：`PackageMetadata`、`AbbreviatedVersion`、`SearchResult`、`NpmRegistryError`、`PackageIdentifier`、`ValidationResult` |
 | `registry/validator.ts` | 纯校验器：`validatePackageName`、`validateVersion`、`validateDomain`、`isKnownRegistryDomain` |
 | `registry/client.ts` | `NpmRegistryClient` — HTTP 请求，10s 超时，3 次重试，指数退避（1s/2s/4s） |
@@ -71,7 +72,7 @@
 
 辅助翻译器层（`translator/`）提供了可插拔的翻译接口，但第一阶段尚未接入核心扫描流水线。
 
-### 公共 API（`NpmSafeEngine` 上的 12 个方法）
+### 公共 API（`NpmSafeEngine` 上的 24 个方法）
 
 - `checkPackage(name)` — 缓存优先的安全检查；返回包含元数据 + 静态扫描报告的 `CheckResult`
 - `searchPackages(query, size?)` — 委托给 registry 搜索端点
@@ -94,7 +95,7 @@
 
 - 通过 `pnpm -F @npm-safe/core exec tsc --noEmit` 验证，tsc 零错误零警告
 - 模块图已解析：`index.ts` 中的 10 个相对导入均解析到现有文件，传递遍历无误
-- 12 个公共 API 方法均可通过 `NpmSafeEngine` 实例访问
+- 24 个公共 API 方法均可通过 `NpmSafeEngine` 实例访问
 - 构造函数依赖注入已验证：6 个依赖均正确实例化
 - `index.ts` 导出 3 个符号：`NpmSafeEngine`、`NpmSafeEngineOptions`、`CheckResult`
 
@@ -214,10 +215,14 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
   （`resources/extensions/core/main.mjs`）承载 `NpmSafeEngine`。前端通过
   `Neutralino.extensions.dispatch` 经 WebSocket IPC 与扩展通信。
 - **视图：** 总览仪表盘（平均评分半圆仪表、最近检查、近7日柱状图、总数、
-  风险分布）、检查、搜索、监控和设置。
+  风险分布）、检查、搜索、监控、评价体系（规则）、LLM 和设置。
 - **窗口边框：** 无边框窗口配自定义标题栏——可拖动区域、最小化和关闭按钮，
   以及浅色/深色主题切换。两套独立的 M3 配色：深色种子 `#4f8cff`，浅色
   种子 `#7c2d12`。
+- **偏好持久化（2026-08-02）：** 主题与上次打开的标签页会在会话间记住。
+  它们同时写入 `localStorage`（启动立即应用）和 `~/.npm-safe/npm-safe.db`
+  引擎设置表（WebView 缓存被清也不丢失）。扩展连接后广播 `engineReady`，
+  前端从设置表回灌偏好，后端值优先。
 - **历史记录：** 每次成功的 `checkPackage` 由扩展记录到
   `~/.npm-safe/history.json`（最多 1000 条），仪表盘通过 `getHistory`
   事件读取。
@@ -249,6 +254,31 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 
 测试套件从 205 个增至 206 个，全部通过。`packages/core/src/` 下的源文件数现为 26（此前的 13 是在 CLI 和 LLM 提供者文件加入之前的数字）。
 
+### 3.9 插件系统（2026-08-02）
+
+插件系统计划于 2026-08-02 交付。在既有 `ScanRule` 接口之上新增三层能力：
+
+- **运行时注册 API。** `StaticAnalyzer` 新增 `registerRule`、`unregisterRule` 和 `listRules`。`NpmSafeEngine` 暴露相同接口，另加 `setRuleEnabled`、`setRuleSeverity`、`setRuleOptions`、`getRuleConfig` 和 `loadRulePlugins`。
+- **规则级配置。** `RuleConfigManager`（`src/scanner/rule-config.ts`）将启用/禁用、严重级别覆盖和自由选项持久化到 `~/.npm-safe/rules.json`。覆盖在分析时生效：被禁用的规则跳过执行，findings 的严重级别按覆盖重新映射。
+- **插件发现。** `loadRulesFromDirectory`（`src/scanner/rule-loader.ts`）扫描 `~/.npm-safe/rules/` 下的 `*.mjs` / `*.js` ES 模块。每个文件可导出 `rule`、`rules` 或 `default`，内容为一个或多个 `ScanRule`。文件按字典序加载，无效文件被跳过。引擎启动时自动加载插件。
+- **CLI。** `npm-safe rules list | enable | disable | severity` 管理持久化配置（中英文双语）。
+
+测试套件从 206 个增至 226 个，全部通过。
+
+### 3.10 LLM 配置管理（CLI + GUI）（2026-08-02）
+
+LLM 扫描改为可选，并通过 CLI 与桌面 GUI 双向配置：
+
+- **持久化。** `LlmConfigManager`（`src/llm/llm-config.ts`）将配置写入 `~/.npm-safe/llm.json`（尝试设置 0600 权限）。记录 `enabled`、`provider`、`apiKey`、`baseUrl`、`model` 及各提供者专属超时参数。
+- **优雅回退。** 若持久化文件缺失或未配置 API 密钥，引擎回退到提供者专属的环境变量（`OPENAI_API_KEY`、`GEMINI_API_KEY`、`ANTHROPIC_API_KEY`）。两者皆无时，LLM 扫描被静默禁用，静态分析照常运行。
+- **运行时更新。** `NpmSafeEngine.setLlmConfig` 会重建提供者并通知刷新调度器，启用/禁用 LLM 立即生效，无需重启引擎。
+- **CLI 命令。** `npm-safe llm status | enable | disable | set-provider | set-key | set-model | set-base-url | test-connection` 管理持久化配置（中英文双语）。
+- **桌面 GUI 页面。** Navigation Drawer 新增两个标签页：
+  - **评价体系** — 列出全部已注册规则，显示来源（`builtin`/`plugin`）、描述，可启用/禁用每条规则并覆盖其严重级别。另有按钮从 `~/.npm-safe/rules/` 重新加载插件规则。
+  - **LLM** — 表单包含启用开关、提供者选择、API 密钥、模型和基础 URL 输入，以及保存/测试连接/重置操作。状态显示中的 API 密钥会被打码。
+
+测试套件从 226 个增至 240 个，全部通过。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -260,7 +290,7 @@ Claude（`Anthropic`）。统一的 `LlmProviderOptions` 接口为
 | `README.md`（工作区根目录） | 英文项目说明：安装配置、CLI 用法、架构、设计决策、阶段状态 |
 | `README_zh.md`（工作区根目录） | 说明文档的中文翻译，与英文版互相链接 |
 | `packages/core/ARCHITECTURE.md` | 层映射、模块依赖图、数据流（热路径和刷新路径）、数据库模式、迁移系统、错误分类、设计决策 |
-| `packages/core/API.md` | 完整公共 API 参考：`NpmSafeEngine`（全部 12 个方法）、导出的接口和类型定义 |
+| `packages/core/API.md` | 完整公共 API 参考：`NpmSafeEngine`（全部 24 个方法）、导出的接口和类型定义 |
 | `packages/core/SCANNER_RULES.md` | 全部 10 条内置规则的参考：类别、严重性、检测逻辑、缓解措施 |
 | `packages/core/HANDOVER.md` | 本文档，英文版 |
 | `packages/core/HANDOVER_zh.md` | 中文交接文档 |
@@ -275,11 +305,10 @@ Neutralinojs 图形界面（MD3）计划已交付，不再列入下表；详见�
 
 | 优先级 | 计划 | 描述 |
 |---|---|---|
-| 1 | **插件系统** | 动态注册第三方 `ScanRule`。`StaticAnalyzer` 构造函数已经接受可选的 `ScanRule[]` 数组；增加发现机制、注册 API 和配置文件。 |
-| 2 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
-| 3 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
-| 4 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
-| 5 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
+| 1 | **CI/CD 集成** | 一个 GitHub Action 或 CLI 工具，作为 CI 流水线的一部分运行 `@npm-safe/core` 检查。 |
+| 2 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
+| 3 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
+| 4 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
 
 ---
 
