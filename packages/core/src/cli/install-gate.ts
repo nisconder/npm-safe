@@ -578,7 +578,8 @@ export function getShimDir(): string {
 
 /**
  * Generate a Windows .cmd shim that routes install/add/i through
- * `npm-safe install` and then calls the real package manager.
+ * `npm-safe install` and forwards every other command straight to the real
+ * package manager.
  */
 function shimContent(pm: "npm" | "pnpm" | "yarn"): string {
   const envVar = `NPMSAFE_REAL_${pm.toUpperCase()}`;
@@ -596,7 +597,15 @@ if not defined FOUND (
   exit /b 1
 )
 set "${envVar}=%FOUND%"
-npm-safe install %*
+if /i "%~1"=="install" goto :gated
+if /i "%~1"=="add" goto :gated
+if /i "%~1"=="i" goto :gated
+"%FOUND%" %*
+exit /b %errorlevel%
+:gated
+set "ARGS=%*"
+set "ARGS=%ARGS:* =%"
+npm-safe install %ARGS%
 if errorlevel 1 exit /b %errorlevel%
 "%FOUND%" %*
 `;

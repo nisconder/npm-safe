@@ -153,6 +153,12 @@ describe("CLI gate", () => {
           const content = readFileSync(file, "utf8");
           assert.ok(content.includes(`NPMSAFE_REAL_${pm.toUpperCase()}`));
           assert.ok(content.includes("npm-safe install"));
+          // Only install/add/i are gated; everything else is forwarded.
+          assert.ok(content.includes('if /i "%~1"=="install" goto :gated'));
+          assert.ok(content.includes('if /i "%~1"=="add" goto :gated'));
+          assert.ok(content.includes('if /i "%~1"=="i" goto :gated'));
+          // The consumed subcommand is stripped before calling npm-safe install.
+          assert.ok(content.includes('set "ARGS=%ARGS:* =%"'));
         }
       } finally {
         rmSync(home, { recursive: true, force: true });
