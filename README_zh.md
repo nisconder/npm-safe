@@ -1,17 +1,17 @@
-﻿﻿# @npm-safe — 本地 npm 包安全引擎
+﻿﻿﻿# @npm-safe — 本地 npm 包安全引擎
 
 [English](README.md)
 
 ![版本](https://img.shields.io/badge/版本-v0.1.0-2196F3)
 ![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
 ![语言](https://img.shields.io/badge/语言-TypeScript-3178C6?logo=typescript&logoColor=white)
-![测试](https://img.shields.io/badge/测试-240%20通过-brightgreen)
+![测试](https://img.shields.io/badge/测试-247%20通过-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
-**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，29 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（240 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`、`rules`、`llm` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic）及持久化配置，以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/评价体系/LLM/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
+**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，29 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（247 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`、`rules`、`llm`、`ci` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic）及持久化配置，以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/评价体系/LLM/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
 
 ---
 
@@ -251,6 +251,9 @@ pnpm -F @npm-safe/core test
 
 ```
 npm-safe/
+  .github/
+    workflows/
+      ci.yml               # CI 工作流 — 类型检查、测试、依赖扫描
   .gitignore
   LICENSE                  # Apache-2.0
   README.md                # 项目说明（英文）
@@ -282,6 +285,7 @@ npm-safe/
           lang.ts          # lang 命令（en/zh，持久化）
           rules.ts         # 规则管理命令
           llm.ts           # LLM 配置命令
+          ci.ts            # ci 命令 — 面向 CI 流水线的依赖扫描
           i18n.ts          # 中英文双语模块
           shared.ts        # 引擎工厂 + 默认数据库路径
         llm/
@@ -318,6 +322,7 @@ npm-safe/
         refresh-scheduler.test.ts # 调度器事件测试
         engine.test.ts         # NpmSafeEngine 集成测试
         cli.test.ts            # CLI 测试（命令、语言、简写）
+        ci.test.ts             # ci 命令测试（退出码、阈值）
         llm-provider.test.ts   # createLlmProvider 工厂 + 共享行为测试
         llm-gemini.test.ts     # Gemini LLM 提供者测试
         llm-anthropic.test.ts  # Anthropic LLM 提供者测试
@@ -410,6 +415,7 @@ npm-safe/
 第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）以及 CI/CD 集成，随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段剩余工作：
 
 - **批量操作。** 多包 `checkPackage`、批量搜索导出、仪表盘报告下载。
+
 
 
 
