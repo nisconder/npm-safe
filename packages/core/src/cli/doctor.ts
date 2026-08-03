@@ -88,16 +88,28 @@ export function registerDoctorCommand(program: Command): void {
             problems,
           );
           if (shimIndex >= 0) {
-            const realNpmDir = findFirstRealBinaryDir("npm.cmd", path.resolve(shimDir), pathParts);
-            if (realNpmDir !== null) {
-              const realIndex = pathParts.indexOf(realNpmDir);
-              runCheck(
-                shimIndex < realIndex,
-                "Shim comes before the real npm in PATH (gate intercepts)",
-                "Move the shim directory ahead of the npm global bin in PATH",
-                problems,
-              );
+            // Authoritative check: `where npm.cmd` must resolve to the shim
+            // first (the directory-index comparison is fragile against
+            // duplicate PATH entries and case/short-path variants).
+            let first = "";
+            try {
+              first =
+                execFileSync("where", ["npm.cmd"], { encoding: "utf8" })
+                  .split(/\r?\n/)
+                  .find((l) => l.trim().length > 0) ?? "";
+            } catch {
+              first = "";
             }
+            const shimFile = path.join(shimDir, "npm.cmd");
+            const intercepted =
+              first.length > 0 &&
+              path.resolve(first).toLowerCase() === shimFile.toLowerCase();
+            runCheck(
+              intercepted,
+              "npm resolves to the gate shim first (gate intercepts)",
+              `Move the shim directory ahead of the real npm in PATH: setx PATH "${shimDir};%PATH%" (note: setx does not refresh running processes — log off/on or restart explorer.exe, then open a NEW terminal)`,
+              problems,
+            );
           }
         }
       } else {
@@ -148,20 +160,4 @@ function getNpmGlobalBin(): string | null {
   } catch {
     return null;
   }
-}
-
-/**
- * Find the first directory in PATH that contains the given binary, skipping
- * the shim directory. Returns the resolved directory or `null`.
- */
-function findFirstRealBinaryDir(
-  binary: string,
-  shimDir: string,
-  pathParts: readonly string[],
-): string | null {
-  for (const dir of pathParts) {
-    if (dir === shimDir) continue;
-    if (fs.existsSync(path.join(dir, binary))) return dir;
-  }
-  return null;
 }
