@@ -1,11 +1,11 @@
-# @npm-safe — Local npm Package Security Engine
+﻿# @npm-safe — Local npm Package Security Engine
 
 [中文版](README_zh.md)
 
 ![Version](https://img.shields.io/badge/version-v0.1.0-2196F3)
 ![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
 ![Language](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-206%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-240%20passing-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
 
@@ -114,7 +114,7 @@ Features:
   straight to Check.
 - **Watch** — manage the watchlist and refresh individual packages or all
   watched packages.
-- **评价体系 (Rules)** — list all registered rules, toggle each rule, and
+- **Rules** — list all registered rules, toggle each rule, and
   override its severity. Reload custom rule plugins from `~/.npm-safe/rules/`.
 - **LLM** — configure optional LLM scanning: enable/disable switch, provider,
   API key, model, and base URL, with a test-connection button.
@@ -451,5 +451,6 @@ Phase 3:
   report download from the dashboard.
 - **CI/CD integration.** A GitHub Action or CLI tool that runs
   `@npm-safe/core` checks as part of a CI pipeline.
+
 
 
