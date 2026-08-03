@@ -332,22 +332,28 @@ npm-safe gate status               # show enabled state + threshold
 npm-safe gate enable               # turn the gate on
 npm-safe gate disable              # turn it off
 npm-safe gate set-threshold 90     # raise the bar
+npm-safe gate shell                # install shell wrappers (see below)
 npm-safe install axios             # gated install (prompts below threshold)
 npm-safe install axios --yes       # auto-confirm
 npm-safe install axios --dry-run   # check + prompt without installing
 ```
 
-To make every `npm install` in your shell go through the gate, alias/wrap
-the command, e.g. in bash/zsh:
+To make every `npm install`/`pnpm add`/`yarn add` in your shell go through
+the gate automatically, run once:
 
 ```bash
-npm() {
-  if [ "$1" = "install" ] || [ "$1" = "add" ]; then
-    npm-safe install "${@:2}"
-  else
-    command npm "$@"
-  fi
-}
+npm-safe gate shell
+```
+
+This appends idempotent wrapper functions for `npm`, `pnpm`, and `yarn` to
+your shell config (PowerShell `$PROFILE` on Windows, `~/.zshrc` or
+`~/.bashrc` otherwise). After restarting your shell, any `pnpm add <pkg>` or
+`npm install <pkg>` first runs `npm-safe install ...` — the gate checks the
+package and asks for confirmation below the threshold before the real
+package manager runs. Remove the wrappers with:
+
+```bash
+npm-safe gate shell --remove
 ```
 
 The gate shares the same settings table as the GUI, so the CLI switch and the

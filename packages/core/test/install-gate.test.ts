@@ -1,7 +1,7 @@
 ﻿import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -60,6 +60,46 @@ describe("CLI gate", () => {
       const { status, stderr } = runCli(["gate", "set-threshold", "150"], home);
       assert.strictEqual(status, 1);
       assert.ok(stderr.length > 0);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it("installs and removes shell wrappers idempotently", () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
+    const rc = path.join(home, ".bashrc");
+    try {
+      const first = runCli(["gate", "shell", "--file", rc], home);
+      assert.strictEqual(first.status, 0);
+      const content = readFileSync(rc, "utf8");
+      assert.ok(content.includes("# >>> npm-safe gate >>>"));
+      assert.ok(content.includes("pnpm()"));
+      assert.ok(content.includes("npm-safe install"));
+
+      // Idempotent: a second run must not duplicate the block.
+      const second = runCli(["gate", "shell", "--file", rc], home);
+      assert.strictEqual(second.status, 0);
+      const occurrences = readFileSync(rc, "utf8").split("# >>> npm-safe gate >>>").length - 1;
+      assert.strictEqual(occurrences, 1);
+
+      const removed = runCli(["gate", "shell", "--file", rc, "--remove"], home);
+      assert.strictEqual(removed.status, 0);
+      assert.ok(!readFileSync(rc, "utf8").includes("npm-safe gate"));
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it("writes PowerShell wrappers on Windows-style files", () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
+    const ps1 = path.join(home, "profile.ps1");
+    try {
+      const { status, stdout } = runCli(["gate", "shell", "--file", ps1], home);
+      assert.strictEqual(status, 0);
+      assert.ok(stdout.includes(ps1));
+      const content = readFileSync(ps1, "utf8");
+      assert.ok(content.includes("function pnpm"));
+      assert.ok(content.includes("Get-Command pnpm.cmd"));
     } finally {
       rmSync(home, { recursive: true, force: true });
     }

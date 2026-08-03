@@ -84,6 +84,7 @@ export function registerInstallGateCommands(program: Command): void {
       const opts = program.opts<{ db?: string; proxy?: string }>();
       await writeGateConfig({ enabled: true }, opts.db, opts.proxy);
       console.log(t("gate.enabled"));
+      console.log(t("gate.enableHint"));
     });
 
   gate
@@ -108,6 +109,37 @@ export function registerInstallGateCommands(program: Command): void {
       const opts = program.opts<{ db?: string; proxy?: string }>();
       await writeGateConfig({ threshold: value }, opts.db, opts.proxy);
       console.log(t("gate.thresholdSet", { threshold: String(value) }));
+    });
+
+  gate
+    .command("shell")
+    .description("Install shell wrappers so npm/pnpm/yarn add go through the gate automatically")
+    .option("--file <path>", "Target a specific shell config file (default: auto-detected)")
+    .option("--remove", "Remove the previously installed wrappers")
+    .action(async (options: { file?: string; remove?: boolean }) => {
+      const target = options.file ?? detectShellConfig();
+      if (!target) {
+        console.error(t("gate.shell.noConfig"));
+        process.exitCode = 1;
+        return;
+      }
+      if (options.remove) {
+        const removed = removeShellBlock(target);
+        if (removed) {
+          console.log(t("gate.shell.removed", { path: target }));
+        } else {
+          console.log(t("gate.shell.notInstalled", { path: target }));
+        }
+        return;
+      }
+      const written = installShellBlock(target);
+      if (written === "updated") {
+        console.log(t("gate.shell.updated", { path: target }));
+      } else if (written === "created") {
+        console.log(t("gate.shell.installed", { path: target }));
+      } else {
+        console.log(t("gate.shell.already", { path: target }));
+      }
     });
 
   program
@@ -292,5 +324,150 @@ function runPackageManager(
 function quoteWinArg(arg: string): string {
   if (/^[A-Za-z0-9@./:_-]+$/.test(arg)) return arg;
   return `"${arg.replace(/(["\\$`])/g, "\\$1")}"`;
+}
+
+// ---------------------------------------------------------------------------
+// Shell wrappers: route npm/pnpm/yarn add through the gate automatically
+// ---------------------------------------------------------------------------
+
+const SHELL_BLOCK_START = "# >>> npm-safe gate >>>";
+const SHELL_BLOCK_END = "# <<< npm-safe gate <<<";
+
+function bashWrappers(): string {
+  return `${SHELL_BLOCK_START}
+npm() {
+  if [ "$1" = "install" ] || [ "$1" = "add" ] || [ "$1" = "i" ]; then
+    npm-safe install "\${@:2}"
+    [ $? -eq 0 ] || return $?
+  else
+    command npm "$@"
+  fi
+}
+pnpm() {
+  if [ "$1" = "install" ] || [ "$1" = "add" ] || [ "$1" = "i" ]; then
+    npm-safe install "\${@:2}"
+    [ $? -eq 0 ] || return $?
+  else
+    command pnpm "$@"
+  fi
+}
+yarn() {
+  if [ "$1" = "add" ]; then
+    npm-safe install "\${@:2}"
+    [ $? -eq 0 ] || return $?
+  else
+    command yarn "$@"
+  fi
+}
+${SHELL_BLOCK_END}`;
+}
+
+function powershellWrappers(): string {
+  return `${SHELL_BLOCK_START}
+function npm {
+  if ($args.Count -gt 0 -and $args[0] -in @('install', 'add', 'i')) {
+    & npm-safe install @($args[1..($args.Count - 1)])
+    if ($LASTEXITCODE -ne 0) { return }
+  } else {
+    & (Get-Command npm.cmd -ErrorAction Stop).Source @args
+  }
+}
+function pnpm {
+  if ($args.Count -gt 0 -and $args[0] -in @('install', 'add', 'i')) {
+    & npm-safe install @($args[1..($args.Count - 1)])
+    if ($LASTEXITCODE -ne 0) { return }
+  } else {
+    & (Get-Command pnpm.cmd -ErrorAction Stop).Source @args
+  }
+}
+function yarn {
+  if ($args.Count -gt 0 -and $args[0] -eq 'add') {
+    & npm-safe install @($args[1..($args.Count - 1)])
+    if ($LASTEXITCODE -ne 0) { return }
+  } else {
+    & (Get-Command yarn.cmd -ErrorAction Stop).Source @args
+  }
+}
+${SHELL_BLOCK_END}`;
+}
+
+/**
+ * Detect the shell configuration file for the current user:
+ * PowerShell profile on Windows, ~/.zshrc or ~/.bashrc otherwise.
+ */
+function detectShellConfig(): string | null {
+  if (process.platform === "win32") {
+    const home = process.env.USERPROFILE ?? process.env.HOME;
+    if (!home) return null;
+    const candidates = [
+      path.join(home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1"),
+      path.join(home, "Documents", "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1"),
+    ];
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) return candidate;
+    }
+    return candidates[0];
+  }
+  const shell = process.env.SHELL ?? "";
+  const home = process.env.HOME;
+  if (!home) return null;
+  if (shell.includes("zsh")) return path.join(home, ".zshrc");
+  if (shell.includes("bash")) return path.join(home, ".bashrc");
+  return path.join(home, ".bashrc");
+}
+
+/** True when the file already contains the gate wrapper block. */
+function hasShellBlock(file: string): boolean {
+  try {
+    const content = fs.readFileSync(file, "utf8");
+    return content.includes(SHELL_BLOCK_START);
+  } catch {
+    return false;
+  }
+}
+
+/** Install (or refresh) the wrapper block, returning "created" | "updated" | "existing". */
+function installShellBlock(file: string): "created" | "updated" | "existing" {
+  const block = file.endsWith(".ps1") ? powershellWrappers() : bashWrappers();
+  const existed = hasShellBlock(file);
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    let content = "";
+    if (fs.existsSync(file)) {
+      content = fs.readFileSync(file, "utf8");
+    }
+    if (existed) {
+      // Replace the previous block in place.
+      const start = content.indexOf(SHELL_BLOCK_START);
+      const end = content.indexOf(SHELL_BLOCK_END);
+      if (start >= 0 && end >= 0) {
+        content = content.slice(0, start) + block + content.slice(end + SHELL_BLOCK_END.length);
+      } else {
+        content = `${content.trimEnd()}\n\n${block}\n`;
+      }
+    } else {
+      content = `${content.trimEnd()}\n\n${block}\n`;
+    }
+    fs.writeFileSync(file, content);
+    return existed ? "updated" : "created";
+  } catch {
+    return "existing";
+  }
+}
+
+/** Remove the wrapper block. Returns `true` when something was removed. */
+function removeShellBlock(file: string): boolean {
+  try {
+    if (!fs.existsSync(file)) return false;
+    const content = fs.readFileSync(file, "utf8");
+    const start = content.indexOf(SHELL_BLOCK_START);
+    const end = content.indexOf(SHELL_BLOCK_END);
+    if (start < 0 || end < 0) return false;
+    const next = content.slice(end + SHELL_BLOCK_END.length).replace(/^\n+/, "");
+    fs.writeFileSync(file, content.slice(0, start).trimEnd() + "\n" + next);
+    return true;
+  } catch {
+    return false;
+  }
 }
 

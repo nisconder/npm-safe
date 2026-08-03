@@ -443,10 +443,35 @@ pre-install safety check:
   stay in sync. Disabled by default.
 - **GUI.** Settings → 安装安全检查: a switch for the gate and a threshold
   input (0-100, default 85), saved through the existing settings IPC.
-- **Shell integration.** The README documents an `npm()` shell function that
-  routes `npm install`/`add` through `npm-safe install` automatically.
+- **Shell integration.** `npm-safe gate shell` installs idempotent wrapper
+  functions for `npm`/`pnpm`/`yarn` into the user's shell config (PowerShell
+  `$PROFILE` on Windows, `~/.zshrc`/`~/.bashrc` otherwise), so every
+  `pnpm add`/`npm install <pkg>` automatically routes through
+  `npm-safe install` (the gate then runs the project's own package manager).
+  `--remove` uninstalls the wrappers.
 
 The test suite grew from 283 to 291 tests; all pass.
+
+### 3.16 Shell wrappers for the install gate (2026-08-03)
+
+`npm-safe gate shell` makes the gate automatic for humans, not just AI
+agents:
+
+- Installs idempotent `npm`/`pnpm`/`yarn` wrapper functions into the user's
+  shell config (PowerShell `$PROFILE` on Windows — `Documents/PowerShell` or
+  `WindowsPowerShell` — else `~/.zshrc`/`~/.bashrc`, detected from `$SHELL`).
+  Wrapper content is chosen by the target file extension (`.ps1` → PowerShell
+  functions, otherwise POSIX functions), so behavior is platform-independent
+  and testable.
+- After a shell restart, `npm install <pkg>` / `pnpm add <pkg>` /
+  `yarn add <pkg>` first run `npm-safe install ...`; the gate checks the
+  packages and prompts below the threshold before the real package manager
+  (auto-detected from the project) runs. Non-install invocations pass
+  through untouched.
+- `--remove` strips the block; re-running re-uses the marker block in place
+  (no duplication). `gate enable` prints a hint pointing at `gate shell`.
+
+The test suite grew from 291 to 296 tests; all pass.
 
 ---
 
