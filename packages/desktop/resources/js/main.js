@@ -140,43 +140,97 @@ const TAB_TITLES = {
   settings: "设置",
 };
 
-const HISTORY_KEY = "npm-safe-theme";
+const THEME_KEY = "npm-safe-theme";
+const LAST_TAB_KEY = "npm-safe-last-tab";
+
+// Preferences are persisted in two layers:
+//   1. localStorage — applied instantly at startup (fast, synchronous).
+//   2. Engine settings table (~/.npm-safe/npm-safe.db) — survives webview
+//      cache clears and is the source of truth once the engine connects.
+function persistPref(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // ignore quota / privacy-mode failures
+  }
+  if (engineReady) {
+    try {
+      void callEngine("setSetting", { key, value });
+    } catch {
+      // best effort
+    }
+  }
+}
+
+function applyTheme(isLight) {
+  document.body.classList.toggle("light-theme", isLight);
+}
 
 function setTheme(isLight) {
-  if (isLight) {
-    document.body.classList.add("light-theme");
-  } else {
-    document.body.classList.remove("light-theme");
-  }
-  localStorage.setItem(HISTORY_KEY, isLight ? "light" : "dark");
+  applyTheme(isLight);
+  persistPref(THEME_KEY, isLight ? "light" : "dark");
 }
 
 function loadTheme() {
-  const saved = localStorage.getItem(HISTORY_KEY);
-  if (saved) {
-    setTheme(saved === "light");
-    return;
-  }
-  setTheme(false);
+  const saved = localStorage.getItem(THEME_KEY);
+  applyTheme(saved === "light");
 }
 
 function toggleTheme() {
   setTheme(!document.body.classList.contains("light-theme"));
 }
 
+function switchTab(tab) {
+  const btn = document.querySelector(`.nav-item[data-tab='${tab}']`);
+  if (!btn || !TAB_TITLES[tab]) return false;
+  document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById(`tab-${tab}`).classList.add("active");
+  const title = document.getElementById("top-title");
+  if (title) title.textContent = TAB_TITLES[tab];
+  persistPref(LAST_TAB_KEY, tab);
+  if (tab === "overview") renderOverview();
+  if (tab === "rules") renderRules();
+  if (tab === "llm") renderLlmConfig();
+  return true;
+}
+
+function restoreLastTab() {
+  const saved = localStorage.getItem(LAST_TAB_KEY);
+  if (saved && switchTab(saved)) return;
+  switchTab("overview");
+}
+
+// Hydrate preferences from the engine settings table once the extension
+// signals it is ready. Backend values win over localStorage.
+async function hydratePrefs() {
+  engineReady = true;
+  try {
+    const theme = await callEngine("getSetting", { key: "theme" });
+    if (theme === "light" || theme === "dark") applyTheme(theme === "light");
+
+    const tab = await callEngine("getSetting", { key: "lastTab" });
+    if (tab && TAB_TITLES[tab]) switchTab(tab);
+  } catch {
+    // Engine not reachable — localStorage values already applied.
+  }
+}
+
+function initPrefs() {
+  Neutralino.events.on("engineReady", () => {
+    void hydratePrefs();
+  });
+  // Fallback in case the extension is an older build that never broadcasts.
+  setTimeout(() => {
+    if (!engineReady) void hydratePrefs();
+  }, 2500);
+}
+
 function initTabs() {
   document.querySelectorAll(".nav-item").forEach((btn) => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
-      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
-      btn.classList.add("active");
-      const tab = btn.dataset.tab;
-      document.getElementById(`tab-${tab}`).classList.add("active");
-      const title = document.getElementById("top-title");
-      if (title && TAB_TITLES[tab]) title.textContent = TAB_TITLES[tab];
-      if (tab === "overview") renderOverview();
-      if (tab === "rules") renderRules();
-      if (tab === "llm") renderLlmConfig();
+      switchTab(btn.dataset.tab);
     });
   });
 }
@@ -769,10 +823,12 @@ Neutralino.events.on("windowClose", () => {
 
 (async function init() {
   loadTheme();
+  initPrefs();
   initTabs();
   initTitleBar();
   registerEngineEvents();
   registerHistoryEvents();
+  restoreLastTab();
 
   document.getElementById("check-btn").addEventListener("click", handleCheck);
   document.getElementById("check-name").addEventListener("keydown", (e) => {

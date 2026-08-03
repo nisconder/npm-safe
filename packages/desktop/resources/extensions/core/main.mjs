@@ -45,6 +45,9 @@ const ws = new WebSocket(
 
 ws.onopen = () => {
   log("Connected to Neutralinojs server");
+  // Notify the frontend that the engine is ready so it can hydrate
+  // persisted user preferences (theme, last tab) from the settings table.
+  send("engineReady", {});
 };
 
 ws.onclose = async () => {
