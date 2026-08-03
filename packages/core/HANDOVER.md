@@ -1,4 +1,4 @@
-# @npm-safe/core: Project Handover
+﻿# @npm-safe/core: Project Handover
 
 **Date:** 2026-08-01
 **Package:** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
@@ -27,7 +27,7 @@ This document records every project plan and its completion status.
 | Plugin system | **Done** (2026-08-02) | Runtime rule registration API, `~/.npm-safe/rules.json` config, `~/.npm-safe/rules/` plugin discovery, `npm-safe rules` CLI, see section 3.9 |
 | LLM configuration (CLI + GUI) | **Done** (2026-08-02) | Optional LLM scanning via `~/.npm-safe/llm.json`; `npm-safe llm` commands; GUI rules and LLM settings pages, see section 3.10 |
 | CI/CD integration | **Done** (2026-08-02) | `npm-safe ci` dependency scan gate + GitHub Actions workflow, see section 3.11 |
-| Multi-package batch API | Pending | Future phase |
+| Multi-package batch API | **Done** (2026-08-02) | `checkPackages` (parallel + rate-limited), batch `check`, `ci --lockfile`, see section 3.12 |
 | Telemetry and analytics | Pending | Future phase |
 | npm publisher configuration | Pending | Future phase |
 
@@ -43,7 +43,7 @@ All source files reside under `packages/core/src/`:
 
 | File | Role |
 |---|---|
-| `index.ts` | `NpmSafeEngine` facade, composes every dependency, exposes 24 public methods |
+| `index.ts` | `NpmSafeEngine` facade, composes every dependency, exposes 25 public methods |
 | `registry/types.ts` | Foundational types: `PackageMetadata`, `AbbreviatedVersion`, `SearchResult`, `NpmRegistryError`, `PackageIdentifier`, `ValidationResult` |
 | `registry/validator.ts` | Pure validators: `validatePackageName`, `validateVersion`, `validateDomain`, `isKnownRegistryDomain` |
 | `registry/client.ts` | `NpmRegistryClient`, HTTP fetch with 10s timeout, 3 retries, exponential backoff (1s/2s/4s) |
@@ -95,7 +95,7 @@ An auxiliary Translator layer (`translator/`) provides a pluggable translation i
 
 - `tsc --noEmit` clean via `pnpm -F @npm-safe/core exec tsc --noEmit` (zero errors, zero warnings)
 - Module graph resolved: all 10 relative imports in `index.ts` resolve to existing files, transitive walk clean
-- All 24 public API methods reachable via the `NpmSafeEngine` instance
+- All 25 public API methods reachable via the `NpmSafeEngine` instance
 - Constructor wiring verified: all 6 dependencies instantiated correctly
 - 3 exported symbols from `index.ts`: `NpmSafeEngine`, `NpmSafeEngineOptions`, `CheckResult`
 
@@ -356,6 +356,28 @@ The CI/CD plan was delivered on 2026-08-02:
 
 The test suite grew from 240 to 247 tests; all pass.
 
+### 3.12 Multi-package batch API (2026-08-02)
+
+The batch API plan was delivered on 2026-08-02:
+
+- **`NpmSafeEngine.checkPackages(names, options)`.** Checks many packages in
+  parallel with a concurrency cap (default 5). Every check consumes one token
+  from the rate limiter, so batches respect the configured request budget.
+  Failures are isolated per package (`{ ok: false, error }`) instead of
+  rejecting the whole batch; results come back in input order. Options:
+  `concurrency`, `onProgress(done, total, entry)`.
+- **Batch CLI.** `npm-safe check` accepts any number of package names
+  (`check lodash express axios`), reads lists from files (`--file`, one per
+  line, `#` comments), and supports `--concurrency`. Batch JSON output is a
+  `BatchPackageResult[]`. Single-package output is unchanged.
+- **Full-lockfile CI scanning.** `npm-safe ci --lockfile` parses
+  `package-lock.json` (npm lockfile v2/v3 `packages` map with a v1
+  `dependencies` fallback) and scans every package including transitive
+  dependencies; `--lockfile --prod` restricts to the direct production
+  dependencies declared in `package.json`.
+
+The test suite grew from 247 to 257 tests; all pass.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -382,7 +404,7 @@ covered by the shipped desktop GUI in section 3.6.
 
 | Priority | Plan | Description |
 |---|---|---|
-| 1 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
+| 1 | **Report export** | Batch report export (CSV/JSON) and dashboard report download. |
 | 2 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
 | 3 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
 

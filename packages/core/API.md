@@ -117,6 +117,33 @@ Check a package by name. Cache-first: returns cached data if still fresh, otherw
 
 When the package does not exist on the registry (HTTP 404), the returned `CheckResult` has `exists: false` and the `security` / `registryInfo` fields are empty. All other errors (network failure, timeout) are rethrown.
 
+#### checkPackages
+
+```ts
+checkPackages(
+  names: readonly string[],
+  options?: BatchCheckOptions,
+): Promise<BatchPackageResult[]>
+```
+
+Check many packages in parallel with a shared concurrency cap. Every check consumes one token from the rate limiter, so the batch respects the configured request budget even when running concurrently. Individual failures are isolated: a package that throws (network error, timeout, …) yields a `{ ok: false, error }` entry instead of rejecting the whole batch. Results are returned in input order.
+
+```ts
+interface BatchCheckOptions {
+  readonly concurrency?: number; // default 5
+  readonly onProgress?: (done: number, total: number, entry: BatchPackageResult) => void;
+}
+
+interface BatchPackageResult {
+  readonly name: string;
+  readonly ok: boolean;
+  readonly result?: CheckResult;
+  readonly error?: string;
+}
+```
+
+Use `checkPackage` when the raw error must propagate to the caller.
+
 #### searchPackages
 
 ```ts

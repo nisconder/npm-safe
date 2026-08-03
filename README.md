@@ -1,4 +1,4 @@
-# @npm-safe — Local npm Package Security Engine
+﻿# @npm-safe — Local npm Package Security Engine
 
 [中文版](README_zh.md)
 
@@ -69,7 +69,9 @@ cd packages/core && npm link
 
 ```bash
 npm-safe <package>                 # Shorthand for check
-npm-safe check <package>           # Check a package's security posture
+npm-safe check <package>            # Check a package's security posture
+npm-safe check <pkg1> <pkg2> ...    # Check multiple packages (batch)
+npm-safe check --file deps.txt      # Read package names from a file
 npm-safe search <query>            # Search the npm registry
 npm-safe watch list                # List watched packages
 npm-safe watch add <package>       # Add a package to the watchlist
@@ -90,6 +92,7 @@ npm-safe llm set-key <api-key>     # Set the LLM API key
 npm-safe llm set-model <model>     # Set the LLM model identifier
 npm-safe llm test-connection       # Test the LLM connection
 npm-safe ci                        # Scan dependencies, fail the build on severe findings
+npm-safe ci --lockfile             # Scan every dependency (incl. transitive) in package-lock.json
 ```
 
 ### Desktop Application
@@ -236,6 +239,7 @@ any dependency reaches a configurable security level:
 npm-safe ci --dir ./packages/core          # default fail level: dangerous
 npm-safe ci --fail-level suspicious        # stricter gate
 npm-safe ci --prod                         # skip devDependencies
+npm-safe ci --lockfile                     # scan all lockfile deps (incl. transitive)
 npm-safe ci --json                         # machine-readable report
 npm-safe ci --rate-limit 50                # registry requests per second
 ```
@@ -244,6 +248,20 @@ Exit codes: `0` pass, `1` usage/config error, `2` one or more dependencies
 reached the fail level (or the scan errored). A ready-to-use GitHub Actions
 workflow lives at `.github/workflows/ci.yml` — it runs the test suite, type
 checks, and a dependency security scan on every push/PR.
+
+### Batch operations
+
+`check` accepts any number of package names and reads lists from files,
+scanning concurrently (default 5) while still respecting the rate limiter:
+
+```bash
+npm-safe check lodash express axios       # batch check
+npm-safe check --file deps.txt --concurrency 10
+npm-safe check lodash express --json      # machine-readable batch report
+```
+
+Programmatic consumers can use `NpmSafeEngine.checkPackages(names, options)`
+with a `concurrency` cap and an `onProgress` callback.
 
 ### Desktop first-run (Windows)
 
@@ -260,10 +278,10 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-247 tests cover every module: validators, static rules, rate limiter, store
+257 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
 integration surface, the LLM providers, the LLM configuration manager, the
-rule plugin system, the CI command, and the CLI itself.
+rule plugin system, the CI command, batch operations, and the CLI itself.
 
 ---
 
@@ -272,7 +290,7 @@ rule plugin system, the CI command, and the CLI itself.
 Detailed documentation for the engine is available under `packages/core/`:
 
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- Layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.
-- **[API.md](packages/core/API.md)** -- Complete public API reference covering the `NpmSafeEngine` class (all 24 public methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
+- **[API.md](packages/core/API.md)** -- Complete public API reference covering the `NpmSafeEngine` class (all 25 public methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- Comprehensive reference for all 10 built-in static analysis rules. Each rule documents its category, severity, detection logic (regex patterns), and mitigation recommendations.
 - **[README_zh.md](README_zh.md)** -- Chinese translation of the project README.
 
@@ -400,7 +418,7 @@ result as a single `NpmSafeEngine` class.
                            +-----------------------+
                            |      index.ts          |
                            |  NpmSafeEngine facade  |
-                           |  24 public methods     |
+                           |  25 public methods     |
                            +-----------+-----------+
                                        |
               +------------------------+------------------------+
@@ -431,7 +449,7 @@ result as a single `NpmSafeEngine` class.
 | **Scanner** | `scanner/static-rules.ts`, `scanner/rule-config.ts`, `scanner/rule-loader.ts`, `scanner/types.ts` | Pure static analysis of package metadata and README content. Ten built-in rules detect install scripts, obfuscation, typosquatting, secret exposure, homograph attacks, and more; plus runtime rule registration, per-rule config overrides, and plugin discovery. |
 | **Scheduler** | `scheduler/refresh-scheduler.ts`, `scheduler/rate-limiter.ts` | Manages periodic refresh cycles for watched packages. A token bucket (5 tokens/s, 10 burst) limits registry request frequency. |
 | **Store** | `store/database.ts`, `store/cache-manager.ts`, `store/schema.ts` | Persistent storage via better-sqlite3 with WAL mode. Handles migrations, TTL-based caching of metadata and scan reports, watchlist persistence, and key-value settings. |
-| **Facade** | `index.ts` | The `NpmSafeEngine` class composes all four layers. Exposes 24 public methods: `checkPackage`, `searchPackages`, watchlist CRUD, refresh operations, settings access, lifecycle, rule management, and LLM configuration (`startAutoRefresh`, `stopAutoRefresh`, `close`). |
+| **Facade** | `index.ts` | The `NpmSafeEngine` class composes all four layers. Exposes 25 public methods: `checkPackage`, `searchPackages`, watchlist CRUD, refresh operations, settings access, lifecycle, rule management, and LLM configuration (`startAutoRefresh`, `stopAutoRefresh`, `close`). |
 
 A sixth auxiliary layer, **Translator** (`translator/types.ts`,
 `translator/provider.ts`), provides a pluggable translation interface for
@@ -462,11 +480,15 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test
 suite, CLI, proxy support, the LLM scan provider with persisted configuration, a
 Neutralinojs desktop GUI, a plugin system for custom scan rules, LLM
-configuration management (CLI + GUI), and CI/CD integration, followed by a
-security hardening pass (2026-08-02) that fixed 12 issues found by a bug
-screen. Remaining work for Phase 3:
+configuration management (CLI + GUI), CI/CD integration, and multi-package
+batch operations, followed by a security hardening pass (2026-08-02) that fixed
+12 issues found by a bug screen. Remaining work for Phase 3:
 
-- **Batch operations.** Multi-package `checkPackage`, bulk search export, and
-  report download from the dashboard.
+- **Report export.** Batch report export (CSV/JSON) and dashboard report
+  download.
+- **Telemetry and analytics.** Structured logging, optional usage reporting,
+  and metrics export.
+- **npm publisher configuration.** Add `publishConfig`, `.npmignore`, and
+  provenance setup when publishing is wanted.
 
 

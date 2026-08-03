@@ -1,4 +1,4 @@
-# @npm-safe/core：项目交接文档
+﻿# @npm-safe/core：项目交接文档
 
 **日期：** 2026-08-01
 **包名：** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
@@ -27,7 +27,7 @@
 | 插件系统 | **已完成**（2026-08-02） | 运行时规则注册 API、`~/.npm-safe/rules.json` 配置、`~/.npm-safe/rules/` 插件发现、`npm-safe rules` CLI，见第 3.9 节 |
 | LLM 配置管理（CLI + GUI） | **已完成**（2026-08-02） | 可选 LLM 扫描通过 `~/.npm-safe/llm.json` 配置；`npm-safe llm` 命令；桌面 GUI 评价体系与 LLM 设置页，见第 3.10 节 |
 | CI/CD 集成 | **已完成**（2026-08-02） | `npm-safe ci` 依赖扫描门禁 + GitHub Actions 工作流，见第 3.11 节 |
-| 多包批量 API | 待办 | 未来阶段 |
+| 多包批量 API | **已完成**（2026-08-02） | `checkPackages`（并行 + 限速）、批量 `check`、`ci --lockfile`，见第 3.12 节 |
 | 遥测与分析 | 待办 | 未来阶段 |
 | npm 发布者配置 | 待办 | 未来阶段 |
 
@@ -43,7 +43,7 @@
 
 | 文件 | 职责 |
 |---|---|
-| `index.ts` | `NpmSafeEngine` 门面 — 组合所有依赖，暴露 24 个公共方法 |
+| `index.ts` | `NpmSafeEngine` 门面 — 组合所有依赖，暴露 25 个公共方法 |
 | `registry/types.ts` | 基础类型定义：`PackageMetadata`、`AbbreviatedVersion`、`SearchResult`、`NpmRegistryError`、`PackageIdentifier`、`ValidationResult` |
 | `registry/validator.ts` | 纯校验器：`validatePackageName`、`validateVersion`、`validateDomain`、`isKnownRegistryDomain` |
 | `registry/client.ts` | `NpmRegistryClient` — HTTP 请求，10s 超时，3 次重试，指数退避（1s/2s/4s） |
@@ -72,7 +72,7 @@
 
 辅助翻译器层（`translator/`）提供了可插拔的翻译接口，但第一阶段尚未接入核心扫描流水线。
 
-### 公共 API（`NpmSafeEngine` 上的 24 个方法）
+### 公共 API（`NpmSafeEngine` 上的 25 个方法）
 
 - `checkPackage(name)` — 缓存优先的安全检查；返回包含元数据 + 静态扫描报告的 `CheckResult`
 - `searchPackages(query, size?)` — 委托给 registry 搜索端点
@@ -95,7 +95,7 @@
 
 - 通过 `pnpm -F @npm-safe/core exec tsc --noEmit` 验证，tsc 零错误零警告
 - 模块图已解析：`index.ts` 中的 10 个相对导入均解析到现有文件，传递遍历无误
-- 24 个公共 API 方法均可通过 `NpmSafeEngine` 实例访问
+- 25 个公共 API 方法均可通过 `NpmSafeEngine` 实例访问
 - 构造函数依赖注入已验证：6 个依赖均正确实例化
 - `index.ts` 导出 3 个符号：`NpmSafeEngine`、`NpmSafeEngineOptions`、`CheckResult`
 
@@ -289,6 +289,16 @@ CI/CD 计划于 2026-08-02 交付：
 
 测试套件从 240 个增至 247 个，全部通过。
 
+### 3.12 多包批量 API（2026-08-02）
+
+批量 API 计划于 2026-08-02 交付：
+
+- **`NpmSafeEngine.checkPackages(names, options)`。** 并行检查多个包，并发上限默认 5。每次检查消耗一个限速令牌，批量扫描遵守配置的请求预算。失败按包隔离（`{ ok: false, error }`），不会中断整个批次；结果按输入顺序返回。选项：`concurrency`、`onProgress(done, total, entry)`。
+- **批量 CLI。** `npm-safe check` 接受任意数量的包名（`check lodash express axios`），支持从文件读取列表（`--file`，每行一个，`#` 注释）与 `--concurrency`。批量 JSON 输出为 `BatchPackageResult[]`。单包输出不变。
+- **lockfile 全量扫描。** `npm-safe ci --lockfile` 解析 `package-lock.json`（npm lockfile v2/v3 的 `packages` 映射，兼容 v1 `dependencies` 回退），扫描包括间接依赖在内的全部包；`--lockfile --prod` 仅保留 `package.json` 中声明的直接生产依赖。
+
+测试套件从 247 个增至 257 个，全部通过。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -300,7 +310,7 @@ CI/CD 计划于 2026-08-02 交付：
 | `README.md`（工作区根目录） | 英文项目说明：安装配置、CLI 用法、架构、设计决策、阶段状态 |
 | `README_zh.md`（工作区根目录） | 说明文档的中文翻译，与英文版互相链接 |
 | `packages/core/ARCHITECTURE.md` | 层映射、模块依赖图、数据流（热路径和刷新路径）、数据库模式、迁移系统、错误分类、设计决策 |
-| `packages/core/API.md` | 完整公共 API 参考：`NpmSafeEngine`（全部 24 个方法）、导出的接口和类型定义 |
+| `packages/core/API.md` | 完整公共 API 参考：`NpmSafeEngine`（全部 25 个方法）、导出的接口和类型定义 |
 | `packages/core/SCANNER_RULES.md` | 全部 10 条内置规则的参考：类别、严重性、检测逻辑、缓解措施 |
 | `packages/core/HANDOVER.md` | 本文档，英文版 |
 | `packages/core/HANDOVER_zh.md` | 中文交接文档 |
@@ -315,7 +325,7 @@ Neutralinojs 图形界面（MD3）计划已交付，不再列入下表；详见�
 
 | 优先级 | 计划 | 描述 |
 |---|---|---|
-| 1 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
+| 1 | **报告导出** | 批量报告导出（CSV/JSON）与仪表盘报告下载。 |
 | 2 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
 | 3 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
 

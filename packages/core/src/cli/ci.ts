@@ -71,6 +71,70 @@ function readDependencies(
   return [...names].map((name) => ({ name }));
 }
 
+/**
+ * Read every package (including transitive dependencies) from a
+ * `package-lock.json` (npm lockfile v2/v3 `packages` map, with a fallback to
+ * the v1 `dependencies` tree). Direct deps can be filtered to those also
+ * present in `package.json` when `includeDev` is set accordingly.
+ */
+function readLockfileDependencies(
+  dir: string,
+  includeDev: boolean,
+): Dependency[] {
+  const lockPath = path.join(dir, "package-lock.json");
+  let lock: Record<string, unknown>;
+  try {
+    lock = JSON.parse(fs.readFileSync(lockPath, "utf8")) as Record<string, unknown>;
+  } catch {
+    throw new Error(t("ci.noLockfile", { dir }));
+  }
+
+  const names = new Set<string>();
+  const packages = lock.packages;
+  if (packages && typeof packages === "object") {
+    for (const key of Object.keys(packages as Record<string, unknown>)) {
+      if (key === "") continue; // root project entry
+      // "node_modules/a" -> "a"; "node_modules/@scope/c" -> "@scope/c";
+      // "node_modules/a/node_modules/d" -> "d" (the innermost package).
+      const stripped = key.replace(/^node_modules\//, "");
+      const parts = stripped.split("/node_modules/");
+      const name = parts[parts.length - 1];
+      if (name.length > 0) names.add(name);
+    }
+  }
+
+  // npm lockfile v1 fallback: nested dependencies tree.
+  const collect = (section: unknown): void => {
+    if (!section || typeof section !== "object") return;
+    for (const [name, entry] of Object.entries(section as Record<string, unknown>)) {
+      if (name === "optionalDependencies") continue;
+      names.add(name);
+      if (entry && typeof entry === "object") {
+        collect((entry as Record<string, unknown>).dependencies);
+      }
+    }
+  };
+  collect(lock.dependencies);
+
+  if (!includeDev) {
+    // --prod: restrict to the direct dependencies declared in package.json.
+    const manifestPath = path.join(dir, "package.json");
+    try {
+      const manifest = JSON.parse(
+        fs.readFileSync(manifestPath, "utf8"),
+      ) as Record<string, unknown>;
+      const prod = new Set<string>(
+        Object.keys((manifest.dependencies as Record<string, unknown>) ?? {}),
+      );
+      return [...names].filter((name) => prod.has(name)).map((name) => ({ name }));
+    } catch {
+      // No package.json — fall through to the full lockfile set.
+    }
+  }
+
+  return [...names].map((name) => ({ name }));
+}
+
 export function registerCiCommand(program: Command): void {
   program
     .command("ci")
@@ -78,9 +142,10 @@ export function registerCiCommand(program: Command): void {
     .option("-d, --dir <path>", "Project directory containing package.json (default: current directory)")
     .option("-j, --json", "Output raw JSON report")
     .option("--prod", "Only scan `dependencies` (skip devDependencies)")
+    .option("--lockfile", "Scan every dependency in package-lock.json (including transitive)")
     .option("--fail-level <level>", `Fail when any dependency reaches this level (${LEVEL_ORDER.join(" / ")}, default: dangerous)`)
     .option("--rate-limit <n>", "Registry requests per second (default: 20)")
-    .action(async (options: { dir?: string; json?: boolean; prod?: boolean; failLevel?: string; rateLimit?: string }) => {
+    .action(async (options: { dir?: string; json?: boolean; prod?: boolean; lockfile?: boolean; failLevel?: string; rateLimit?: string }) => {
       const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
       const dir = options.dir ?? process.cwd();
       const failLevel = options.failLevel ?? SecurityLevel.Dangerous;
@@ -98,7 +163,9 @@ export function registerCiCommand(program: Command): void {
 
       let deps: Dependency[];
       try {
-        deps = readDependencies(dir, !options.prod);
+        deps = options.lockfile
+          ? readLockfileDependencies(dir, !options.prod)
+          : readDependencies(dir, !options.prod);
       } catch (err) {
         console.error(err instanceof Error ? err.message : String(err));
         process.exitCode = 1;

@@ -6,6 +6,13 @@ const messages: Record<Locale, Record<string, string>> = {
     "common.notSet": 'Setting "{key}" is not set.',
 
     "check.notFound": 'Package "{name}" was not found on the registry.',
+    "check.noPackages": "No package names given. Pass names or use --file.",
+    "check.notFoundShort": "not-found",
+    "check.findings": "findings",
+    "check.batchSummary": "Checked {count} packages.",
+    "check.batchFailed": "one or more failed",
+    "check.fileError": 'Failed to read "{path}": {message}',
+    "check.invalidConcurrency": 'Invalid concurrency "{value}".',
     "check.label.package": "Package",
     "check.label.latestVersion": "Latest version",
     "check.label.securityLevel": "Security level",
@@ -65,6 +72,7 @@ const messages: Record<Locale, Record<string, string>> = {
     "llm.test.fail": "LLM connection failed: {reason}",
 
     "ci.noManifest": 'No package.json found in "{dir}".',
+    "ci.noLockfile": 'No package-lock.json found in "{dir}".',
     "ci.noDependencies": "No direct dependencies to scan.",
     "ci.unknownLevel": 'Unknown fail level "{level}". Supported: {supported}.',
     "ci.invalidRateLimit": 'Invalid rate limit "{value}".',
@@ -80,6 +88,13 @@ const messages: Record<Locale, Record<string, string>> = {
     "common.notSet": '设置 "{key}" 未配置。',
 
     "check.notFound": '在注册表中未找到包 "{name}"。',
+    "check.noPackages": "未提供包名。请传入包名或使用 --file。",
+    "check.notFoundShort": "未找到",
+    "check.findings": "项发现",
+    "check.batchSummary": "已检查 {count} 个包。",
+    "check.batchFailed": "存在失败项",
+    "check.fileError": '读取 "{path}" 失败: {message}',
+    "check.invalidConcurrency": '无效的并发数 "{value}"。',
     "check.label.package": "包名",
     "check.label.latestVersion": "最新版本",
     "check.label.securityLevel": "安全等级",
@@ -139,6 +154,7 @@ const messages: Record<Locale, Record<string, string>> = {
     "llm.test.fail": "LLM 连接失败: {reason}",
 
     "ci.noManifest": '在 "{dir}" 中未找到 package.json。',
+    "ci.noLockfile": '在 "{dir}" 中未找到 package-lock.json。',
     "ci.noDependencies": "没有可直接扫描的依赖。",
     "ci.unknownLevel": '未知的失败级别 "{level}"。支持: {supported}。',
     "ci.invalidRateLimit": '无效的速率限制 "{value}"。',

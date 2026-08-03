@@ -30,7 +30,7 @@ program
   .action(async (packageName: string | undefined) => {
     if (!packageName) return;
     const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
-    await runCheck(packageName, opts);
+    await runCheck([packageName], opts);
     process.exit(process.exitCode ?? 0);
   });
 

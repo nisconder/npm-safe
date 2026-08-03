@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { readFileSync } from "node:fs";
 import { createEngine } from "./shared.js";
 import { t } from "./i18n.js";
 import type { CheckResult } from "../index.js";
@@ -8,6 +9,7 @@ export interface RunCheckOptions {
   readonly refresh?: boolean;
   readonly db?: string;
   readonly proxy?: string;
+  readonly concurrency?: number;
 }
 
 function formatFinding(result: CheckResult, idx: number): string {
@@ -32,65 +34,119 @@ function formatFinding(result: CheckResult, idx: number): string {
   return lines.join("\n");
 }
 
-export async function runCheck(packageName: string, options: RunCheckOptions): Promise<void> {
+/**
+ * Print the detailed single-package report.
+ *
+ * @returns `true` when the package passed, `false` when it is missing or
+ *   reached the dangerous/unknown threshold (used to set the exit code).
+ */
+function printSingleResult(result: CheckResult, packageName: string): boolean {
+  if (!result.exists) {
+    console.error(t("check.notFound", { name: packageName }));
+    return false;
+  }
+
+  const report = result.security.staticScan;
+  const findingCount = report?.findings.length ?? 0;
+  const lines: string[] = [
+    `${t("check.label.package")}: ${result.packageName}`,
+    `${t("check.label.latestVersion")}: ${result.latestVersion}`,
+    `${t("check.label.securityLevel")}: ${result.security.overallLevel}`,
+    `${t("check.label.score")}: ${result.security.overallScore}/100`,
+    `${t("check.label.findings")}: ${findingCount}`,
+  ];
+
+  if (result.registryInfo?.description) {
+    lines.push(`${t("check.label.description")}: ${result.registryInfo.description}`);
+  }
+  if (result.registryInfo?.homepage) {
+    lines.push(`${t("check.label.homepage")}: ${result.registryInfo.homepage}`);
+  }
+  if (result.registryInfo?.repository) {
+    lines.push(`${t("check.label.repository")}: ${result.registryInfo.repository}`);
+  }
+  if (result.cachedAt) {
+    lines.push(`${t("check.label.cachedAt")}: ${result.cachedAt}`);
+  }
+
+  if (findingCount > 0) {
+    lines.push("");
+    lines.push(`${t("check.label.findings")}:`);
+    for (let i = 0; i < findingCount; i++) {
+      const formatted = formatFinding(result, i);
+      if (formatted) lines.push(formatted);
+    }
+  }
+
+  console.log(lines.join("\n"));
+
+  return (
+    result.security.overallLevel !== "dangerous" &&
+    result.security.overallLevel !== "unknown"
+  );
+}
+
+export async function runCheck(packageNames: string[], options: RunCheckOptions): Promise<void> {
+  const names = [...new Set(packageNames)].filter((n) => n.trim().length > 0);
+  if (names.length === 0) return;
+  const single = names.length === 1 && !options.refresh;
+
   const engine = await createEngine(options.db, options.proxy);
   try {
-    if (options.refresh) {
-      await engine.refreshPackage(packageName);
-    }
-    const result = await engine.checkPackage(packageName);
-
-    if (options.json) {
-      console.log(JSON.stringify(result, null, 2));
-      return;
-    }
-
-    if (!result.exists) {
-      console.error(t("check.notFound", { name: packageName }));
-      process.exitCode = 1;
-      return;
-    }
-
-    const report = result.security.staticScan;
-    const findingCount = report?.findings.length ?? 0;
-    const lines: string[] = [
-      `${t("check.label.package")}: ${result.packageName}`,
-      `${t("check.label.latestVersion")}: ${result.latestVersion}`,
-      `${t("check.label.securityLevel")}: ${result.security.overallLevel}`,
-      `${t("check.label.score")}: ${result.security.overallScore}/100`,
-      `${t("check.label.findings")}: ${findingCount}`,
-    ];
-
-    if (result.registryInfo?.description) {
-      lines.push(`${t("check.label.description")}: ${result.registryInfo.description}`);
-    }
-    if (result.registryInfo?.homepage) {
-      lines.push(`${t("check.label.homepage")}: ${result.registryInfo.homepage}`);
-    }
-    if (result.registryInfo?.repository) {
-      lines.push(`${t("check.label.repository")}: ${result.registryInfo.repository}`);
-    }
-    if (result.cachedAt) {
-      lines.push(`${t("check.label.cachedAt")}: ${result.cachedAt}`);
-    }
-
-    if (findingCount > 0) {
-      lines.push("");
-      lines.push(`${t("check.label.findings")}:`);
-      for (let i = 0; i < findingCount; i++) {
-        const formatted = formatFinding(result, i);
-        if (formatted) lines.push(formatted);
+    if (options.refresh && names.length > 0) {
+      for (const name of names) {
+        await engine.refreshPackage(name);
       }
     }
 
-    console.log(lines.join("\n"));
-
-    if (
-      result.security.overallLevel === "dangerous" ||
-      result.security.overallLevel === "unknown"
-    ) {
-      process.exitCode = 2;
+    if (single) {
+      const name = names[0];
+      const result = await engine.checkPackage(name);
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+        return;
+      }
+      if (!printSingleResult(result, name)) process.exitCode = 1;
+      return;
     }
+
+    const results = await engine.checkPackages(names, {
+      concurrency: options.concurrency,
+    });
+
+    if (options.json) {
+      console.log(JSON.stringify(results, null, 2));
+      return;
+    }
+
+    let failed = false;
+    for (const entry of results) {
+      if (!entry.ok) {
+        failed = true;
+        console.log(`  [error] ${entry.name} — ${entry.error}`);
+        continue;
+      }
+      const r = entry.result!;
+      if (!r.exists) {
+        failed = true;
+        console.log(`  [${t("check.notFoundShort")}] ${entry.name}`);
+        continue;
+      }
+      const count = r.security.staticScan?.findings.length ?? 0;
+      console.log(
+        `  [${r.security.overallLevel}] ${r.packageName}@${r.latestVersion} — ${r.security.overallScore}/100 (${count} ${t("check.findings")})`,
+      );
+      if (
+        r.security.overallLevel === "dangerous" ||
+        r.security.overallLevel === "unknown"
+      ) {
+        failed = true;
+      }
+    }
+    console.log(
+      `${t("check.batchSummary", { count: String(names.length) })}${failed ? ` — ${t("check.batchFailed")}` : ""}`,
+    );
+    if (failed) process.exitCode = 2;
   } finally {
     engine.close();
   }
@@ -98,17 +154,46 @@ export async function runCheck(packageName: string, options: RunCheckOptions): P
 
 export function registerCheckCommand(program: Command): void {
   program
-    .command("check <package-name>")
-    .description("Check a package's security posture from the npm registry")
+    .command("check [package-name...]")
+    .description("Check one or more packages' security posture from the npm registry")
     .option("-j, --json", "Output raw JSON")
     .option("-r, --refresh", "Force a fresh registry fetch")
-    .action(async (packageName: string, options: { json?: boolean; refresh?: boolean }) => {
+    .option("-f, --file <path>", "Read package names from a file (one per line)")
+    .option("--concurrency <n>", "Max concurrent checks for batch mode (default: 5)")
+    .action(async (packageName: string[] = [], options: { json?: boolean; refresh?: boolean; file?: string; concurrency?: string }) => {
       const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
-      await runCheck(packageName, {
+      let names = packageName;
+      if (options.file) {
+        try {
+          const content = readFileSync(options.file, "utf8");
+          const fromFile = content
+            .split(/\r?\n/)
+            .map((l) => l.trim())
+            .filter((l) => l.length > 0 && !l.startsWith("#"));
+          names = [...fromFile, ...names];
+        } catch (err) {
+          console.error(t("check.fileError", { path: options.file, message: err instanceof Error ? err.message : String(err) }));
+          process.exitCode = 1;
+          return;
+        }
+      }
+      if (names.length === 0) {
+        console.error(t("check.noPackages"));
+        process.exitCode = 1;
+        return;
+      }
+      const concurrency = options.concurrency ? parseInt(options.concurrency, 10) : undefined;
+      if (concurrency !== undefined && (Number.isNaN(concurrency) || concurrency < 1)) {
+        console.error(t("check.invalidConcurrency", { value: options.concurrency ?? "" }));
+        process.exitCode = 1;
+        return;
+      }
+      await runCheck(names, {
         db: opts.db,
         proxy: opts.proxy,
         json: options.json ?? opts.json,
         refresh: options.refresh,
+        concurrency,
       });
     });
 }

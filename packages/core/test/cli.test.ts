@@ -1,6 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -73,5 +75,40 @@ describe("CLI", () => {
 
     const { stdout } = runCli(["--db", db, "watch", "list"]);
     assert.ok(stdout.includes("No packages on the watchlist"));
+  });
+
+  it("check accepts multiple package names", () => {
+    const db = path.resolve("test-cli-batch.db");
+    runCli(["--db", db, "lang", "en"]);
+    const { stdout, status } = runCli(["--db", db, "check", "lodash", "express"]);
+    assert.strictEqual(status, 0);
+    assert.ok(stdout.includes("lodash"));
+    assert.ok(stdout.includes("express"));
+  });
+
+  it("check --json outputs a batch report for multiple packages", () => {
+    const db = path.resolve("test-cli-batch-json.db");
+    runCli(["--db", db, "lang", "en"]);
+    const { stdout, status } = runCli(["--db", db, "check", "lodash", "express", "--json"]);
+    assert.strictEqual(status, 0);
+    const results = JSON.parse(stdout) as Array<{ name: string; ok: boolean }>;
+    assert.strictEqual(results.length, 2);
+    assert.ok(results.every((r) => r.ok));
+  });
+
+  it("check --file reads package names from a file", () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "npm-safe-cli-file-"));
+    const file = path.join(dir, "pkgs.txt");
+    writeFileSync(file, "# comment line\nlodash\nexpress\n");
+    try {
+      const db = path.resolve("test-cli-batch-file.db");
+      runCli(["--db", db, "lang", "en"]);
+      const { stdout, status } = runCli(["--db", db, "check", "--file", file, "--json"]);
+      assert.strictEqual(status, 0);
+      const results = JSON.parse(stdout) as Array<{ name: string }>;
+      assert.deepStrictEqual(results.map((r) => r.name), ["lodash", "express"]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

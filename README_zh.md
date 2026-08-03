@@ -1,4 +1,4 @@
-# @npm-safe — 本地 npm 包安全引擎
+﻿# @npm-safe — 本地 npm 包安全引擎
 
 [English](README.md)
 
@@ -47,6 +47,8 @@ cd packages/core && npm link
 ```bash
 npm-safe <package>                 # check 的简写
 npm-safe check <package>           # 检查包的安全性
+npm-safe check <pkg1> <pkg2> ...   # 批量检查多个包
+npm-safe check --file deps.txt     # 从文件读取包名
 npm-safe search <query>            # 搜索 npm 注册表
 npm-safe watch list                # 查看监控列表
 npm-safe watch add <package>       # 添加监控
@@ -67,6 +69,7 @@ npm-safe llm set-key <api-key>     # 设置 LLM API 密钥
 npm-safe llm set-model <model>     # 设置 LLM 模型
 npm-safe llm test-connection       # 测试 LLM 连接
 npm-safe ci                        # 扫描依赖，严重问题时使构建失败
+npm-safe ci --lockfile             # 扫描 package-lock.json 中全部依赖（含间接）
 ```
 
 ### 桌面应用
@@ -195,6 +198,7 @@ npm-safe llm test-connection        # 验证连接
 npm-safe ci --dir ./packages/core          # 默认失败级别：dangerous
 npm-safe ci --fail-level suspicious        # 更严格的阈值
 npm-safe ci --prod                         # 跳过 devDependencies
+npm-safe ci --lockfile                     # 扫描 lockfile 全部依赖（含间接）
 npm-safe ci --json                         # 输出机器可读报告
 npm-safe ci --rate-limit 50                # 每秒注册表请求数
 ```
@@ -202,6 +206,20 @@ npm-safe ci --rate-limit 50                # 每秒注册表请求数
 退出码：`0` 通过，`1` 用法/配置错误，`2` 有依赖达到失败级别（或扫描出错）。
 仓库自带可直接使用的 GitHub Actions 工作流（`.github/workflows/ci.yml`）——
 每次 push/PR 自动运行测试套件、类型检查与依赖安全扫描。
+
+### 批量操作
+
+`check` 接受任意数量的包名，并支持从文件读取列表；批量扫描默认并发 5，
+同时仍遵守限速器：
+
+```bash
+npm-safe check lodash express axios       # 批量检查
+npm-safe check --file deps.txt --concurrency 10
+npm-safe check lodash express --json      # 机器可读批量报告
+```
+
+编程使用可用 `NpmSafeEngine.checkPackages(names, options)`，支持
+`concurrency` 上限与 `onProgress` 进度回调。
 
 ### 桌面应用首次运行（Windows）
 
@@ -217,7 +235,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-247 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令以及 CLI 本身。
+257 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作以及 CLI 本身。
 
 ---
 
@@ -226,7 +244,7 @@ pnpm -F @npm-safe/core test
 引擎的详细文档位于 `packages/core/` 目录下：
 
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- 分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
-- **[API.md](packages/core/API.md)** -- 完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 24 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
+- **[API.md](packages/core/API.md)** -- 完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 25 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- 所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
   - **[README_zh.md](README_zh.md)** -- 本项目的简体中文版 README。
 
@@ -351,7 +369,7 @@ npm-safe/
                            +-----------------------+
                            |      index.ts          |
                            |  NpmSafeEngine 门面    |
-                           |  24 个公共方法          |
+                           |  25 个公共方法          |
                            +-----------+-----------+
                                        |
               +------------------------+------------------------+
@@ -382,7 +400,7 @@ npm-safe/
 | **Scanner（扫描器层）** | `scanner/static-rules.ts`, `scanner/rule-config.ts`, `scanner/rule-loader.ts`, `scanner/types.ts` | 对包元数据和 README 内容进行纯静态分析。十条内置规则可检测安装脚本、代码混淆、仿冒包名、密钥泄露、同形字符攻击等；支持规则注册、配置覆盖和插件发现。 |
 | **Scheduler（调度器层）** | `scheduler/refresh-scheduler.ts`, `scheduler/rate-limiter.ts` | 管理被监控包的定时刷新周期。令牌桶（5 tokens/s, 10 burst）限制注册表请求频率。 |
 | **Store（存储层）** | `store/database.ts`, `store/cache-manager.ts`, `store/schema.ts` | 基于 better-sqlite3 的持久化存储，使用 WAL 模式。处理数据库迁移、基于 TTL 的元数据和扫描报告缓存、监控列表持久化，以及键值设置。 |
-| **Facade（门面层）** | `index.ts` | `NpmSafeEngine` 类组合上述四层。暴露 24 个公共方法：`checkPackage`、`searchPackages`、监控列表 CRUD、刷新操作、设置访问、规则管理、LLM 配置以及生命周期管理（`startAutoRefresh`、`stopAutoRefresh`、`close`）。 |
+| **Facade（门面层）** | `index.ts` | `NpmSafeEngine` 类组合上述四层。暴露 25 个公共方法：`checkPackage`、`searchPackages`、监控列表 CRUD、刷新操作、设置访问、规则管理、LLM 配置以及生命周期管理（`startAutoRefresh`、`stopAutoRefresh`、`close`）。 |
 
 第六层为辅助层 **Translator（翻译器）**（`translator/types.ts`、`translator/provider.ts`），提供可插拔的翻译接口，用于将发现结果和摘要转换为不同语言。该层在第一阶段尚未接入核心扫描流水线，但已完整定义类型并可导入使用。
 
@@ -407,8 +425,10 @@ npm-safe/
 
 ## 下一步计划（第三阶段）
 
-第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）以及 CI/CD 集成，随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段剩余工作：
+第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）、CI/CD 集成与多包批量操作，随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段剩余工作：
 
-- **批量操作。** 多包 `checkPackage`、批量搜索导出、仪表盘报告下载。
+- **报告导出。** 批量报告导出（CSV/JSON）与仪表盘报告下载。
+- **遥测与分析。** 结构化日志、可选的使用报告和指标导出。
+- **npm 发布者配置。** 当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。
 
 
