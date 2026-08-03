@@ -286,12 +286,24 @@ function renderCheckResult(result) {
   ];
 
   if (result.registryInfo?.description) rows.push(["描述", escapeHtml(result.registryInfo.description)]);
-  if (result.registryInfo?.homepage) rows.push(["主页", escapeHtml(result.registryInfo.homepage)]);
-  if (result.registryInfo?.repository) rows.push(["仓库", escapeHtml(result.registryInfo.repository)]);
+
+  const links = [];
+  if (result.registryInfo?.homepage) links.push({ label: "主页", value: result.registryInfo.homepage });
+  if (result.registryInfo?.repository) links.push({ label: "仓库", value: result.registryInfo.repository });
 
   let html = `<div class="card"><div class="card-title">${escapeHtml(result.packageName)} 检查结果</div>`;
   for (const [k, v] of rows) {
     html += `<div class="card-row"><span>${k}</span><span class="value">${v}</span></div>`;
+  }
+  for (const link of links) {
+    const openable = toOpenableUrl(link.value);
+    const copyTarget = openable || link.value;
+    html += `
+      <div class="card-row link-row">
+        <span>${escapeHtml(link.label)}</span>
+        <span class="value link-value" data-url="${escapeAttr(copyTarget)}" title="Ctrl+点击在浏览器中打开">${escapeHtml(link.value)}</span>
+        <button class="copy-link-btn" data-copy="${escapeAttr(copyTarget)}" title="复制链接">复制</button>
+      </div>`;
   }
 
   if (findings.length > 0) {
@@ -311,6 +323,66 @@ function renderCheckResult(result) {
 
   html += "</div>";
   area.innerHTML = html;
+
+  area.querySelectorAll("[data-url]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      if (e.ctrlKey && el.dataset.url) {
+        Neutralino.os.open(el.dataset.url);
+      }
+    });
+  });
+
+  area.querySelectorAll("[data-copy]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      try {
+        await Neutralino.clipboard.writeText(btn.dataset.copy);
+        btn.textContent = "已复制";
+        setTimeout(() => {
+          btn.textContent = "复制";
+        }, 1500);
+        setStatus("链接已复制到剪贴板", "success");
+      } catch (err) {
+        setStatus(err.message ?? "复制失败", "error");
+      }
+    });
+  });
+}
+
+/**
+ * Normalize a repository/homepage descriptor into an openable https URL.
+ * Accepts plain URLs, "type:url" descriptors, and shorthand like
+ * "github:user/repo" or "git@github.com:user/repo.git". Returns "" when no
+ * https URL can be derived.
+ */
+function toOpenableUrl(text) {
+  if (!text) return "";
+  let url = text.trim();
+
+  if (url.startsWith("github:") && !url.startsWith("github.com")) {
+    url = `https://github.com/${url.slice(7)}`;
+  } else if (url.startsWith("ssh://")) {
+    const m = url.match(/^ssh:\/\/([^/]+)\/(.+)$/);
+    if (!m) return "";
+    url = `https://${m[1].replace("git@", "")}/${m[2]}`;
+  } else if (url.startsWith("git@")) {
+    const m = url.match(/^git@([^:]+):(.+)$/);
+    if (!m) return "";
+    url = `https://${m[1]}/${m[2]}`;
+  } else {
+    const typeMatch = url.match(/^[a-z]+:(.+)$/i);
+    if (typeMatch && !/^https?:/i.test(url)) {
+      url = typeMatch[1].trim();
+    }
+  }
+
+  if (url.startsWith("git+")) url = url.slice(4);
+  url = url.replace(/\.git$/, "");
+  if (!/^https?:\/\//.test(url)) {
+    if (/^(github\.com|gitlab\.com|bitbucket\.org)\//.test(url)) {
+      url = "https://" + url;
+    }
+  }
+  return /^https?:\/\//.test(url) ? url : "";
 }
 
 async function handleCheck() {

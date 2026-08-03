@@ -38,6 +38,7 @@ The dashboard is re-rendered every time you navigate back to the tab.
 
 - Enter a package name and click **检查** (or press Enter).
 - The result card shows: package name, latest version, security level (colored badge), score `/100`, number of findings, plus (when available) description, homepage, and repository URL.
+- **Homepage / repository links** — each row has a **复制** button that copies the link to the clipboard, and **Ctrl+click** on the link opens it in the default browser (repository descriptors like `github:user/repo`, `git@…`, or `ssh://…` are normalized to their https URL).
 - Each finding lists its severity (`[CRITICAL]`, `[HIGH]`, etc.), rule id and name, message, recommendation, and code snippet / line number when present.
 - If the package does not exist on the registry, a "未找到" card is shown.
 
