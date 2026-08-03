@@ -1,11 +1,11 @@
-# @npm-safe — 本地 npm 包安全引擎
+﻿# @npm-safe — 本地 npm 包安全引擎
 
 [English](README.md)
 
 ![版本](https://img.shields.io/badge/版本-v0.1.0-2196F3)
 ![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
 ![语言](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
-![测试](https://img.shields.io/badge/测试-206%20通过-brightgreen)
+![测试](https://img.shields.io/badge/测试-240%20通过-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
 
@@ -394,5 +394,6 @@ npm-safe/
 
 - **批量操作。** 多包 `checkPackage`、批量搜索导出、仪表盘报告下载。
 - **CI/CD 集成。** 提供 GitHub Action 或 CLI 工具，在 CI 流水线中执行 `@npm-safe/core` 检查。
+
 
 
