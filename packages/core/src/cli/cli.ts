@@ -15,6 +15,7 @@ import { registerLlmCommand } from "./llm.js";
 import { registerCiCommand } from "./ci.js";
 import { registerTelemetryCommand } from "./telemetry.js";
 import { registerReportCommand } from "./report.js";
+import { registerInstallGateCommands } from "./install-gate.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
@@ -47,6 +48,7 @@ registerLlmCommand(program);
 registerCiCommand(program);
 registerTelemetryCommand(program);
 registerReportCommand(program);
+registerInstallGateCommands(program);
 
 program.parse();
 

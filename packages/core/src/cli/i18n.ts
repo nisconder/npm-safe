@@ -102,6 +102,20 @@ const messages: Record<Locale, Record<string, string>> = {
     "report.exported": 'Report written to "{path}".',
     "report.exportFailed": "Export failed: {message}",
     "report.unsupportedFormat": 'Unsupported format "{format}". Supported: json, csv.',
+
+    "gate.status.enabled": "Enabled",
+    "gate.status.threshold": "Threshold",
+    "gate.enabled": "Install gate enabled: packages scoring below the threshold will require confirmation.",
+    "gate.disabled": "Install gate disabled.",
+    "gate.invalidThreshold": 'Invalid threshold "{value}". Use a number between 0 and 100.',
+    "gate.thresholdSet": "Install gate threshold set to {threshold}.",
+    "install.safe": "{name} is safe ({score}/100).",
+    "install.notFound": 'Package "{name}" was not found on the registry.',
+    "install.checkFailed": 'Checking "{name}" failed: {message}',
+    "install.belowThreshold": "The following packages score below {threshold} and need confirmation:",
+    "install.confirm": "Continue installing anyway?",
+    "install.aborted": "Install aborted by user.",
+    "install.dryRun": "[dry-run] Would run: {command}",
   },
 
   zh: {
@@ -205,6 +219,20 @@ const messages: Record<Locale, Record<string, string>> = {
     "report.exported": '报告已写入 "{path}"。',
     "report.exportFailed": "导出失败: {message}",
     "report.unsupportedFormat": '不支持的格式 "{format}"。支持: json, csv。',
+
+    "gate.status.enabled": "已启用",
+    "gate.status.threshold": "阈值",
+    "gate.enabled": "安装门禁已启用：分数低于阈值的包将需要确认。",
+    "gate.disabled": "安装门禁已禁用。",
+    "gate.invalidThreshold": '无效的阈值 "{value}"。请输入 0-100 之间的数字。',
+    "gate.thresholdSet": "安装门禁阈值已设为 {threshold}。",
+    "install.safe": "{name} 安全（{score}/100）。",
+    "install.notFound": '在注册表中未找到包 "{name}"。',
+    "install.checkFailed": '检查 "{name}" 失败: {message}',
+    "install.belowThreshold": "以下包分数低于 {threshold}，需要确认:",
+    "install.confirm": "仍然继续安装？",
+    "install.aborted": "安装已由用户中止。",
+    "install.dryRun": "[dry-run] 将执行: {command}",
   },
 };
 

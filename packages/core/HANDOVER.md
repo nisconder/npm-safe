@@ -30,6 +30,7 @@ This document records every project plan and its completion status.
 | Multi-package batch API | **Done** (2026-08-02) | `checkPackages` (parallel + rate-limited), batch `check`, `ci --lockfile`, see section 3.12 |
 | Report export | **Done** (2026-08-03) | `npm-safe report` (JSON/CSV, --file/--batch/--output), see section 3.13 |
 | Telemetry and analytics | **Done** (2026-08-03) | Opt-in local telemetry, `npm-safe telemetry` CLI, see section 3.13 |
+| Install-time security gate | **Done** (2026-08-03) | Opt-in `npm-safe install` gate (threshold 85) + GUI settings toggle, see section 3.15 |
 | npm publisher configuration | **Deferred** (2026-08-03) | On hold by decision — package stays `"private": true`, not publishing for now |
 
 ---
@@ -424,6 +425,28 @@ SQLite database so CLI and GUI see the same records:
   (field names are identical).
 
 The test suite grew from 277 to 283 tests; all pass.
+
+### 3.15 Install-time security gate (2026-08-03)
+
+An opt-in install gate was added so humans (not just AI agents) get the same
+pre-install safety check:
+
+- **`npm-safe install [args...]`** wraps `npm install`. When the gate is
+  enabled, every positional package argument is checked first; any package
+  scoring below the threshold (default 85, 0-100) is listed and requires
+  manual confirmation (`y/N`) before the real `npm install` runs. Options:
+  `--yes` (auto-confirm), `--dry-run` (check + prompt only), `--threshold`
+  (per-run override). Exit codes: 0 pass, 1 error, 3 aborted by the user.
+- **`npm-safe gate status | enable | disable | set-threshold <n>`** manages
+  the switch, persisted in the shared settings table
+  (`installGate.enabled`, `installGate.threshold`) so the CLI and the GUI
+  stay in sync. Disabled by default.
+- **GUI.** Settings → 安装安全检查: a switch for the gate and a threshold
+  input (0-100, default 85), saved through the existing settings IPC.
+- **Shell integration.** The README documents an `npm()` shell function that
+  routes `npm install`/`add` through `npm-safe install` automatically.
+
+The test suite grew from 283 to 291 tests; all pass.
 
 ---
 

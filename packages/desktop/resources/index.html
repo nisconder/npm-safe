@@ -256,6 +256,24 @@
               <button id="setting-set-btn" class="btn filled" data-original-text="写入">写入</button>
             </div>
             <div id="setting-result" class="result-area"></div>
+
+            <div class="card install-gate-card">
+              <div class="card-title">安装安全检查</div>
+              <div class="form-row switch-row">
+                <label class="switch-label">
+                  <input type="checkbox" id="gate-enabled" />
+                  <span class="switch"></span>
+                  <span class="switch-text">启用安装安全检查（安装前自动检查包，分数低于阈值需确认）</span>
+                </label>
+              </div>
+              <div class="text-field outlined gate-threshold-field">
+                <input id="gate-threshold" type="number" min="0" max="100" placeholder=" " />
+                <label for="gate-threshold">安全阈值（0-100，默认 85）</label>
+              </div>
+              <div class="form-actions">
+                <button id="gate-save-btn" class="btn filled" data-original-text="保存">保存</button>
+              </div>
+            </div>
           </section>
         </main>
       </div>

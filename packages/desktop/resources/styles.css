@@ -1321,6 +1321,17 @@ pre.json-output {
   border-bottom: none;
 }
 
+/* Install gate settings */
+.install-gate-card {
+  max-width: 720px;
+  margin-top: 24px;
+}
+
+.gate-threshold-field {
+  max-width: 260px;
+  margin-top: 12px;
+}
+
 .text-field.outlined select {
   width: 100%;
   height: 56px;

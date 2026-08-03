@@ -190,9 +190,10 @@ function switchTab(tab) {
   const title = document.getElementById("top-title");
   if (title) title.textContent = TAB_TITLES[tab];
   persistPref(LAST_TAB_KEY, tab);
-  if (tab === "overview") renderOverview();
-  if (tab === "rules") renderRules();
-  if (tab === "llm") renderLlmConfig();
+      if (tab === "overview") renderOverview();
+      if (tab === "rules") renderRules();
+      if (tab === "llm") renderLlmConfig();
+      if (tab === "settings") renderInstallGate();
   return true;
 }
 
@@ -552,6 +553,42 @@ async function handleSettingSet() {
     setStatus(`已写入 ${key}`, "success");
   } catch (err) {
     setStatus(err.message, "error");
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Install gate settings
+// ---------------------------------------------------------------------------
+
+async function renderInstallGate() {
+  try {
+    const enabled = await callEngine("getSetting", { key: "installGate.enabled" });
+    const threshold = await callEngine("getSetting", { key: "installGate.threshold" });
+    document.getElementById("gate-enabled").checked = enabled === "true";
+    document.getElementById("gate-threshold").value = threshold ?? "85";
+  } catch (err) {
+    setStatus(err.message, "error");
+  }
+}
+
+async function handleGateSave() {
+  const btn = document.getElementById("gate-save-btn");
+  const enabled = document.getElementById("gate-enabled").checked;
+  const thresholdRaw = document.getElementById("gate-threshold").value.trim();
+  const threshold = parseInt(thresholdRaw, 10);
+  if (Number.isNaN(threshold) || threshold < 0 || threshold > 100) {
+    setStatus("无效的阈值，请输入 0-100 之间的数字", "error");
+    return;
+  }
+  setBusy(btn, true);
+  try {
+    await callEngine("setSetting", { key: "installGate.enabled", value: enabled ? "true" : "false" });
+    await callEngine("setSetting", { key: "installGate.threshold", value: String(threshold) });
+    setStatus(enabled ? "安装安全检查已启用" : "安装安全检查已禁用", "success");
+  } catch (err) {
+    setStatus(err.message, "error");
+  } finally {
+    setBusy(btn, false);
   }
 }
 
@@ -930,6 +967,7 @@ Neutralino.events.on("windowClose", () => {
   });
   document.getElementById("setting-get-btn").addEventListener("click", handleSettingGet);
   document.getElementById("setting-set-btn").addEventListener("click", handleSettingSet);
+  document.getElementById("gate-save-btn").addEventListener("click", handleGateSave);
 
   document.getElementById("rules-load-btn").addEventListener("click", handleLoadRulePlugins);
 

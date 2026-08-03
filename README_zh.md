@@ -72,6 +72,8 @@ npm-safe ci                        # 扫描依赖，严重问题时使构建失�
 npm-safe ci --lockfile             # 扫描 package-lock.json 中全部依赖（含间接）
 npm-safe report lodash express     # 导出安全报告（JSON/CSV）
 npm-safe telemetry status          # 查看遥测状态（可选，仅本地）
+npm-safe gate status               # 查看安装门禁状态（可选）
+npm-safe install axios             # 带门禁安装（启用后生效）
 ```
 
 ### 桌面应用
@@ -269,6 +271,36 @@ npm-safe telemetry reset          # 清空全部采集数据
 桌面扩展在启动时也会读取持久化的 `proxy` 设置并配置引擎——在 GUI 或通过
 `npm-safe settings set proxy ...` 配置的代理同样作用于桌面端扫描。
 
+### 安装时安全检查（可选）
+
+`npm-safe install` 包装了 `npm install` 并带可选安全门禁：先检查每个目标包，
+任何**分数低于阈值（默认 85）**的包都需要用户手动确认后才能继续安装。
+门禁**默认关闭**，可通过 CLI 或桌面 GUI（设置 → 安装安全检查）开启：
+
+```bash
+npm-safe gate status               # 查看启用状态与阈值
+npm-safe gate enable               # 开启门禁
+npm-safe gate disable              # 关闭门禁
+npm-safe gate set-threshold 90     # 提高阈值
+npm-safe install axios             # 带门禁安装（低于阈值时提示）
+npm-safe install axios --yes       # 自动确认
+npm-safe install axios --dry-run   # 只检查+确认，不实际安装
+```
+
+若希望 shell 中每次 `npm install` 都走门禁，可在 bash/zsh 中包装 npm：
+
+```bash
+npm() {
+  if [ "$1" = "install" ] || [ "$1" = "add" ]; then
+    npm-safe install "${@:2}"
+  else
+    command npm "$@"
+  fi
+}
+```
+
+门禁与 GUI 共用同一张设置表，CLI 开关与 GUI 开关保持同步。
+
 ### 桌面应用首次运行（Windows）
 
 如果 WebView2 窗口因回环隔离错误无法加载，请以管理员身份运行一次 PowerShell：
@@ -283,7 +315,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-283 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作、报告导出、遥测管理器、共享检查历史以及 CLI 本身。
+291 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作、报告导出、遥测管理器、共享检查历史、安装门禁以及 CLI 本身。
 
 ---
 

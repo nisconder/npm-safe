@@ -95,6 +95,8 @@ npm-safe ci                        # Scan dependencies, fail the build on severe
 npm-safe ci --lockfile             # Scan every dependency (incl. transitive) in package-lock.json
 npm-safe report lodash express     # Export security reports (JSON/CSV)
 npm-safe telemetry status          # Show telemetry status (opt-in, local only)
+npm-safe gate status               # Show install gate status (opt-in)
+npm-safe install axios             # Install with the security gate (if enabled)
 ```
 
 ### Desktop Application
@@ -317,6 +319,40 @@ it reads the settings table and configures the engine, so a proxy configured
 in the GUI or via `npm-safe settings set proxy ...` applies to desktop
 scans too.
 
+### Install-time security gate (opt-in)
+
+`npm-safe install` wraps `npm install` with an optional security gate: every
+target package is checked first, and any package scoring **below the
+threshold (default 85)** requires manual confirmation before the install
+proceeds. The gate is **disabled by default** and can be turned on via the
+CLI or the desktop GUI (Settings → 安装安全检查):
+
+```bash
+npm-safe gate status               # show enabled state + threshold
+npm-safe gate enable               # turn the gate on
+npm-safe gate disable              # turn it off
+npm-safe gate set-threshold 90     # raise the bar
+npm-safe install axios             # gated install (prompts below threshold)
+npm-safe install axios --yes       # auto-confirm
+npm-safe install axios --dry-run   # check + prompt without installing
+```
+
+To make every `npm install` in your shell go through the gate, alias/wrap
+the command, e.g. in bash/zsh:
+
+```bash
+npm() {
+  if [ "$1" = "install" ] || [ "$1" = "add" ]; then
+    npm-safe install "${@:2}"
+  else
+    command npm "$@"
+  fi
+}
+```
+
+The gate shares the same settings table as the GUI, so the CLI switch and the
+GUI toggle stay in sync.
+
 ### Desktop first-run (Windows)
 
 If the WebView2 window fails to load with a loopback error, run once in an
@@ -332,11 +368,12 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-283 tests cover every module: validators, static rules, rate limiter, store
+291 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
 integration surface, the LLM providers, the LLM configuration manager, the
 rule plugin system, the CI command, batch operations, report export, the
-telemetry manager, the shared check history, and the CLI itself.
+telemetry manager, the shared check history, the install gate, and the CLI
+itself.
 
 ---
 

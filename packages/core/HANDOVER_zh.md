@@ -30,6 +30,7 @@
 | 多包批量 API | **已完成**（2026-08-02） | `checkPackages`（并行 + 限速）、批量 `check`、`ci --lockfile`，见第 3.12 节 |
 | 报告导出 | **已完成**（2026-08-03） | `npm-safe report`（JSON/CSV，--file/--batch/--output），见第 3.13 节 |
 | 遥测与分析 | **已完成**（2026-08-03） | 可选的本地遥测、`npm-safe telemetry` CLI，见第 3.13 节 |
+| 安装时安全检查 | **已完成**（2026-08-03） | 可选的 `npm-safe install` 门禁（阈值 85）+ GUI 设置开关，见第 3.15 节 |
 | npm 发布者配置 | **暂缓**（2026-08-03） | 按决定暂缓——包保持 `"private": true`，暂不发布 |
 
 ---
@@ -320,6 +321,17 @@ CI/CD 计划于 2026-08-02 交付：
 - **桌面扩展。** `checkPackage` 通过引擎记录；`getHistory` 从数据库读取；一次性迁移将旧 `history.json` 条目导入并删除文件。GUI 前端无需改动（字段名一致）。
 
 测试套件从 277 个增至 283 个，全部通过。
+
+### 3.15 安装时安全检查（2026-08-03）
+
+新增可选安装门禁，让人工用户（而非仅 AI 代理）也能获得安装前安全检查：
+
+- **`npm-safe install [args...]`** 包装 `npm install`。门禁启用时，先检查每个位置参数包名；任何分数低于阈值（默认 85，0-100）的包都会被列出并要求手动确认（`y/N`），确认后才执行真正的 `npm install`。选项：`--yes`（自动确认）、`--dry-run`（仅检查+确认）、`--threshold`（本次运行覆盖）。退出码：0 通过、1 错误、3 用户中止。
+- **`npm-safe gate status | enable | disable | set-threshold <n>`** 管理开关，持久化在共享设置表（`installGate.enabled`、`installGate.threshold`），CLI 与 GUI 保持同步。默认关闭。
+- **GUI。** 设置 → 安装安全检查：门禁开关 + 阈值输入（0-100，默认 85），通过既有 settings IPC 保存。
+- **Shell 集成。** README 提供了 `npm()` shell 函数，自动将 `npm install`/`add` 路由到 `npm-safe install`。
+
+测试套件从 283 个增至 291 个，全部通过。
 
 ---
 

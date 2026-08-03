@@ -21,6 +21,8 @@ Whenever the user wants to install, add, or upgrade an npm package (including tr
 
 For a project-wide safety gate (e.g. before committing a lockfile change), run `npm-safe ci --lockfile` and act on the exit code (0 = pass, 2 = dependency reached the fail threshold).
 
+When the user runs the install themselves (or the gate is enabled), they can use `npm-safe install <pkg...>` — it checks every package and asks for manual confirmation when a package scores below the threshold (default 85, configurable via `npm-safe gate set-threshold`).
+
 ## Prerequisites
 
 - Node.js 18 or newer, and pnpm.
@@ -71,6 +73,8 @@ If the CLI is not found, locate the repository (or the global binary) before run
 | `npm-safe settings set <key> <val>` | Persist a setting value. | `npm-safe settings set proxy http://127.0.0.1:7897` |
 | `npm-safe lang [en\|zh]` | Set output language, or show the current one when omitted. | `npm-safe lang zh` |
 | `npm-safe telemetry status` | Show opt-in local telemetry stats. | `npm-safe telemetry status` |
+| `npm-safe gate status` | Show the install gate switch and threshold. | `npm-safe gate status` |
+| `npm-safe install <pkg...>` | Gated install: checks every package first, requires confirmation below the threshold (default 85) when enabled. | `npm-safe install axios` |
 
 Global options apply to every command: `-d/--db <path>` to override the database path (default `~/.npm-safe/npm-safe.db`), `-p/--proxy <url>` to route requests through a proxy for one invocation, `-j/--json` for machine-readable output, and `-v/--version` to print the version.
 
