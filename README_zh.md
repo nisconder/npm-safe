@@ -66,6 +66,7 @@ npm-safe llm set-provider <openai|gemini|anthropic>
 npm-safe llm set-key <api-key>     # 设置 LLM API 密钥
 npm-safe llm set-model <model>     # 设置 LLM 模型
 npm-safe llm test-connection       # 测试 LLM 连接
+npm-safe ci                        # 扫描依赖，严重问题时使构建失败
 ```
 
 ### 桌面应用
@@ -186,6 +187,22 @@ npm-safe llm set-model gpt-4o-mini
 npm-safe llm test-connection        # 验证连接
 ```
 
+### CI/CD 集成
+
+`npm-safe ci` 扫描项目的直接依赖，当任一依赖达到可配置的安全级别时使构建失败：
+
+```bash
+npm-safe ci --dir ./packages/core          # 默认失败级别：dangerous
+npm-safe ci --fail-level suspicious        # 更严格的阈值
+npm-safe ci --prod                         # 跳过 devDependencies
+npm-safe ci --json                         # 输出机器可读报告
+npm-safe ci --rate-limit 50                # 每秒注册表请求数
+```
+
+退出码：`0` 通过，`1` 用法/配置错误，`2` 有依赖达到失败级别（或扫描出错）。
+仓库自带可直接使用的 GitHub Actions 工作流（`.github/workflows/ci.yml`）——
+每次 push/PR 自动运行测试套件、类型检查与依赖安全扫描。
+
 ### 桌面应用首次运行（Windows）
 
 如果 WebView2 窗口因回环隔离错误无法加载，请以管理员身份运行一次 PowerShell：
@@ -200,7 +217,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-240 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统以及 CLI 本身。
+247 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令以及 CLI 本身。
 
 ---
 
@@ -390,10 +407,9 @@ npm-safe/
 
 ## 下一步计划（第三阶段）
 
-第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统，以及 LLM 配置管理（CLI + GUI），随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段剩余工作：
+第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）以及 CI/CD 集成，随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段剩余工作：
 
 - **批量操作。** 多包 `checkPackage`、批量搜索导出、仪表盘报告下载。
-- **CI/CD 集成。** 提供 GitHub Action 或 CLI 工具，在 CI 流水线中执行 `@npm-safe/core` 检查。
 
 
 

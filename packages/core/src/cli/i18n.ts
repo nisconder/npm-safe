@@ -63,6 +63,16 @@ const messages: Record<Locale, Record<string, string>> = {
     "llm.notConfigured": "LLM is not enabled or no API key is configured.",
     "llm.test.ok": "LLM connection OK.",
     "llm.test.fail": "LLM connection failed: {reason}",
+
+    "ci.noManifest": 'No package.json found in "{dir}".',
+    "ci.noDependencies": "No direct dependencies to scan.",
+    "ci.unknownLevel": 'Unknown fail level "{level}". Supported: {supported}.',
+    "ci.invalidRateLimit": 'Invalid rate limit "{value}".',
+    "ci.summary": "Scanning {count} dependencies in {dir}:",
+    "ci.findings": "findings",
+    "ci.notFound": "not found on the registry",
+    "ci.passed": "All dependencies are below the {level} threshold. Passed.",
+    "ci.failed": "One or more dependencies reach the {level} threshold. Failed.",
   },
 
   zh: {
@@ -127,6 +137,16 @@ const messages: Record<Locale, Record<string, string>> = {
     "llm.notConfigured": "LLM 未启用或未配置 API 密钥。",
     "llm.test.ok": "LLM 连接正常。",
     "llm.test.fail": "LLM 连接失败: {reason}",
+
+    "ci.noManifest": '在 "{dir}" 中未找到 package.json。',
+    "ci.noDependencies": "没有可直接扫描的依赖。",
+    "ci.unknownLevel": '未知的失败级别 "{level}"。支持: {supported}。',
+    "ci.invalidRateLimit": '无效的速率限制 "{value}"。',
+    "ci.summary": "正在扫描 {dir} 中的 {count} 个依赖:",
+    "ci.findings": "项发现",
+    "ci.notFound": "注册表中不存在",
+    "ci.passed": "所有依赖均低于 {level} 阈值。通过。",
+    "ci.failed": "存在达到 {level} 阈值的依赖。失败。",
   },
 };
 
