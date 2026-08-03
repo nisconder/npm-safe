@@ -23,7 +23,7 @@ This document records every project plan and its completion status.
 | LLM-based scan provider | **Done** (2026-08-01) | Multi-provider: OpenAI / Gemini / Anthropic, see section 3.5 |
 | Desktop GUI (`packages/desktop`) | **Done** (2026-08-01) | Neutralinojs + vanilla JS + Material You (M3), see section 6 |
 | Neutralinojs GUI (MD3) | **Done** (2026-08-01) | Shipped as `packages/desktop` — Neutralinojs window app with a Material 3 (MD3) design system (light/dark themes). The original Preact+mdui plan was superseded by the delivered vanilla-JS implementation, which fulfills the MD3 requirement. |
-| AI skill packaging | **Done** (2026-08-02) | Global agent skill `npm-safe-scan` installed at `~/.agents/skills/npm-safe-scan/SKILL.md`; packages the CLI for any AI agent (opencode, Claude Code). |
+| AI skill packaging | **Done** (2026-08-02) | Global agent skill `npm-safe-scan` installed at `~/.agents/skills/npm-safe-scan/SKILL.md`; packages the CLI as a global agent skill (any AI agent that loads `~/.agents/skills/`). |
 | Plugin system | Pending | Future phase |
 | CI/CD integration | Pending | Future phase |
 | Multi-package batch API | Pending | Future phase |
@@ -238,10 +238,10 @@ Run with `cd packages/desktop && pnpm run` (dev) or `pnpm run build:release`.
 
 A global agent skill `npm-safe-scan` was installed on 2026-08-02 at
 `~/.agents/skills/npm-safe-scan/SKILL.md`. It packages the `npm-safe` CLI as
-an agent skill usable by any AI agent (opencode, Claude Code), exposing the
-tool's commands (check, search, watch, refresh, settings, lang) so the agent
-can invoke them directly to scan npm packages. The skill is bundled inside
-the package at `opencode-skill/npm-safe-scan/SKILL.md` and auto-installed to
+an agent skill usable by any AI agent that loads `~/.agents/skills/`, exposing
+the tool's commands (check, search, watch, refresh, settings, lang) so the
+agent can invoke them directly to scan npm packages. The skill is bundled
+inside the package at `skill/npm-safe-scan/SKILL.md` and auto-installed to
 `~/.agents/skills/` via a `postinstall` hook (`scripts/install-skill.mjs`)
 whenever the package is installed.
 

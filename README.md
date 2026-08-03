@@ -193,12 +193,12 @@ The desktop GUI lives under `packages/desktop/` and is documented in the
 
 An agent skill named `npm-safe-scan` is bundled with this package and
 **auto-installed on install** via a `postinstall` hook: installing
-`@npm-safe/core` copies `opencode-skill/npm-safe-scan/SKILL.md` to
-`~/.agents/skills/npm-safe-scan/SKILL.md`. Any AI agent (opencode, Claude
-Code, or another agent that auto-loads `~/.agents/skills/`) can then
-automatically invoke `npm-safe` commands to check, search, watch, and refresh
-npm package security assessments. The skill documents the full command
-surface, common workflows, and JSON output interpretation.
+`@npm-safe/core` copies `skill/npm-safe-scan/SKILL.md` to
+`~/.agents/skills/npm-safe-scan/SKILL.md`. Any AI agent that auto-loads skills
+from the user's `~/.agents/skills/` directory can then automatically invoke
+`npm-safe` commands to check, search, watch, and refresh npm package security
+assessments. The skill documents the full command surface, common workflows,
+and JSON output interpretation.
 
 ---
 
@@ -220,7 +220,7 @@ npm-safe/
       API.md               # public API reference
       ARCHITECTURE.md      # layer map, data flows, DB schema
       SCANNER_RULES.md     # 10 static rule reference
-      opencode-skill/
+      skill/
         npm-safe-scan/
           SKILL.md         # AI skill, auto-installed via postinstall
       scripts/

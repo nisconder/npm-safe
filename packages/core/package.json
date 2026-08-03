@@ -11,7 +11,7 @@
   },
   "files": [
     "dist",
-    "opencode-skill",
+    "skill",
     "scripts/install-skill.mjs"
   ],
   "exports": {
