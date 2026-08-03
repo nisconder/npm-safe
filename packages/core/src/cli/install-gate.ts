@@ -1,5 +1,7 @@
-import { Command } from "commander";
+﻿import { Command } from "commander";
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 import readline from "node:readline/promises";
 
 import { createEngine } from "./shared.js";
@@ -110,39 +112,63 @@ export function registerInstallGateCommands(program: Command): void {
 
   program
     .command("install [args...]")
-    .description("Install npm packages with an opt-in security gate (wraps `npm install`)")
-    .option("-y, --yes", "Skip the confirmation prompt (auto-continue)")
-    .option("--dry-run", "Check and prompt without actually installing")
-    .option("--threshold <n>", "Override the score threshold for this run")
-    .action(async (args: string[], options: { yes?: boolean; dryRun?: boolean; threshold?: string }) => {
+    .description("Install npm packages with an opt-in security gate (wraps npm/pnpm/yarn add)")
+    .passThroughOptions()
+    .allowUnknownOption(true)
+    .action(async (args: string[]) => {
       const opts = program.opts<{ db?: string; proxy?: string }>();
 
-      // Resolve the effective gate config (per-run threshold override wins).
-      const config = await readGateConfig(opts.db, opts.proxy);
-      let threshold = config.threshold;
-      if (options.threshold !== undefined) {
-        const parsed = parseInt(options.threshold, 10);
+      // --yes / --dry-run / --threshold / --dir are consumed here; everything
+      // else is passed through to the package manager (e.g. -D, --save-dev).
+      let yes = false;
+      let dryRun = false;
+      let dir: string | undefined;
+      let thresholdRaw: string | undefined;
+      const passthrough: string[] = [];
+      for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        if (arg === "--yes" || arg === "-y") {
+          yes = true;
+        } else if (arg === "--dry-run") {
+          dryRun = true;
+        } else if (arg === "--dir") {
+          dir = args[++i];
+        } else if (arg.startsWith("--dir=")) {
+          dir = arg.slice("--dir=".length);
+        } else if (arg === "--threshold") {
+          thresholdRaw = args[++i];
+        } else if (arg.startsWith("--threshold=")) {
+          thresholdRaw = arg.slice("--threshold=".length);
+        } else {
+          passthrough.push(arg);
+        }
+      }
+      let thresholdOverride: number | undefined;
+      if (thresholdRaw !== undefined) {
+        const parsed = parseInt(thresholdRaw, 10);
         if (Number.isNaN(parsed) || parsed < 0 || parsed > 100) {
-          console.error(t("gate.invalidThreshold", { value: options.threshold }));
+          console.error(t("gate.invalidThreshold", { value: thresholdRaw }));
           process.exitCode = 1;
           return;
         }
-        threshold = parsed;
+        thresholdOverride = parsed;
       }
+      const threshold = thresholdOverride ?? (await readGateConfig(opts.db, opts.proxy)).threshold;
 
-      // Package names are the positional args that do not start with a dash.
-      const packageNames = args.filter((a) => !a.startsWith("-"));
+      const installDir = dir ?? process.cwd();
+      const pm = detectPackageManager(installDir);
+      const installCommand = `${pm} ${pmVerb(pm)}`;
 
+      // Package names are the passthrough args that do not start with a dash.
+      const packageNames = passthrough.filter((a) => !a.startsWith("-"));
+
+      const config = await readGateConfig(opts.db, opts.proxy);
       if (!config.enabled || packageNames.length === 0) {
-        if (options.dryRun) {
-          console.log(t("install.dryRun", { command: `npm install ${args.join(" ")}`.trim() }));
+        if (dryRun) {
+          console.log(t("install.dryRun", { command: `${installCommand} ${passthrough.join(" ")}`.trim() }));
           return;
         }
-        const result = spawnSync("npm", ["install", ...args], {
-          stdio: "inherit",
-          shell: process.platform === "win32",
-        });
-        process.exitCode = result.status ?? 1;
+        process.exitCode = runPackageManager(pm, pmVerb(pm), passthrough, installDir);
         return;
       }
 
@@ -180,9 +206,9 @@ export function registerInstallGateCommands(program: Command): void {
       if (below.length > 0) {
         console.error(t("install.belowThreshold", { threshold: String(threshold) }));
         for (const p of below) {
-          console.error(`  [${p.level}] ${p.name} — ${p.score}/100`);
+          console.error(`  [${p.level}] ${p.name} 鈥?${p.score}/100`);
         }
-        if (!options.yes) {
+        if (!yes) {
           const ok = await confirm(t("install.confirm"));
           if (!ok) {
             console.log(t("install.aborted"));
@@ -192,14 +218,79 @@ export function registerInstallGateCommands(program: Command): void {
         }
       }
 
-      if (options.dryRun) {
-        console.log(t("install.dryRun", { command: `npm install ${args.join(" ")}`.trim() }));
+      if (dryRun) {
+        console.log(t("install.dryRun", { command: `${installCommand} ${passthrough.join(" ")}`.trim() }));
         return;
       }
-      const result = spawnSync("npm", ["install", ...args], {
-        stdio: "inherit",
-        shell: process.platform === "win32",
-      });
-      process.exitCode = result.status ?? 1;
+      process.exitCode = runPackageManager(pm, pmVerb(pm), passthrough, installDir);
     });
 }
+
+/**
+ * Detect the package manager used by the current project by walking up from
+ * `cwd` to the filesystem root: `packageManager` field first, then lockfiles.
+ */
+function detectPackageManager(cwd = process.cwd()): "npm" | "pnpm" | "yarn" {
+  let dir = path.resolve(cwd);
+  for (;;) {
+    try {
+      const manifest = JSON.parse(
+        fs.readFileSync(path.join(dir, "package.json"), "utf8"),
+      ) as { packageManager?: string };
+      if (manifest.packageManager) {
+        const name = manifest.packageManager.split("@")[0];
+        if (name === "pnpm" || name === "yarn") return name;
+      }
+    } catch {
+      // No package.json in this directory — keep walking.
+    }
+    try {
+      if (fs.existsSync(path.join(dir, "pnpm-lock.yaml"))) return "pnpm";
+      if (fs.existsSync(path.join(dir, "yarn.lock"))) return "yarn";
+      if (fs.existsSync(path.join(dir, "package-lock.json"))) return "npm";
+    } catch {
+      // ignore
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return "npm";
+}
+
+/** The subcommand used to add a new dependency for a package manager. */
+function pmVerb(pm: "npm" | "pnpm" | "yarn"): "add" | "install" {
+  return pm === "npm" ? "install" : "add";
+}
+
+/**
+ * Run the package manager without a shell. On Windows the binaries are
+ * `.cmd` shims, so we go through `cmd.exe` with each argument quoted and
+ * escaped explicitly (avoiding the deprecated shell=true arg concatenation).
+ */
+function runPackageManager(
+  pm: "npm" | "pnpm" | "yarn",
+  verb: string,
+  args: string[],
+  cwd: string,
+): number {
+  const binary = `${pm}.cmd`;
+  if (process.platform !== "win32") {
+    const result = spawnSync(pm, [verb, ...args], { stdio: "inherit", cwd });
+    return result.status ?? 1;
+  }
+  const quoted = [verb, ...args].map(quoteWinArg).join(" ");
+  const result = spawnSync(
+    process.env.ComSpec ?? "cmd.exe",
+    ["/d", "/s", "/c", `${binary} ${quoted}`],
+    { stdio: "inherit", cwd },
+  );
+  return result.status ?? 1;
+}
+
+/** Quote a single argument for cmd.exe; safe tokens are left unquoted. */
+function quoteWinArg(arg: string): string {
+  if (/^[A-Za-z0-9@./:_-]+$/.test(arg)) return arg;
+  return `"${arg.replace(/(["\\$`])/g, "\\$1")}"`;
+}
+

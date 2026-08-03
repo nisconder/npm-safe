@@ -26,6 +26,7 @@ program
   .name("npm-safe")
   .description("CLI for the @npm-safe/core local npm security engine")
   .version(packageJson.version, "-v, --version")
+  .enablePositionalOptions()
   .option("-d, --db <path>", "Path to the SQLite cache database")
   .option("-p, --proxy <url>", "HTTP proxy URL for registry requests")
   .option("-j, --json", "Output raw JSON")

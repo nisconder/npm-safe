@@ -127,6 +127,48 @@ describe("CLI install gate flow", () => {
     }
   });
 
+  it("detects pnpm projects and uses pnpm add", () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
+    const db = path.join(home, "g.db");
+    try {
+      writeFileSync(path.join(home, "package.json"), JSON.stringify({ name: "p", version: "0.0.0" }));
+      writeFileSync(path.join(home, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+      const { status, stdout } = runCli(["--db", db, "install", "--dry-run", "--dir", home, "lodash"], home);
+      assert.strictEqual(status, 0);
+      assert.ok(stdout.includes("pnpm add lodash"));
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it("detects npm projects and uses npm install", () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
+    const db = path.join(home, "g.db");
+    try {
+      writeFileSync(path.join(home, "package.json"), JSON.stringify({ name: "p", version: "0.0.0" }));
+      writeFileSync(path.join(home, "package-lock.json"), "{\"lockfileVersion\":3}\n");
+      const { status, stdout } = runCli(["--db", db, "install", "--dry-run", "--dir", home, "lodash"], home);
+      assert.strictEqual(status, 0);
+      assert.ok(stdout.includes("npm install lodash"));
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it("passes through unknown flags to the package manager", () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
+    const db = path.join(home, "g.db");
+    try {
+      writeFileSync(path.join(home, "package.json"), JSON.stringify({ name: "p", version: "0.0.0" }));
+      writeFileSync(path.join(home, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+      const { status, stdout } = runCli(["--db", db, "install", "--dry-run", "--dir", home, "-D", "@scope/pkg@^2.0.0"], home);
+      assert.strictEqual(status, 0);
+      assert.ok(stdout.includes("pnpm add -D @scope/pkg@^2.0.0"));
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
   it("per-run --threshold overrides the configured value", () => {
     const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
     const db = path.join(home, "g.db");
@@ -141,4 +183,5 @@ describe("CLI install gate flow", () => {
     }
   });
 });
+
 
