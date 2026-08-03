@@ -1,7 +1,7 @@
 ﻿import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync, readFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -136,6 +136,49 @@ describe("CLI gate", () => {
       rmSync(home, { recursive: true, force: true });
     }
   });
+
+  it(
+    "installs PATH shims on Windows when no --file is given",
+    { skip: process.platform !== "win32" },
+    () => {
+      const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
+      try {
+        const { status, stdout } = runCli(["gate", "shell"], home);
+        assert.strictEqual(status, 0);
+        assert.ok(stdout.includes("shims"));
+        const shimDir = path.join(home, ".npm-safe", "bin");
+        for (const pm of ["npm", "pnpm", "yarn"]) {
+          const file = path.join(shimDir, `${pm}.cmd`);
+          assert.ok(existsSync(file), `${file} should exist`);
+          const content = readFileSync(file, "utf8");
+          assert.ok(content.includes(`NPMSAFE_REAL_${pm.toUpperCase()}`));
+          assert.ok(content.includes("npm-safe install"));
+        }
+      } finally {
+        rmSync(home, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it(
+    "gate shell --remove cleans up the shims",
+    { skip: process.platform !== "win32" },
+    () => {
+      const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-gate-"));
+      try {
+        const install = runCli(["gate", "shell"], home);
+        assert.strictEqual(install.status, 0);
+        const shimDir = path.join(home, ".npm-safe", "bin");
+        assert.ok(existsSync(path.join(shimDir, "npm.cmd")));
+
+        const remove = runCli(["gate", "shell", "--remove"], home);
+        assert.strictEqual(remove.status, 0);
+        assert.ok(!existsSync(path.join(shimDir, "npm.cmd")));
+      } finally {
+        rmSync(home, { recursive: true, force: true });
+      }
+    },
+  );
 });
 
 describe("CLI install gate flow", () => {
@@ -277,6 +320,7 @@ describe("CLI install gate flow", () => {
     }
   });
 });
+
 
 
 

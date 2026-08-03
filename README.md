@@ -337,14 +337,24 @@ npm-safe install axios --yes       # auto-confirm
 npm-safe install axios --dry-run   # check + prompt without installing
 ```
 
-`gate enable` does everything in one step: it enables the check **and**
-automatically installs idempotent wrapper functions for `npm`, `pnpm`, and
-`yarn` into your shell config (PowerShell `$PROFILE` on Windows,
-`~/.zshrc`/`~/.bashrc` otherwise; pass `--shell-file <path>` to target a
-specific file, `--no-shell` to skip). After restarting your shell, any
-`pnpm add <pkg>` or `npm install <pkg>` first runs `npm-safe install ...` —
-the gate checks the package and asks for confirmation below the threshold
-before the real package manager runs. Remove the wrappers with:
+`gate enable` does everything in one step: it enables the check, installs
+**PATH shims** into `~/.npm-safe/bin` (npm.cmd / pnpm.cmd / yarn.cmd — they
+work in every shell, including **cmd.exe**), and appends idempotent wrapper
+functions for `npm`, `pnpm`, and `yarn` to your shell config (PowerShell
+`$PROFILE` on Windows, `~/.zshrc`/`~/.bashrc` otherwise). Two ways to
+activate:
+
+- **Windows (any shell, incl. cmd):** add `%USERPROFILE%\.npm-safe\bin` to
+  your PATH (System Settings → Environment Variables, or `setx PATH
+  "%USERPROFILE%\.npm-safe\bin;%PATH%"` in cmd).
+- **PowerShell / bash / zsh:** just restart your shell (the profile
+  wrappers are loaded automatically).
+
+Pass `--shell-file <path>` to target a specific config file, `--no-shell` to
+skip both. After activation, any `pnpm add <pkg>` or `npm install <pkg>`
+first runs `npm-safe install ...` — the gate checks the package and asks for
+confirmation below the threshold before the real package manager runs.
+Remove the wrappers with:
 
 ```bash
 npm-safe gate shell --remove

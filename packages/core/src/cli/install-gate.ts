@@ -1,6 +1,7 @@
 ﻿import { Command } from "commander";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import readline from "node:readline/promises";
 
@@ -87,9 +88,15 @@ export function registerInstallGateCommands(program: Command): void {
       await writeGateConfig({ enabled: true }, opts.db, opts.proxy);
       console.log(t("gate.enabled"));
 
-      // Automatically install the shell wrappers so npm/pnpm/yarn add go
-      // through the gate without any further step.
+      // Automatically install the shell wrappers and PATH shims so npm/pnpm/
+      // yarn add go through the gate without any further step.
       if (options.shell !== false) {
+        try {
+          installShims();
+          console.log(t("gate.shell.shimsInstalled", { path: getShimDir() }));
+        } catch (err) {
+          console.error(t("gate.shell.installFailed", { message: err instanceof Error ? err.message : String(err) }));
+        }
         const target = options.shellFile ?? detectShellConfig();
         if (target) {
           try {
@@ -137,33 +144,60 @@ export function registerInstallGateCommands(program: Command): void {
 
   gate
     .command("shell")
-    .description("Install shell wrappers so npm/pnpm/yarn add go through the gate automatically")
+    .description("Install shell wrappers + PATH shims so npm/pnpm/yarn go through the gate automatically")
     .option("--file <path>", "Target a specific shell config file (default: auto-detected)")
-    .option("--remove", "Remove the previously installed wrappers")
+    .option("--remove", "Remove the previously installed wrappers and shims")
     .action(async (options: { file?: string; remove?: boolean }) => {
-      const target = options.file ?? detectShellConfig();
-      if (!target) {
-        console.error(t("gate.shell.noConfig"));
-        process.exitCode = 1;
-        return;
-      }
       if (options.remove) {
-        const removed = removeShellBlock(target);
-        if (removed) {
-          console.log(t("gate.shell.removed", { path: target }));
-        } else {
-          console.log(t("gate.shell.notInstalled", { path: target }));
+        let anything = false;
+        const target = options.file ?? detectShellConfig();
+        if (target) {
+          const removed = removeShellBlock(target);
+          if (removed) {
+            console.log(t("gate.shell.removed", { path: target }));
+            anything = true;
+          } else {
+            console.log(t("gate.shell.notInstalled", { path: target }));
+          }
         }
+        if (options.file === undefined) {
+          const shimsRemoved = removeShims();
+          if (shimsRemoved) {
+            console.log(t("gate.shell.shimsRemoved", { path: getShimDir() }));
+            anything = true;
+          }
+        }
+        if (!anything) process.exitCode = 1;
         return;
       }
-      const written = installShellBlock(target);
-      if (written === "updated") {
-        console.log(t("gate.shell.updated", { path: target }));
-      } else if (written === "created") {
-        console.log(t("gate.shell.installed", { path: target }));
-      } else {
-        console.log(t("gate.shell.already", { path: target }));
+
+      let printed = false;
+      if (options.file === undefined) {
+        // Install the PATH shims (works in every shell, including cmd.exe).
+        try {
+          installShims();
+          console.log(t("gate.shell.shimsInstalled", { path: getShimDir() }));
+          printed = true;
+        } catch (err) {
+          console.error(t("gate.shell.installFailed", { message: err instanceof Error ? err.message : String(err) }));
+        }
       }
+
+      const target = options.file ?? detectShellConfig();
+      if (target) {
+        const written = installShellBlock(target);
+        if (written === "updated") {
+          console.log(t("gate.shell.updated", { path: target }));
+        } else if (written === "created") {
+          console.log(t("gate.shell.installed", { path: target }));
+        } else {
+          console.log(t("gate.shell.already", { path: target }));
+        }
+        printed = true;
+      } else {
+        console.log(t("gate.shell.noConfig"));
+      }
+      if (printed) console.log(t("gate.enableHint"));
     });
 
   program
@@ -355,6 +389,10 @@ function pmVerb(pm: "npm" | "pnpm" | "yarn"): "add" | "install" {
  * Run the package manager without a shell. On Windows the binaries are
  * `.cmd` shims, so we go through `cmd.exe` with each argument quoted and
  * escaped explicitly (avoiding the deprecated shell=true arg concatenation).
+ *
+ * When the caller is one of our own PATH shims it sets NPMSAFE_REAL_NPM /
+ * NPMSAFE_REAL_PNPM / NPMSAFE_REAL_YARN to the real binary, which we honour
+ * to avoid the shim calling itself recursively.
  */
 function runPackageManager(
   pm: "npm" | "pnpm" | "yarn",
@@ -362,16 +400,22 @@ function runPackageManager(
   args: string[],
   cwd: string,
 ): number {
-  const binary = `${pm}.cmd`;
+  const envVar = `NPMSAFE_REAL_${pm.toUpperCase()}`;
+  const real = process.env[envVar];
+  const binary = real ?? (process.platform === "win32" ? `${pm}.cmd` : pm);
   if (process.platform !== "win32") {
-    const result = spawnSync(pm, [verb, ...args], { stdio: "inherit", cwd });
+    const result = spawnSync(binary, [verb, ...args], {
+      stdio: "inherit",
+      cwd,
+      env: { ...process.env, [envVar]: "" },
+    });
     return result.status ?? 1;
   }
   const quoted = [verb, ...args].map(quoteWinArg).join(" ");
   const result = spawnSync(
     process.env.ComSpec ?? "cmd.exe",
     ["/d", "/s", "/c", `${binary} ${quoted}`],
-    { stdio: "inherit", cwd },
+    { stdio: "inherit", cwd, env: { ...process.env, [envVar]: "" } },
   );
   return result.status ?? 1;
 }
@@ -521,5 +565,68 @@ function removeShellBlock(file: string): boolean {
   } catch {
     return false;
   }
+}
+
+// ---------------------------------------------------------------------------
+// PATH shims: intercept npm/pnpm/yarn in EVERY shell (cmd, PowerShell, bash)
+// ---------------------------------------------------------------------------
+
+/** Directory holding the npm-safe command shims. */
+function getShimDir(): string {
+  return path.join(os.homedir(), ".npm-safe", "bin");
+}
+
+/**
+ * Generate a Windows .cmd shim that routes install/add/i through
+ * `npm-safe install` and then calls the real package manager.
+ */
+function shimContent(pm: "npm" | "pnpm" | "yarn"): string {
+  const envVar = `NPMSAFE_REAL_${pm.toUpperCase()}`;
+  return `@echo off
+rem npm-safe gate shim for ${pm} - do not edit
+setlocal
+set "FOUND="
+for /f "delims=" %%i in ('where ${pm} 2^>nul') do (
+  if /i not "%%~fi" == "%~f0" (
+    if not defined FOUND set "FOUND=%%i"
+  )
+)
+if not defined FOUND (
+  echo [npm-safe] ${pm} not found in PATH
+  exit /b 1
+)
+set "${envVar}=%FOUND%"
+npm-safe install %*
+if errorlevel 1 exit /b %errorlevel%
+"%FOUND%" %*
+`;
+}
+
+/** Write the three shims into the shim directory (idempotent). */
+function installShims(): void {
+  const dir = getShimDir();
+  fs.mkdirSync(dir, { recursive: true });
+  if (process.platform !== "win32") return;
+  for (const pm of ["npm", "pnpm", "yarn"] as const) {
+    fs.writeFileSync(path.join(dir, `${pm}.cmd`), shimContent(pm));
+  }
+}
+
+/** Remove the shims. Returns `true` when any file was removed. */
+function removeShims(): boolean {
+  const dir = getShimDir();
+  let removed = false;
+  for (const pm of ["npm", "pnpm", "yarn"] as const) {
+    const file = path.join(dir, `${pm}.cmd`);
+    try {
+      if (fs.existsSync(file)) {
+        fs.rmSync(file);
+        removed = true;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return removed;
 }
 
