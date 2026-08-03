@@ -224,6 +224,52 @@ setSetting(key: string, value: string): Promise<void>
 
 Upsert a setting value by key (INSERT OR REPLACE semantics).
 
+#### recordCheckHistory
+
+```ts
+recordCheckHistory(result: CheckResult): Promise<void>
+```
+
+Append a successful check to the persistent history table
+(`check_history`, newest-first, capped at 1000). No-op when `result.exists`
+is `false`. Both the CLI and the desktop extension use this, so history is
+shared across frontends.
+
+#### recordHistoryEntry
+
+```ts
+recordHistoryEntry(entry: {
+  readonly packageName: string;
+  readonly level: string;
+  readonly score: number;
+  readonly timestamp: string;
+}): Promise<void>
+```
+
+Append a raw history entry directly (used for legacy `history.json`
+migration).
+
+#### getCheckHistory
+
+```ts
+getCheckHistory(limit?: number): Promise<ReadonlyArray<{
+  readonly packageName: string;
+  readonly level: string;
+  readonly score: number;
+  readonly timestamp: string;
+}>>
+```
+
+Return the persistent check history, newest first.
+
+#### clearCheckHistory
+
+```ts
+clearCheckHistory(): Promise<void>
+```
+
+Remove every entry from the persistent check history.
+
 #### close
 
 ```ts

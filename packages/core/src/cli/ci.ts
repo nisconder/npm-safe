@@ -227,6 +227,7 @@ export function registerCiCommand(program: Command): void {
               findingCount: result.security.staticScan?.findings.length ?? 0,
             });
             summary[level] = (summary[level] ?? 0) + 1;
+            await engine.recordCheckHistory(result);
           } catch (err) {
             results.push({
               name: dep.name,

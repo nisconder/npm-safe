@@ -301,6 +301,17 @@ When enabled, `check` and `ci` runs are recorded to
 security-level distribution, error counts, and a rolling window of the last
 200 events.
 
+### Shared check history
+
+Every package checked via the CLI (`check` / `ci`) — and every check run
+inside the desktop GUI — is written to the shared SQLite database
+(`~/.npm-safe/npm-safe.db`, `check_history` table, newest-first, capped at
+1000). The desktop GUI's overview dashboard loads this history directly, so
+packages scanned on the command line appear in the app, and vice versa.
+Legacy `~/.npm-safe/history.json` data is migrated into the database once on
+first launch. Programmatic access: `engine.recordCheckHistory(result)`,
+`engine.getCheckHistory()`, `engine.clearCheckHistory()`.
+
 ### Desktop first-run (Windows)
 
 If the WebView2 window fails to load with a loopback error, run once in an
@@ -316,11 +327,11 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-277 tests cover every module: validators, static rules, rate limiter, store
+283 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
 integration surface, the LLM providers, the LLM configuration manager, the
 rule plugin system, the CI command, batch operations, report export, the
-telemetry manager, and the CLI itself.
+telemetry manager, the shared check history, and the CLI itself.
 
 ---
 

@@ -501,6 +501,59 @@ export class NpmSafeEngine {
   }
 
   // --------------------------------------------------------------------------
+  // Check history
+  // --------------------------------------------------------------------------
+
+  /**
+   * Record a check into the persistent history database. Used by the CLI and
+   * the desktop extension so history is shared across both frontends.
+   *
+   * @param result - A check result for an existing package.
+   */
+  async recordCheckHistory(result: CheckResult): Promise<void> {
+    if (!result.exists) return;
+    await this.recordHistoryEntry({
+      packageName: result.packageName,
+      level: result.security.overallLevel,
+      score: result.security.overallScore,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Append a raw history entry (newest-first, capped at 1000).
+   */
+  async recordHistoryEntry(entry: {
+    readonly packageName: string;
+    readonly level: string;
+    readonly score: number;
+    readonly timestamp: string;
+  }): Promise<void> {
+    await this.cache.addHistoryEntry(entry);
+  }
+
+  /**
+   * Return the persistent check history, newest first (capped at 1000).
+   */
+  async getCheckHistory(limit?: number): Promise<
+    ReadonlyArray<{
+      readonly packageName: string;
+      readonly level: string;
+      readonly score: number;
+      readonly timestamp: string;
+    }>
+  > {
+    return this.cache.getHistory(limit);
+  }
+
+  /**
+   * Clear the persistent check history.
+   */
+  async clearCheckHistory(): Promise<void> {
+    return this.cache.clearHistory();
+  }
+
+  // --------------------------------------------------------------------------
   // Rule plugin management
   // --------------------------------------------------------------------------
 

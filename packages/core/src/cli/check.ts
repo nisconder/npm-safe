@@ -105,6 +105,7 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
     if (single) {
       const name = names[0];
       const result = await engine.checkPackage(name);
+      await engine.recordCheckHistory(result);
       recordTelemetry("check", [{ name, ok: true, result }], startedAt);
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
@@ -118,6 +119,11 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
       concurrency: options.concurrency,
     });
     saveLastBatch(results);
+    for (const entry of results) {
+      if (entry.ok && entry.result) {
+        await engine.recordCheckHistory(entry.result);
+      }
+    }
     recordTelemetry("check", results, startedAt);
 
     if (options.json) {

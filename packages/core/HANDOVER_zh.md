@@ -310,6 +310,17 @@ CI/CD 计划于 2026-08-02 交付：
 
 测试套件从 260 个增至 277 个，全部通过。
 
+### 3.14 共享检查历史（2026-08-03）
+
+检查历史从仅扩展使用的 `history.json` 迁移到共享 SQLite 数据库，使 CLI 与 GUI 看到相同的记录：
+
+- **表结构。** 新增 `check_history` 表（迁移 `002_check_history.sql`，按时间戳建索引）：`package_name`、`level`、`score`、`timestamp`，上限 1000 条，新的在前。
+- **引擎 API。** `NpmSafeEngine.recordCheckHistory(result)`、`recordHistoryEntry(entry)`、`getCheckHistory(limit)`、`clearCheckHistory()`。
+- **CLI。** `check`（单包与批量）和 `ci` 将每次成功检查写入数据库。
+- **桌面扩展。** `checkPackage` 通过引擎记录；`getHistory` 从数据库读取；一次性迁移将旧 `history.json` 条目导入并删除文件。GUI 前端无需改动（字段名一致）。
+
+测试套件从 277 个增至 283 个，全部通过。
+
 ---
 
 ## 4. 文档交付物（已完成）

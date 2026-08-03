@@ -96,8 +96,27 @@ CREATE TABLE IF NOT EXISTS _migrations (
 export function getMigrationList(): string[] {
   return [
     '001_initial.sql',
-    // Future: '002_add_indexes.sql', etc.
+    '002_check_history.sql',
   ];
+}
+
+/**
+ * Returns the SQL for the `check_history` migration: a table recording every
+ * check performed by the CLI or the desktop extension so the GUI can load
+ * history straight from the shared database.
+ */
+export function getCheckHistoryMigration(): string {
+  return `
+-- 8. check_history table - persistent check history
+CREATE TABLE IF NOT EXISTS check_history (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  package_name  TEXT NOT NULL,
+  level         TEXT NOT NULL,
+  score         INTEGER NOT NULL CHECK(score >= 0 AND score <= 100),
+  timestamp     TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_check_history_timestamp ON check_history(timestamp DESC);
+`;
 }
 
 /**

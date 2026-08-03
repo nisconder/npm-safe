@@ -405,6 +405,26 @@ Two Phase-3 plans were delivered on 2026-08-03:
 
 The test suite grew from 260 to 277 tests; all pass.
 
+### 3.14 Shared check history (2026-08-03)
+
+Check history moved from the extension-only `history.json` into the shared
+SQLite database so CLI and GUI see the same records:
+
+- **Schema.** New `check_history` table (migration `002_check_history.sql`,
+  indexed by timestamp): `package_name`, `level`, `score`, `timestamp`,
+  capped at 1000 entries, newest first.
+- **Engine API.** `NpmSafeEngine.recordCheckHistory(result)`,
+  `recordHistoryEntry(entry)`, `getCheckHistory(limit)`,
+  `clearCheckHistory()`.
+- **CLI.** `check` (single + batch) and `ci` write every successful check
+  into the database.
+- **Desktop extension.** `checkPackage` records via the engine; `getHistory`
+  reads from the database; a one-time migration imports legacy
+  `history.json` entries and removes the file. The GUI frontend is unchanged
+  (field names are identical).
+
+The test suite grew from 277 to 283 tests; all pass.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)

@@ -256,6 +256,16 @@ npm-safe telemetry reset          # 清空全部采集数据
 计数的计数器、已扫描包总数、安全级别分布、错误计数，以及最近 200 条事件
 的滚动窗口。
 
+### 共享检查历史
+
+通过 CLI（`check` / `ci`）检测的每个包，以及桌面 GUI 内的每次检查，都会
+写入共享的 SQLite 数据库（`~/.npm-safe/npm-safe.db` 的 `check_history` 表，
+新的在前，上限 1000 条）。桌面 GUI 的总览仪表盘直接从数据库加载这段历史
+——命令行扫描过的包会出现在应用中，反之亦然。旧的
+`~/.npm-safe/history.json` 数据会在首次启动时一次性迁移入库。编程接口：
+`engine.recordCheckHistory(result)`、`engine.getCheckHistory()`、
+`engine.clearCheckHistory()`。
+
 ### 桌面应用首次运行（Windows）
 
 如果 WebView2 窗口因回环隔离错误无法加载，请以管理员身份运行一次 PowerShell：
@@ -270,7 +280,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-277 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作、报告导出、遥测管理器以及 CLI 本身。
+283 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作、报告导出、遥测管理器、共享检查历史以及 CLI 本身。
 
 ---
 
