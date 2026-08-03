@@ -713,7 +713,10 @@ body.light-theme .title-bar-btn .icon-sun {
 .text-field.outlined label {
   position: absolute;
   left: 16px;
-  top: 50%;
+  /* The outlined field is 56px tall; top: 50% would misalign when the
+     container also holds a hint element (e.g. the API key field), so center
+     against the input height directly. */
+  top: 28px;
   transform: translateY(-50%);
   font-size: 16px;
   line-height: 24px;
