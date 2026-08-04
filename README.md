@@ -1,4 +1,4 @@
-﻿﻿﻿# @npm-safe — Local npm Package Security Engine
+# @npm-safe — Local npm Package Security Engine
 
 [中文版](README_zh.md)
 
