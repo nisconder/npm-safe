@@ -1,4 +1,4 @@
-﻿# @npm-safe/desktop
+# @npm-safe/desktop
 
 [中文版](README_zh.md)
 
@@ -16,7 +16,7 @@ A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core
 - **Material You theming** — independent light/dark palettes (seed `#4f8cff`), toggled from the custom title bar and remembered across sessions.
 - **Remembered preferences** — the theme and the last active tab are persisted in both `localStorage` (instant startup) and the engine settings table (survives webview cache clears).
 - **Custom window chrome** — borderless, transparent, draggable title bar with minimize and close buttons.
-- **Persistent check history** — stored in `~/.npm-safe/history.json` (capped at 1000 entries) by the Node.js extension process.
+- **Persistent check history** — stored in the shared SQLite database (`~/.npm-safe/npm-safe.db`, `check_history` table, newest-first, capped at 1000). The desktop GUI and CLI share this history — packages scanned on the command line appear in the app, and vice versa. Legacy `~/.npm-safe/history.json` data is migrated into the database once on first launch.
 
 ## Screens (Tab Navigation)
 
@@ -136,7 +136,7 @@ The desktop app is a three-layer Neutralinojs application:
 ┌───────────────────────▼─────────────────────────────┐
 │  Extension  resources/extensions/core/main.mjs     │
 │  Node.js process hosting NpmSafeEngine (20 methods)│
-│  History persistence → ~/.npm-safe/history.json    │
+│  Shared check history → SQLite (check_history)     │
 └───────────────────────┬─────────────────────────────┘
                         │ spawns & manages
 ┌───────────────────────▼─────────────────────────────┐
@@ -163,7 +163,7 @@ A Node.js process spawned by the Neutralinojs server (declared in `neutralino.co
 - Owns the `NpmSafeEngine` instance backed by SQLite at `~/.npm-safe/npm-safe.db`.
 - Broadcasts `engineReady` on WebSocket connect so the frontend can hydrate persisted preferences (theme, last tab) from the settings table.
 - Exposes **20 IPC methods**: `checkPackage`, `searchPackages`, `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`, `refreshPackage`, `refreshAll`, `getSetting`, `setSetting`, `getHistory`, `addHistory`, `clearHistory`, `listRules`, `setRuleEnabled`, `setRuleSeverity`, `setRuleOptions`, `loadRulePlugins`, `getLlmStatus`, `setLlmConfig`, `testLlmConnection`.
-- Maintains check history in `~/.npm-safe/history.json` (unshift, capped at 1000 entries; `checkPackage` records an entry automatically when the package exists and a security report is produced).
+- Reads the persisted `proxy` setting on startup and configures the engine accordingly. Writes every check result to the shared SQLite `check_history` table via `engine.recordCheckHistory(result)`; legacy `~/.npm-safe/history.json` data is migrated into the database once on first launch.
 - Writes diagnostic logs to `%TEMP%/npmsafe-extension.log` (Windows) or `$TMPDIR/npmsafe-extension.log` (macOS/Linux).
 - Closes the engine and exits when the WebSocket connection to the server drops.
 
@@ -189,7 +189,7 @@ extension → frontend:  { "event": "engineReady", "data": {} }   (on WebSocket 
 | Data | Path |
 |---|---|
 | SQLite database | `~/.npm-safe/npm-safe.db` |
-| Check history | `~/.npm-safe/history.json` |
+| Check history | SQLite `check_history` table in `~/.npm-safe/npm-safe.db` |
 | Extension log | `%TEMP%/npmsafe-extension.log` (Windows) / `$TMPDIR/npmsafe-extension.log` (macOS/Linux) |
 | Theme preference | Settings table key `theme` + `localStorage` key `npm-safe-theme` |
 | Last active tab | Settings table key `lastTab` + `localStorage` key `npm-safe-last-tab` |
@@ -230,4 +230,5 @@ packages/desktop/
 ## What's Next?
 
 What's our next surprise? **It's coming soon!**
+
 
