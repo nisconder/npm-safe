@@ -434,7 +434,7 @@ pre-install safety check:
 - **`npm-safe install [args...]`** wraps `npm install`. When the gate is
   enabled, every positional package argument is checked first; any package
   scoring below the threshold (default 85, 0-100) is listed and requires
-  manual confirmation (`y/N`) before the real `npm install` runs. Options:
+  manual confirmation (`y/n`) before the real `npm install` runs. Options:
   `--yes` (auto-confirm), `--dry-run` (check + prompt only), `--threshold`
   (per-run override). Exit codes: 0 pass, 1 error, 3 aborted by the user.
 - **`npm-safe gate status | enable | disable | set-threshold <n>`** manages

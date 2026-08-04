@@ -326,7 +326,7 @@ CI/CD 计划于 2026-08-02 交付：
 
 新增可选安装门禁，让人工用户（而非仅 AI 代理）也能获得安装前安全检查：
 
-- **`npm-safe install [args...]`** 包装 `npm install`。门禁启用时，先检查每个位置参数包名；任何分数低于阈值（默认 85，0-100）的包都会被列出并要求手动确认（`y/N`），确认后才执行真正的 `npm install`。选项：`--yes`（自动确认）、`--dry-run`（仅检查+确认）、`--threshold`（本次运行覆盖）。退出码：0 通过、1 错误、3 用户中止。
+- **`npm-safe install [args...]`** 包装 `npm install`。门禁启用时，先检查每个位置参数包名；任何分数低于阈值（默认 85，0-100）的包都会被列出并要求手动确认（`y/n`），确认后才执行真正的 `npm install`。选项：`--yes`（自动确认）、`--dry-run`（仅检查+确认）、`--threshold`（本次运行覆盖）。退出码：0 通过、1 错误、3 用户中止。
 - **`npm-safe gate status | enable | disable | set-threshold <n>`** 管理开关，持久化在共享设置表（`installGate.enabled`、`installGate.threshold`），CLI 与 GUI 保持同步。默认关闭。
 - **GUI。** 设置 → 安装安全检查：门禁开关 + 阈值输入（0-100，默认 85），通过既有 settings IPC 保存。
 - **Shell 集成。** `npm-safe gate shell` 将 `npm`/`pnpm`/`yarn` 的幂等包装函数写入用户 shell 配置（Windows 上为 PowerShell `$PROFILE`，其他平台为 `~/.zshrc`/`~/.bashrc`），使每次 `pnpm add`/`npm install <pkg>` 都自动经过 `npm-safe install`（门禁随后运行项目自身的包管理器）。`--remove` 可卸载包装。

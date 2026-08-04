@@ -51,7 +51,7 @@ async function writeGateConfig(
 async function confirm(message: string): Promise<boolean> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   try {
-    const answer = (await rl.question(`${message} [y/N] `)).trim().toLowerCase();
+    const answer = (await rl.question(`${message} [y/n] `)).trim().toLowerCase();
     return answer === "y" || answer === "yes";
   } finally {
     rl.close();
