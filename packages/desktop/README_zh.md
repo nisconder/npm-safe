@@ -16,7 +16,7 @@
 - **Material You 主题** — 独立浅色/深色配色（seed `#4f8cff`），通过自定义标题栏切换，并在会话间记住选择。
 - **偏好记忆** — 主题与上次打开的标签页同时持久化到 `localStorage`（启动即应用）和引擎设置表（WebView 缓存被清也不丢失）。
 - **自定义窗口边框** — 无边框透明窗口，标题栏可拖动，含最小化和关闭按钮。
-- **持久化检查历史** — 由 Node.js 扩展进程存储到 `~/.npm-safe/history.json`（上限 1000 条）。
+- **持久化检查历史** — 存储在共享 SQLite 数据库（`~/.npm-safe/npm-safe.db` 的 `check_history` 表，新的在前，上限 1000 条）。桌面 GUI 与 CLI 共享这段历史——命令行扫描的包会出现在应用中，反之亦然。旧的 `~/.npm-safe/history.json` 数据会在首次启动时一次性迁移入库。
 
 ## 页面（标签页导航）
 
@@ -133,7 +133,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 ┌───────────────────────▼─────────────────────────────┐
 │  扩展  resources/extensions/core/main.mjs           │
 │  承载 NpmSafeEngine 的 Node.js 进程（20 个方法）   │
-│  历史持久化 → ~/.npm-safe/history.json              │
+│  共享检查历史 → SQLite（check_history 表）          │
 └───────────────────────┬─────────────────────────────┘
                         │ 启动与管理
 ┌───────────────────────▼─────────────────────────────┐
@@ -160,7 +160,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 - 持有基于 SQLite 的 `NpmSafeEngine` 实例，数据库位于 `~/.npm-safe/npm-safe.db`。
 - WebSocket 连接建立时广播 `engineReady`，供前端从设置表回灌持久化偏好（主题、上次标签页）。
 - 暴露 **20 个 IPC 方法**：`checkPackage`、`searchPackages`、`getWatchlist`、`addToWatchlist`、`removeFromWatchlist`、`refreshPackage`、`refreshAll`、`getSetting`、`setSetting`、`getHistory`、`addHistory`、`clearHistory`、`listRules`、`setRuleEnabled`、`setRuleSeverity`、`setRuleOptions`、`loadRulePlugins`、`getLlmStatus`、`setLlmConfig`、`testLlmConnection`。
-- 维护检查历史 `~/.npm-safe/history.json`（unshift 插入，上限 1000 条；当包存在且生成安全报告时，`checkPackage` 会自动记录一条历史）。
+- 启动时读取持久化的 `proxy` 设置并配置引擎。将每次检查结果通过 `engine.recordCheckHistory(result)` 写入共享 SQLite `check_history` 表；旧的 `~/.npm-safe/history.json` 数据会在首次启动时一次性迁移入库。
 - 将诊断日志写入 `%TEMP%/npmsafe-extension.log`（Windows）或 `$TMPDIR/npmsafe-extension.log`（macOS/Linux）。
 - 与服务器的 WebSocket 连接断开时，关闭引擎并退出。
 
@@ -186,7 +186,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 | 数据 | 路径 |
 |---|---|
 | SQLite 数据库 | `~/.npm-safe/npm-safe.db` |
-| 检查历史 | `~/.npm-safe/history.json` |
+| 检查历史 | SQLite `check_history` 表，位于 `~/.npm-safe/npm-safe.db` |
 | 扩展日志 | `%TEMP%/npmsafe-extension.log`（Windows）/ `$TMPDIR/npmsafe-extension.log`（macOS/Linux） |
 | 主题偏好 | 设置表键 `theme` + `localStorage` 键 `npm-safe-theme` |
 | 上次标签页 | 设置表键 `lastTab` + `localStorage` 键 `npm-safe-last-tab` |
@@ -219,4 +219,5 @@ packages/desktop/
 - **Windows 上出现 WebView2 回环错误** — 在[Windows 首次运行注意事项](#windows-首次运行注意事项)中运行 `CheckNetIsolation.exe` 命令。
 - **引擎请求 30 秒超时** — 状态栏会显示超时错误；请检查网络连接（受限网络可能需要设置 `proxy`）。
 - **扩展无响应** — 检查扩展日志（`%TEMP%/npmsafe-extension.log`）中的错误，并确认启动前核心引擎已成功构建。
+
 
