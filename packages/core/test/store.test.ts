@@ -30,7 +30,7 @@ describe("DatabaseManager", () => {
     dbm = new DatabaseManager(":memory:");
     const db = dbm.getDb();
 
-    // All 6 application tables + _migrations should exist.
+    // All application tables + _migrations should exist.
     const tables = db
       .prepare(
         "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
@@ -44,6 +44,7 @@ describe("DatabaseManager", () => {
     assert.ok(names.includes("watchlist"));
     assert.ok(names.includes("settings"));
     assert.ok(names.includes("translations"));
+    assert.ok(names.includes("check_history"));
     assert.ok(names.includes("_migrations"));
   });
 
@@ -51,10 +52,11 @@ describe("DatabaseManager", () => {
     dbm = new DatabaseManager(":memory:");
     const db = dbm.getDb();
     const rows = db
-      .prepare("SELECT name FROM _migrations")
+      .prepare("SELECT name FROM _migrations ORDER BY id")
       .all() as { name: string }[];
-    assert.strictEqual(rows.length, 1);
+    assert.strictEqual(rows.length, 2);
     assert.strictEqual(rows[0].name, "001_initial.sql");
+    assert.strictEqual(rows[1].name, "002_check_history.sql");
   });
 
   it("is idempotent (creating twice does not duplicate migrations)", () => {

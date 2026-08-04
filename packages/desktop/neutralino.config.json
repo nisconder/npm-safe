@@ -20,6 +20,7 @@
     "window.*",
     "extensions.*",
     "filesystem.*",
+    "clipboard.*",
     "debug.log"
   ],
   "extensions": [

@@ -117,6 +117,33 @@ Check a package by name. Cache-first: returns cached data if still fresh, otherw
 
 When the package does not exist on the registry (HTTP 404), the returned `CheckResult` has `exists: false` and the `security` / `registryInfo` fields are empty. All other errors (network failure, timeout) are rethrown.
 
+#### checkPackages
+
+```ts
+checkPackages(
+  names: readonly string[],
+  options?: BatchCheckOptions,
+): Promise<BatchPackageResult[]>
+```
+
+Check many packages in parallel with a shared concurrency cap. Every check consumes one token from the rate limiter, so the batch respects the configured request budget even when running concurrently. Individual failures are isolated: a package that throws (network error, timeout, …) yields a `{ ok: false, error }` entry instead of rejecting the whole batch. Results are returned in input order.
+
+```ts
+interface BatchCheckOptions {
+  readonly concurrency?: number; // default 5
+  readonly onProgress?: (done: number, total: number, entry: BatchPackageResult) => void;
+}
+
+interface BatchPackageResult {
+  readonly name: string;
+  readonly ok: boolean;
+  readonly result?: CheckResult;
+  readonly error?: string;
+}
+```
+
+Use `checkPackage` when the raw error must propagate to the caller.
+
 #### searchPackages
 
 ```ts
@@ -196,6 +223,52 @@ setSetting(key: string, value: string): Promise<void>
 ```
 
 Upsert a setting value by key (INSERT OR REPLACE semantics).
+
+#### recordCheckHistory
+
+```ts
+recordCheckHistory(result: CheckResult): Promise<void>
+```
+
+Append a successful check to the persistent history table
+(`check_history`, newest-first, capped at 1000). No-op when `result.exists`
+is `false`. Both the CLI and the desktop extension use this, so history is
+shared across frontends.
+
+#### recordHistoryEntry
+
+```ts
+recordHistoryEntry(entry: {
+  readonly packageName: string;
+  readonly level: string;
+  readonly score: number;
+  readonly timestamp: string;
+}): Promise<void>
+```
+
+Append a raw history entry directly (used for legacy `history.json`
+migration).
+
+#### getCheckHistory
+
+```ts
+getCheckHistory(limit?: number): Promise<ReadonlyArray<{
+  readonly packageName: string;
+  readonly level: string;
+  readonly score: number;
+  readonly timestamp: string;
+}>>
+```
+
+Return the persistent check history, newest first.
+
+#### clearCheckHistory
+
+```ts
+clearCheckHistory(): Promise<void>
+```
+
+Remove every entry from the persistent check history.
 
 #### close
 
@@ -1252,6 +1325,44 @@ interface RefreshCompletePayload {
 interface RefreshErrorPayload {
   readonly packageName: string;
   readonly error: unknown;
+}
+```
+
+### Telemetry Manager
+
+**Source:** `src/telemetry/telemetry.ts`
+
+Opt-in, local-only usage telemetry used by the CLI. Disabled by default;
+nothing is ever sent anywhere.
+
+```ts
+class TelemetryManager {
+  constructor(filePath?: string); // default ~/.npm-safe/telemetry.json
+  isEnabled(): boolean;
+  enable(): void;
+  disable(): void;
+  record(event: TelemetryEvent): void; // no-op while disabled
+  getState(): TelemetryState;
+  reset(): void;
+}
+
+interface TelemetryEvent {
+  readonly event: string;          // e.g. "check", "ci"
+  readonly timestamp: string;
+  readonly packageCount?: number;
+  readonly durationMs?: number;
+  readonly levels?: Readonly<Record<string, number>>;
+  readonly error?: string;
+}
+
+interface TelemetryState {
+  readonly enabled: boolean;
+  readonly since?: string;
+  readonly counts: Readonly<Record<string, number>>;
+  readonly totalPackagesScanned: number;
+  readonly levelTotals: Readonly<Record<string, number>>;
+  readonly totalErrors: number;
+  readonly recentEvents: readonly TelemetryEvent[]; // capped at 200
 }
 ```
 

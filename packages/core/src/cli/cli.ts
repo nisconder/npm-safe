@@ -13,6 +13,10 @@ import { registerLangCommand } from "./lang.js";
 import { registerRulesCommand } from "./rules.js";
 import { registerLlmCommand } from "./llm.js";
 import { registerCiCommand } from "./ci.js";
+import { registerTelemetryCommand } from "./telemetry.js";
+import { registerReportCommand } from "./report.js";
+import { registerInstallGateCommands } from "./install-gate.js";
+import { registerDoctorCommand } from "./doctor.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
@@ -23,6 +27,7 @@ program
   .name("npm-safe")
   .description("CLI for the @npm-safe/core local npm security engine")
   .version(packageJson.version, "-v, --version")
+  .enablePositionalOptions()
   .option("-d, --db <path>", "Path to the SQLite cache database")
   .option("-p, --proxy <url>", "HTTP proxy URL for registry requests")
   .option("-j, --json", "Output raw JSON")
@@ -30,7 +35,7 @@ program
   .action(async (packageName: string | undefined) => {
     if (!packageName) return;
     const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
-    await runCheck(packageName, opts);
+    await runCheck([packageName], opts);
     process.exit(process.exitCode ?? 0);
   });
 
@@ -43,6 +48,10 @@ registerLangCommand(program);
 registerRulesCommand(program);
 registerLlmCommand(program);
 registerCiCommand(program);
+registerTelemetryCommand(program);
+registerReportCommand(program);
+registerInstallGateCommands(program);
+registerDoctorCommand(program);
 
 program.parse();
 

@@ -27,9 +27,11 @@ This document records every project plan and its completion status.
 | Plugin system | **Done** (2026-08-02) | Runtime rule registration API, `~/.npm-safe/rules.json` config, `~/.npm-safe/rules/` plugin discovery, `npm-safe rules` CLI, see section 3.9 |
 | LLM configuration (CLI + GUI) | **Done** (2026-08-02) | Optional LLM scanning via `~/.npm-safe/llm.json`; `npm-safe llm` commands; GUI rules and LLM settings pages, see section 3.10 |
 | CI/CD integration | **Done** (2026-08-02) | `npm-safe ci` dependency scan gate + GitHub Actions workflow, see section 3.11 |
-| Multi-package batch API | Pending | Future phase |
-| Telemetry and analytics | Pending | Future phase |
-| npm publisher configuration | Pending | Future phase |
+| Multi-package batch API | **Done** (2026-08-02) | `checkPackages` (parallel + rate-limited), batch `check`, `ci --lockfile`, see section 3.12 |
+| Report export | **Done** (2026-08-03) | `npm-safe report` (JSON/CSV, --file/--batch/--output), see section 3.13 |
+| Telemetry and analytics | **Done** (2026-08-03) | Opt-in local telemetry, `npm-safe telemetry` CLI, see section 3.13 |
+| Install-time security gate | **Done** (2026-08-03) | Opt-in `npm-safe install` gate (threshold 85) + GUI toggle + shell wrappers/PATH shims/`--machine`, see sections 3.15-3.18 |
+| npm publisher configuration | **Deferred** (2026-08-03) | On hold by decision — package stays `"private": true`, not publishing for now |
 
 ---
 
@@ -43,7 +45,7 @@ All source files reside under `packages/core/src/`:
 
 | File | Role |
 |---|---|
-| `index.ts` | `NpmSafeEngine` facade, composes every dependency, exposes 24 public methods |
+| `index.ts` | `NpmSafeEngine` facade, composes every dependency, exposes 29 public methods |
 | `registry/types.ts` | Foundational types: `PackageMetadata`, `AbbreviatedVersion`, `SearchResult`, `NpmRegistryError`, `PackageIdentifier`, `ValidationResult` |
 | `registry/validator.ts` | Pure validators: `validatePackageName`, `validateVersion`, `validateDomain`, `isKnownRegistryDomain` |
 | `registry/client.ts` | `NpmRegistryClient`, HTTP fetch with 10s timeout, 3 retries, exponential backoff (1s/2s/4s) |
@@ -95,7 +97,7 @@ An auxiliary Translator layer (`translator/`) provides a pluggable translation i
 
 - `tsc --noEmit` clean via `pnpm -F @npm-safe/core exec tsc --noEmit` (zero errors, zero warnings)
 - Module graph resolved: all 10 relative imports in `index.ts` resolve to existing files, transitive walk clean
-- All 24 public API methods reachable via the `NpmSafeEngine` instance
+- All 25 public API methods reachable via the `NpmSafeEngine` instance
 - Constructor wiring verified: all 6 dependencies instantiated correctly
 - 3 exported symbols from `index.ts`: `NpmSafeEngine`, `NpmSafeEngineOptions`, `CheckResult`
 
@@ -356,6 +358,168 @@ The CI/CD plan was delivered on 2026-08-02:
 
 The test suite grew from 240 to 247 tests; all pass.
 
+### 3.12 Multi-package batch API (2026-08-02)
+
+The batch API plan was delivered on 2026-08-02:
+
+- **`NpmSafeEngine.checkPackages(names, options)`.** Checks many packages in
+  parallel with a concurrency cap (default 5). Every check consumes one token
+  from the rate limiter, so batches respect the configured request budget.
+  Failures are isolated per package (`{ ok: false, error }`) instead of
+  rejecting the whole batch; results come back in input order. Options:
+  `concurrency`, `onProgress(done, total, entry)`.
+- **Batch CLI.** `npm-safe check` accepts any number of package names
+  (`check lodash express axios`), reads lists from files (`--file`, one per
+  line, `#` comments), and supports `--concurrency`. Batch JSON output is a
+  `BatchPackageResult[]`. Single-package output is unchanged.
+- **Full-lockfile CI scanning.** `npm-safe ci --lockfile` parses
+  `package-lock.json` (npm lockfile v2/v3 `packages` map with a v1
+  `dependencies` fallback) and scans every package including transitive
+  dependencies; `--lockfile --prod` restricts to the direct production
+  dependencies declared in `package.json`.
+- **Batch detail view.** The most recent batch result is persisted to
+  `~/.npm-safe/last-batch.json`; `npm-safe check detail <n>` re-renders the
+  full report (findings, recommendations, snippets) of the n-th package
+  without re-fetching, with index validation and error handling for failed
+  entries.
+
+The test suite grew from 247 to 260 tests; all pass.
+
+### 3.13 Report export + telemetry (2026-08-03)
+
+Two Phase-3 plans were delivered on 2026-08-03:
+
+- **Report export (`npm-safe report`).** Exports security reports for any
+  package set as JSON (full `BatchPackageResult[]`) or CSV
+  (`name,version,level,score,findingCount`). Package sources: positional
+  names, `--file` (one per line), or `--batch` (the last batch check). Output
+  goes to stdout or `--output <path>`; `--concurrency` controls scan
+  parallelism. Invalid entries are exported as `error` rows.
+- **Telemetry and analytics.** `TelemetryManager`
+  (`src/telemetry/telemetry.ts`) aggregates opt-in, local-only usage data in
+  `~/.npm-safe/telemetry.json`: per-event counters (`check`, `ci`), total
+  packages scanned, security-level distribution, error counts, and a rolling
+  window of the last 200 events. Disabled by default; nothing is sent
+  anywhere. CLI: `npm-safe telemetry status | enable | disable | export |
+  reset`. `check` (single and batch) and `ci` record events automatically
+  once enabled.
+
+The test suite grew from 260 to 277 tests; all pass.
+
+### 3.14 Shared check history (2026-08-03)
+
+Check history moved from the extension-only `history.json` into the shared
+SQLite database so CLI and GUI see the same records:
+
+- **Schema.** New `check_history` table (migration `002_check_history.sql`,
+  indexed by timestamp): `package_name`, `level`, `score`, `timestamp`,
+  capped at 1000 entries, newest first.
+- **Engine API.** `NpmSafeEngine.recordCheckHistory(result)`,
+  `recordHistoryEntry(entry)`, `getCheckHistory(limit)`,
+  `clearCheckHistory()`.
+- **CLI.** `check` (single + batch) and `ci` write every successful check
+  into the database.
+- **Desktop extension.** `checkPackage` records via the engine; `getHistory`
+  reads from the database; a one-time migration imports legacy
+  `history.json` entries and removes the file. The GUI frontend is unchanged
+  (field names are identical).
+
+The test suite grew from 277 to 283 tests; all pass.
+
+### 3.15 Install-time security gate (2026-08-03)
+
+An opt-in install gate was added so humans (not just AI agents) get the same
+pre-install safety check:
+
+- **`npm-safe install [args...]`** wraps `npm install`. When the gate is
+  enabled, every positional package argument is checked first; any package
+  scoring below the threshold (default 85, 0-100) is listed and requires
+  manual confirmation (`y/n`) before the real `npm install` runs. Options:
+  `--yes` (auto-confirm), `--dry-run` (check + prompt only), `--threshold`
+  (per-run override). Exit codes: 0 pass, 1 error, 3 aborted by the user.
+- **`npm-safe gate status | enable | disable | set-threshold <n>`** manages
+  the switch, persisted in the shared settings table
+  (`installGate.enabled`, `installGate.threshold`) so the CLI and the GUI
+  stay in sync. Disabled by default.
+- **GUI.** Settings → 安装安全检查: a switch for the gate and a threshold
+  input (0-100, default 85), saved through the existing settings IPC.
+- **Shell integration.** `npm-safe gate shell` installs idempotent wrapper
+  functions for `npm`/`pnpm`/`yarn` into the user's shell config (PowerShell
+  `$PROFILE` on Windows, `~/.zshrc`/`~/.bashrc` otherwise), so every
+  `pnpm add`/`npm install <pkg>` automatically routes through
+  `npm-safe install` (the gate then runs the project's own package manager).
+  `--remove` uninstalls the wrappers.
+
+The test suite grew from 283 to 291 tests; all pass.
+
+### 3.16 Shell wrappers for the install gate (2026-08-03)
+
+`npm-safe gate shell` makes the gate automatic for humans, not just AI
+agents:
+
+- Installs idempotent `npm`/`pnpm`/`yarn` wrapper functions into the user's
+  shell config (PowerShell `$PROFILE` on Windows — `Documents/PowerShell` or
+  `WindowsPowerShell` — else `~/.zshrc`/`~/.bashrc`, detected from `$SHELL`).
+  Wrapper content is chosen by the target file extension (`.ps1` → PowerShell
+  functions, otherwise POSIX functions), so behavior is platform-independent
+  and testable.
+- After a shell restart, `npm install <pkg>` / `pnpm add <pkg>` /
+  `yarn add <pkg>` first run `npm-safe install ...`; the gate checks the
+  packages and prompts below the threshold before the real package manager
+  (auto-detected from the project) runs. Non-install invocations pass
+  through untouched.
+- `--remove` strips the block; re-running re-uses the marker block in place
+  (no duplication). `gate enable` prints a hint pointing at `gate shell`.
+
+The test suite grew from 291 to 296 tests; all pass.
+
+### 3.17 doctor command (2026-08-03)
+
+`npm-safe doctor` diagnoses installation and gate setup in one shot:
+
+- **npm global bin in PATH** — checks `%APPDATA%\npm` (or `npm prefix -g`)
+  is reachable; suggests `setx PATH ...` otherwise. This catches the common
+  Windows issue where `npm-safe` works in VS Code's integrated terminal (its
+  environment differs) but not in external terminals (fresh shells read the
+  registry PATH).
+- **Install gate** — enabled/disabled + threshold.
+- **Shims / wrappers** — on Windows: shim files exist in `~/.npm-safe/bin`,
+  the directory is on PATH, and it precedes the real npm directory (so the
+  gate actually intercepts); elsewhere: the shell profile contains the
+  wrapper block.
+- **Database** — the shared `~/.npm-safe/npm-safe.db` is writable.
+
+Exits non-zero when any check fails and prints actionable fixes.
+README/README_zh gained a Windows PATH setup note.
+
+The test suite grew from 296 to 303 tests; all pass.
+
+### 3.18 Windows interception refinements (2026-08-03)
+
+Real-world Windows testing exposed issues with the PATH-shim approach that
+were fixed:
+
+- **System-PATH precedence.** Some machines put the machine PATH before the
+  user PATH, so user-level shim-directory entries still lose to the Node
+  install dir. New `npm-safe gate shell --machine` (run as administrator)
+  prepends the shim directory to the **system** PATH via PowerShell — one
+  command, idempotent, and it reliably precedes `D:\nodejs` on every shell
+  including cmd.exe. The success message asks the user to restart cmd.
+- **Shim hygiene.** Shims now only intercept `install`/`add`/`i` and forward
+  every other invocation (e.g. `npm --version`, `npm run`) straight to the
+  real binary; the consumed subcommand is stripped before calling
+  `npm-safe install`, so `npm i axios` no longer treats the alias `i` as a
+  package name. The real binary is passed via `NPMSAFE_REAL_*` env vars to
+  avoid shim recursion.
+- **Doctor accuracy.** The interception check now runs `where npm.cmd`
+  authoritatively (first hit must be the shim) instead of comparing PATH
+  indices, which is immune to duplicate entries and case/short-path
+  variants. Fix hints mention that `setx` does not refresh running
+  processes — log off/on or restart explorer.exe, then open a new terminal.
+- **Documentation.** README/README_zh switched to a per-shell activation
+  table and stopped recommending `setx` (1024-char truncation risk after a
+  real incident where a long user PATH was truncated).
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -382,9 +546,11 @@ covered by the shipped desktop GUI in section 3.6.
 
 | Priority | Plan | Description |
 |---|---|---|
-| 1 | **Multi-package batch API** | Extend beyond `refreshAll()`: batch `checkPackage` for multiple names, bulk search, and batch report export. |
-| 2 | **Telemetry and analytics** | Structured logging, optional usage reporting, and metrics export. |
-| 3 | **npm publisher configuration** | The package is currently `"private": true`. Add `publishConfig`, `.npmignore`, and provenance setup when publishing is wanted. |
+| 1 | **Structured command logs** | JSONL logs for CLI commands; usage stats and metrics export are already covered by the telemetry module. |
+
+> **Deferred by decision (2026-08-03):** npm publisher configuration
+> (`publishConfig`, `.npmignore`, provenance) is intentionally on hold — the
+> package stays `"private": true` and will not be published for now.
 
 ---
 

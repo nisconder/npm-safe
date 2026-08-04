@@ -15,7 +15,7 @@ layer lives in its own directory under `src/` and owns a single concern.
 | Scanner | `src/scanner/` | Static analysis engine. Runs a battery of regex-based rules against a package's README and package.json to detect supply-chain risks (install scripts, obfuscation, secret exposure, typosquatting, homograph attacks, etc.). Produces findings with severity weights and an aggregate score. | `static-rules.ts` (class `StaticAnalyzer`) |
 | Scheduler | `src/scheduler/` | Refresh orchestration and rate limiting. A token-bucket rate limiter gates outbound registry calls; the refresh scheduler periodically re-fetches watched packages, re-runs the analyzer, and surfaces progress via three typed events (`refresh:start`, `refresh:complete`, `refresh:error`). | `refresh-scheduler.ts` (class `RefreshScheduler`), `rate-limiter.ts` (class `TokenBucket`) |
 | Store | `src/store/` | SQLite persistence. Owns the `better-sqlite3` connection, runs WAL-mode pragmas, applies ordered migrations from DDL defined in `schema.ts`, and provides typed cache accessors (package metadata, security reports, watchlist, settings). | `database.ts` (class `DatabaseManager`), `cache-manager.ts` (class `CacheManager`) |
-| Facade | `src/index.ts` | `NpmSafeEngine` — a single class that composes all four layers above. Exposes the full public API: `checkPackage`, `searchPackages`, watchlist CRUD, `refreshPackage`/`refreshAll`, `startAutoRefresh`/`stopAutoRefresh`, settings, and lifecycle (`close`). | `index.ts` |
+| Facade | `src/index.ts` | `NpmSafeEngine` — a single class that composes all four layers above. Exposes the full public API: `checkPackage`/`checkPackages`, `searchPackages`, watchlist CRUD, `refreshPackage`/`refreshAll`, `startAutoRefresh`/`stopAutoRefresh`, settings, rule management, LLM configuration, check history, and lifecycle (`close`). | `index.ts` |
 
 **Supporting module: `src/translator/`** — i18n provider interface and skeleton
 adapters for DeepL and OpenAI-compatible APIs. Defined in Phase 1 as interface
@@ -363,6 +363,17 @@ for idempotency.
 │  │  UNIQUE  name    TEXT  NOT NULL   │   │        ON(target_lang)        │  │
 │  │          applied_at TEXT  NOT NULL │   └──────────────────────────────┘  │
 │  └────────────────────────────────────┘                                    │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  check_history  (migration 002)                                     │  │
+│  │  ───────────────────────────────                                    │  │
+│  │  PK  id           INTEGER  AUTOINCREMENT                            │  │
+│  │      package_name TEXT     NOT NULL                                 │  │
+│  │      level        TEXT     NOT NULL                                 │  │
+│  │      score        INTEGER  NOT NULL  CHECK(0..100)                  │  │
+│  │      timestamp    TEXT     NOT NULL                                 │  │
+│  │  INDEX idx_check_history_timestamp ON(timestamp DESC)               │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -401,12 +412,14 @@ The migration runner is implemented in `DatabaseManager` (`src/store/database.ts
 
 ### 6.1. Migration Source
 
-- `SCHEMA_SQL` in `src/store/schema.ts` contains the full DDL for all 7 tables
-  (6 application + `_migrations`), wrapped in `CREATE TABLE IF NOT EXISTS`.
-- `getMigrationList()` returns `['001_initial.sql']` in ordered insertion
-  order. Future migrations append to this array.
+- `SCHEMA_SQL` in `src/store/schema.ts` contains the full DDL for all 8 tables
+  (7 application + `_migrations`), wrapped in `CREATE TABLE IF NOT EXISTS`.
+- `getMigrationList()` returns `['001_initial.sql', '002_check_history.sql']`
+  in ordered insertion order. Future migrations append to this array.
 - `getInitialMigration()` returns the same DDL as `SCHEMA_SQL`, wrapped so the
   runner can record it under the `001_initial.sql` name.
+- `getCheckHistoryMigration()` (migration `002`) creates the `check_history`
+  table (and its timestamp index) for the shared CLI/GUI check history.
 
 ### 6.2. Runner Algorithm (`DatabaseManager.runMigrations()`)
 
@@ -441,6 +454,8 @@ function getMigrationSql(name: string): string {
   switch (name) {
     case "001_initial.sql":
       return getInitialMigration();   // SCHEMA_SQL
+    case "002_check_history.sql":
+      return getCheckHistoryMigration(); // check_history table
     default:
       throw new DatabaseManagerError(`Unknown migration: ${name}`);
   }

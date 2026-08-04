@@ -9,6 +9,9 @@ dist/
 *.db-journal
 *.db-wal
 *.db-shm
+# npm-safe local runtime (config/history written when running inside the repo)
+.npm-safe/
+last-batch.json
 
 # Logs
 *.log

@@ -881,6 +881,53 @@ body.light-theme .title-bar-btn .icon-sun {
   max-width: 60%;
 }
 
+/* Link rows (homepage / repository) with copy button */
+.link-row {
+  align-items: center;
+  gap: 8px;
+}
+
+.link-row .value {
+  flex: 1;
+  text-align: left;
+  max-width: none;
+}
+
+.link-value {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  transition: color var(--md-duration-short) var(--md-ease-standard);
+}
+
+.link-value:hover {
+  color: var(--md-primary);
+  text-decoration-style: solid;
+}
+
+.copy-link-btn {
+  flex-shrink: 0;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--md-outline);
+  border-radius: var(--md-radius-full);
+  background: transparent;
+  color: var(--md-primary);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: background-color var(--md-duration-short) var(--md-ease-standard),
+    border-color var(--md-duration-short) var(--md-ease-standard);
+}
+
+.copy-link-btn:hover {
+  background: var(--md-hover);
+  border-color: var(--md-primary);
+}
+
 /* Badge (Material 3 Chip-like) */
 .badge {
   display: inline-flex;
@@ -1272,6 +1319,17 @@ pre.json-output {
 
 .llm-status-row {
   border-bottom: none;
+}
+
+/* Install gate settings */
+.install-gate-card {
+  max-width: 720px;
+  margin-top: 24px;
+}
+
+.gate-threshold-field {
+  max-width: 260px;
+  margin-top: 12px;
 }
 
 .text-field.outlined select {

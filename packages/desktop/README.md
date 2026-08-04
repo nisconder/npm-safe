@@ -1,4 +1,4 @@
-﻿﻿# @npm-safe/desktop
+﻿# @npm-safe/desktop
 
 [中文版](README_zh.md)
 
@@ -38,6 +38,7 @@ The dashboard is re-rendered every time you navigate back to the tab.
 
 - Enter a package name and click **检查** (or press Enter).
 - The result card shows: package name, latest version, security level (colored badge), score `/100`, number of findings, plus (when available) description, homepage, and repository URL.
+- **Homepage / repository links** — each row has a **复制** button that copies the link to the clipboard, and **Ctrl+click** on the link opens it in the default browser (repository descriptors like `github:user/repo`, `git@…`, or `ssh://…` are normalized to their https URL).
 - Each finding lists its severity (`[CRITICAL]`, `[HIGH]`, etc.), rule id and name, message, recommendation, and code snippet / line number when present.
 - If the package does not exist on the registry, a "未找到" card is shown.
 
@@ -72,6 +73,12 @@ The dashboard is re-rendered every time you navigate back to the tab.
 - Read a setting: enter a key (e.g. `proxy`, `lang`) and click **读取**.
 - Write a setting: enter a key and value, then click **写入**.
 - Results are shown inline; unset keys display "(未设置)".
+- **安装安全检查 (Install gate)** — a switch and a threshold input (0-100,
+  default 85). Turning it on enables the gate shared with the CLI
+  (`installGate.enabled` / `installGate.threshold` in the settings table):
+  when active, `npm-safe install` (or the PATH shims / shell wrappers)
+  checks every package and requires confirmation for packages scoring below
+  the threshold.
 
 ## Prerequisites
 

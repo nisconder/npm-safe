@@ -15,7 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { NpmSafeEngine } from "@npm-safe/core";
+import { NpmSafeEngine, DatabaseManager, CacheManager } from "@npm-safe/core";
 
 // ---------------------------------------------------------------------------
 // Startup: read connectivity info passed via stdin by the Neutralinojs server
@@ -31,8 +31,29 @@ const NL_EXTID = processInput.nlExtensionId;
 // Engine lifecycle
 // ---------------------------------------------------------------------------
 
+const DB_PATH = path.join(os.homedir(), ".npm-safe", "npm-safe.db");
+
+/**
+ * Read the persisted `proxy` setting so the desktop app honours the same
+ * configuration as the CLI (proxy resolution: persisted setting > env).
+ */
+async function readPersistedProxy() {
+  try {
+    const dbm = new DatabaseManager(DB_PATH);
+    try {
+      const cache = new CacheManager(dbm);
+      return (await cache.getSetting("proxy")) ?? undefined;
+    } finally {
+      dbm.close();
+    }
+  } catch {
+    return undefined;
+  }
+}
+
 const engine = new NpmSafeEngine({
-  dbPath: path.join(os.homedir(), ".npm-safe", "npm-safe.db"),
+  dbPath: DB_PATH,
+  proxy: await readPersistedProxy(),
 });
 
 // ---------------------------------------------------------------------------
@@ -94,37 +115,30 @@ const SUPPORTED_METHODS = new Set([
 const HISTORY_DIR = path.join(os.homedir(), ".npm-safe");
 const HISTORY_FILE = path.join(HISTORY_DIR, "history.json");
 
-function readHistory() {
+// One-time migration: the pre-database builds stored check history in
+// history.json. Import it into the shared check_history table (which the CLI
+// also writes) and remove the legacy file.
+async function migrateLegacyHistory() {
   try {
-    if (!fs.existsSync(HISTORY_FILE)) return [];
-    return JSON.parse(fs.readFileSync(HISTORY_FILE, "utf8"));
-  } catch {
-    return [];
-  }
-}
-
-function writeHistory(history) {
-  try {
-    fs.mkdirSync(HISTORY_DIR, { recursive: true });
-    fs.writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));
+    const current = await engine.getCheckHistory(1);
+    if (current.length > 0) return;
+    if (!fs.existsSync(HISTORY_FILE)) return;
+    const legacy = JSON.parse(fs.readFileSync(HISTORY_FILE, "utf8"));
+    if (!Array.isArray(legacy)) return;
+    for (const entry of legacy) {
+      if (!entry?.packageName) continue;
+      await engine.recordHistoryEntry({
+        packageName: entry.packageName,
+        level: entry.level ?? "unknown",
+        score: typeof entry.score === "number" ? entry.score : 0,
+        timestamp: entry.timestamp ?? new Date().toISOString(),
+      });
+    }
+    fs.rmSync(HISTORY_FILE, { force: true });
+    log(`Migrated ${legacy.length} legacy history entries into the database`);
   } catch (err) {
-    log(`writeHistory failed: ${err.message}`, "ERROR");
+    log(`migrateLegacyHistory failed: ${err.message}`, "ERROR");
   }
-}
-
-function recordHistory(data) {
-  const history = readHistory();
-  const entry = {
-    id: crypto.randomUUID(),
-    packageName: data.packageName,
-    level: data.level,
-    score: data.score,
-    timestamp: data.timestamp ?? new Date().toISOString(),
-  };
-  history.unshift(entry);
-  while (history.length > 1000) history.pop();
-  writeHistory(history);
-  return entry;
 }
 
 ws.onmessage = (event) => {
@@ -165,12 +179,7 @@ async function invoke(method, data) {
     case "checkPackage": {
       const result = await engine.checkPackage(data.name);
       if (result.exists && result.security) {
-        recordHistory({
-          packageName: result.packageName,
-          level: result.security.overallLevel,
-          score: result.security.overallScore,
-          timestamp: new Date().toISOString(),
-        });
+        await engine.recordCheckHistory(result);
       }
       return result;
     }
@@ -201,11 +210,19 @@ async function invoke(method, data) {
       await engine.setSetting(data.key, data.value);
       return null;
     case "getHistory":
-      return readHistory();
+      await migrateLegacyHistory();
+      return await engine.getCheckHistory();
     case "addHistory":
-      return recordHistory(data);
+      await engine.recordHistoryEntry({
+        packageName: data.packageName,
+        level: data.level,
+        score: data.score,
+        timestamp: data.timestamp ?? new Date().toISOString(),
+      });
+      return null;
     case "clearHistory":
-      writeHistory([]);
+      await engine.clearCheckHistory();
+      fs.rmSync(HISTORY_FILE, { force: true });
       return null;
     case "listRules":
       return engine.listRules();

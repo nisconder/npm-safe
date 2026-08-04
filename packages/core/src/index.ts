@@ -139,6 +139,44 @@ export interface CheckResult {
   readonly cachedAt: string | null;
 }
 
+/**
+ * Options accepted by {@link NpmSafeEngine.checkPackages}.
+ */
+export interface BatchCheckOptions {
+  /**
+   * Maximum number of concurrent checks. Every check still consumes one
+   * token from the rate limiter.
+   * @default 5
+   */
+  readonly concurrency?: number;
+
+  /**
+   * Progress callback invoked after each package completes. `done` counts
+   * completed packages (both successes and failures); `total` is the input
+   * length.
+   */
+  readonly onProgress?: (
+    done: number,
+    total: number,
+    entry: BatchPackageResult,
+  ) => void;
+}
+
+/**
+ * One entry of the result array returned by
+ * {@link NpmSafeEngine.checkPackages}, in input order.
+ */
+export interface BatchPackageResult {
+  /** Input package name. */
+  readonly name: string;
+  /** Whether the check succeeded. */
+  readonly ok: boolean;
+  /** The check result when `ok` is `true`. */
+  readonly result?: CheckResult;
+  /** Error message when `ok` is `false`. */
+  readonly error?: string;
+}
+
 // ============================================================================
 // Engine
 // ============================================================================
@@ -323,6 +361,62 @@ export class NpmSafeEngine {
     return this.client.searchPackages(query, size);
   }
 
+  /**
+   * Check many packages in parallel with a shared concurrency cap.
+   *
+   * Every check consumes one token from the rate limiter, so the batch
+   * respects the configured request budget even when running concurrently.
+   * Individual failures are isolated: a package that throws (network error,
+   * timeout, …) yields a `{ ok: false, error }` entry instead of rejecting
+   * the whole batch. Use `checkPackage` when the raw error must propagate.
+   *
+   * @param names - Package names to check.
+   * @param options - Batch options (concurrency, progress callback).
+   * @returns One entry per input name, in input order.
+   */
+  async checkPackages(
+    names: readonly string[],
+    options?: BatchCheckOptions,
+  ): Promise<BatchPackageResult[]> {
+    const concurrency = Math.max(
+      1,
+      Math.min(options?.concurrency ?? 5, names.length || 1),
+    );
+    const results: BatchPackageResult[] = new Array(names.length);
+    let next = 0;
+    let done = 0;
+
+    const worker = async (): Promise<void> => {
+      for (;;) {
+        const index = next++;
+        if (index >= names.length) return;
+        const name = names[index];
+        try {
+          await this.limiter.consume(1);
+          const result = await this.checkPackage(name);
+          const entry: BatchPackageResult = { name, ok: true, result };
+          results[index] = entry;
+          done++;
+          options?.onProgress?.(done, names.length, entry);
+        } catch (error) {
+          const entry: BatchPackageResult = {
+            name,
+            ok: false,
+            error: error instanceof Error ? error.message : String(error),
+          };
+          results[index] = entry;
+          done++;
+          options?.onProgress?.(done, names.length, entry);
+        }
+      }
+    };
+
+    await Promise.all(
+      Array.from({ length: concurrency }, () => worker()),
+    );
+    return results;
+  }
+
   // --------------------------------------------------------------------------
   // Watchlist
   // --------------------------------------------------------------------------
@@ -404,6 +498,59 @@ export class NpmSafeEngine {
    */
   async setSetting(key: string, value: string): Promise<void> {
     return this.cache.setSetting(key, value);
+  }
+
+  // --------------------------------------------------------------------------
+  // Check history
+  // --------------------------------------------------------------------------
+
+  /**
+   * Record a check into the persistent history database. Used by the CLI and
+   * the desktop extension so history is shared across both frontends.
+   *
+   * @param result - A check result for an existing package.
+   */
+  async recordCheckHistory(result: CheckResult): Promise<void> {
+    if (!result.exists) return;
+    await this.recordHistoryEntry({
+      packageName: result.packageName,
+      level: result.security.overallLevel,
+      score: result.security.overallScore,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Append a raw history entry (newest-first, capped at 1000).
+   */
+  async recordHistoryEntry(entry: {
+    readonly packageName: string;
+    readonly level: string;
+    readonly score: number;
+    readonly timestamp: string;
+  }): Promise<void> {
+    await this.cache.addHistoryEntry(entry);
+  }
+
+  /**
+   * Return the persistent check history, newest first (capped at 1000).
+   */
+  async getCheckHistory(limit?: number): Promise<
+    ReadonlyArray<{
+      readonly packageName: string;
+      readonly level: string;
+      readonly score: number;
+      readonly timestamp: string;
+    }>
+  > {
+    return this.cache.getHistory(limit);
+  }
+
+  /**
+   * Clear the persistent check history.
+   */
+  async clearCheckHistory(): Promise<void> {
+    return this.cache.clearHistory();
   }
 
   // --------------------------------------------------------------------------
@@ -708,3 +855,6 @@ export type { RuleConfig, RuleConfigFile, RuleOptions } from './scanner/rule-con
 export { loadRulesFromDirectory } from './scanner/rule-loader.js';
 export type { LoadedRuleFile, RuleModuleExport } from './scanner/rule-loader.js';
 export type { RuleDescriptor } from './scanner/static-rules.js';
+export { DatabaseManager } from './store/database.js';
+export { CacheManager, DEFAULT_CACHE_TTL_MS, MAX_CHECK_HISTORY } from './store/cache-manager.js';
+export type { CacheManagerOptions } from './store/cache-manager.js';

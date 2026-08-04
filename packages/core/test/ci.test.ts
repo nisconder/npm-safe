@@ -132,4 +132,86 @@ describe("CLI ci", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("fails when --lockfile is used without a lockfile", () => {
+    const dir = tempProject({ name: "x", version: "0.0.0" });
+    try {
+      const { status, stderr } = runCli(["--db", path.join(dir, "x.db"), "ci", "--dir", dir, "--lockfile"]);
+      assert.strictEqual(status, 1);
+      assert.ok(stderr.includes("package-lock.json"));
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("scans transitive dependencies from a lockfile with --lockfile", () => {
+    const dir = tempProject({
+      name: "lock-test",
+      version: "0.0.0",
+      dependencies: { a: "^1.0.0" },
+    });
+    // npm lockfile v3 shape: packages map with node_modules/ keys.
+    writeFileSync(
+      path.join(dir, "package-lock.json"),
+      JSON.stringify({
+        name: "lock-test",
+        version: "0.0.0",
+        lockfileVersion: 3,
+        packages: {
+          "": { name: "lock-test", version: "0.0.0" },
+          "node_modules/a": { version: "1.0.0" },
+          "node_modules/b": { version: "2.0.0" },
+          "node_modules/@scope/c": { version: "3.0.0" },
+          "node_modules/a/node_modules/d": { version: "4.0.0" },
+        },
+      }),
+    );
+    try {
+      const db = path.join(dir, "x.db");
+      const { status, stdout } = runCli(["--db", db, "ci", "--dir", dir, "--lockfile", "--json", "--rate-limit", "100"]);
+      assert.strictEqual(status, 0);
+      const report = JSON.parse(stdout) as {
+        dependencyCount: number;
+        packages: Array<{ name: string }>;
+      };
+      assert.strictEqual(report.dependencyCount, 4);
+      const names = report.packages.map((p) => p.name);
+      assert.ok(names.includes("a"));
+      assert.ok(names.includes("b"));
+      assert.ok(names.includes("@scope/c"));
+      assert.ok(names.includes("d"));
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("restricts --lockfile --prod to direct production dependencies", () => {
+    const dir = tempProject({
+      name: "lock-prod",
+      version: "0.0.0",
+      dependencies: { a: "^1.0.0" },
+    });
+    writeFileSync(
+      path.join(dir, "package-lock.json"),
+      JSON.stringify({
+        name: "lock-prod",
+        version: "0.0.0",
+        lockfileVersion: 3,
+        packages: {
+          "": { name: "lock-prod", version: "0.0.0" },
+          "node_modules/a": { version: "1.0.0" },
+          "node_modules/b": { version: "2.0.0" },
+        },
+      }),
+    );
+    try {
+      const db = path.join(dir, "x.db");
+      const { status, stdout } = runCli(["--db", db, "ci", "--dir", dir, "--lockfile", "--prod", "--json", "--rate-limit", "100"]);
+      assert.strictEqual(status, 0);
+      const report = JSON.parse(stdout) as { dependencyCount: number };
+      assert.strictEqual(report.dependencyCount, 1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

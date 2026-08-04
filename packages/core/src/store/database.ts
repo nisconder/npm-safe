@@ -10,7 +10,12 @@
  */
 
 import Database from "better-sqlite3";
-import { SCHEMA_SQL, getMigrationList, getInitialMigration } from "./schema.js";
+import {
+  SCHEMA_SQL,
+  getMigrationList,
+  getInitialMigration,
+  getCheckHistoryMigration,
+} from "./schema.js";
 
 /**
  * Error thrown by {@link DatabaseManager} when the underlying `better-sqlite3`
@@ -42,6 +47,8 @@ function getMigrationSql(name: string): string {
   switch (name) {
     case "001_initial.sql":
       return getInitialMigration();
+    case "002_check_history.sql":
+      return getCheckHistoryMigration();
     default:
       throw new DatabaseManagerError(`Unknown migration: ${name}`);
   }

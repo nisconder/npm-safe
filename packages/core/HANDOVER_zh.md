@@ -27,9 +27,11 @@
 | 插件系统 | **已完成**（2026-08-02） | 运行时规则注册 API、`~/.npm-safe/rules.json` 配置、`~/.npm-safe/rules/` 插件发现、`npm-safe rules` CLI，见第 3.9 节 |
 | LLM 配置管理（CLI + GUI） | **已完成**（2026-08-02） | 可选 LLM 扫描通过 `~/.npm-safe/llm.json` 配置；`npm-safe llm` 命令；桌面 GUI 评价体系与 LLM 设置页，见第 3.10 节 |
 | CI/CD 集成 | **已完成**（2026-08-02） | `npm-safe ci` 依赖扫描门禁 + GitHub Actions 工作流，见第 3.11 节 |
-| 多包批量 API | 待办 | 未来阶段 |
-| 遥测与分析 | 待办 | 未来阶段 |
-| npm 发布者配置 | 待办 | 未来阶段 |
+| 多包批量 API | **已完成**（2026-08-02） | `checkPackages`（并行 + 限速）、批量 `check`、`ci --lockfile`，见第 3.12 节 |
+| 报告导出 | **已完成**（2026-08-03） | `npm-safe report`（JSON/CSV，--file/--batch/--output），见第 3.13 节 |
+| 遥测与分析 | **已完成**（2026-08-03） | 可选的本地遥测、`npm-safe telemetry` CLI，见第 3.13 节 |
+| 安装时安全检查 | **已完成**（2026-08-03） | 可选的 `npm-safe install` 门禁（阈值 85）+ GUI 开关 + shell 包装/PATH shim/`--machine`，见第 3.15-3.18 节 |
+| npm 发布者配置 | **暂缓**（2026-08-03） | 按决定暂缓——包保持 `"private": true`，暂不发布 |
 
 ---
 
@@ -43,7 +45,7 @@
 
 | 文件 | 职责 |
 |---|---|
-| `index.ts` | `NpmSafeEngine` 门面 — 组合所有依赖，暴露 24 个公共方法 |
+| `index.ts` | `NpmSafeEngine` 门面 — 组合所有依赖，暴露 29 个公共方法 |
 | `registry/types.ts` | 基础类型定义：`PackageMetadata`、`AbbreviatedVersion`、`SearchResult`、`NpmRegistryError`、`PackageIdentifier`、`ValidationResult` |
 | `registry/validator.ts` | 纯校验器：`validatePackageName`、`validateVersion`、`validateDomain`、`isKnownRegistryDomain` |
 | `registry/client.ts` | `NpmRegistryClient` — HTTP 请求，10s 超时，3 次重试，指数退避（1s/2s/4s） |
@@ -72,7 +74,7 @@
 
 辅助翻译器层（`translator/`）提供了可插拔的翻译接口，但第一阶段尚未接入核心扫描流水线。
 
-### 公共 API（`NpmSafeEngine` 上的 24 个方法）
+### 公共 API（`NpmSafeEngine` 上的 29 个方法）
 
 - `checkPackage(name)` — 缓存优先的安全检查；返回包含元数据 + 静态扫描报告的 `CheckResult`
 - `searchPackages(query, size?)` — 委托给 registry 搜索端点
@@ -95,7 +97,7 @@
 
 - 通过 `pnpm -F @npm-safe/core exec tsc --noEmit` 验证，tsc 零错误零警告
 - 模块图已解析：`index.ts` 中的 10 个相对导入均解析到现有文件，传递遍历无误
-- 24 个公共 API 方法均可通过 `NpmSafeEngine` 实例访问
+- 29 个公共 API 方法均可通过 `NpmSafeEngine` 实例访问
 - 构造函数依赖注入已验证：6 个依赖均正确实例化
 - `index.ts` 导出 3 个符号：`NpmSafeEngine`、`NpmSafeEngineOptions`、`CheckResult`
 
@@ -289,6 +291,80 @@ CI/CD 计划于 2026-08-02 交付：
 
 测试套件从 240 个增至 247 个，全部通过。
 
+### 3.12 多包批量 API（2026-08-02）
+
+批量 API 计划于 2026-08-02 交付：
+
+- **`NpmSafeEngine.checkPackages(names, options)`。** 并行检查多个包，并发上限默认 5。每次检查消耗一个限速令牌，批量扫描遵守配置的请求预算。失败按包隔离（`{ ok: false, error }`），不会中断整个批次；结果按输入顺序返回。选项：`concurrency`、`onProgress(done, total, entry)`。
+- **批量 CLI。** `npm-safe check` 接受任意数量的包名（`check lodash express axios`），支持从文件读取列表（`--file`，每行一个，`#` 注释）与 `--concurrency`。批量 JSON 输出为 `BatchPackageResult[]`。单包输出不变。
+- **lockfile 全量扫描。** `npm-safe ci --lockfile` 解析 `package-lock.json`（npm lockfile v2/v3 的 `packages` 映射，兼容 v1 `dependencies` 回退），扫描包括间接依赖在内的全部包；`--lockfile --prod` 仅保留 `package.json` 中声明的直接生产依赖。
+- **批量详情查看。** 最近一次批量结果持久化到 `~/.npm-safe/last-batch.json`；`npm-safe check detail <n>` 无需重新拉取即可重渲染第 n 个包的完整报告（发现项、建议、代码片段），含索引校验与失败项错误处理。
+
+测试套件从 247 个增至 260 个，全部通过。
+
+### 3.13 报告导出 + 遥测（2026-08-03）
+
+两个第三阶段计划于 2026-08-03 交付：
+
+- **报告导出（`npm-safe report`）。** 将任意包集合的安全报告导出为 JSON（完整 `BatchPackageResult[]`）或 CSV（`name,version,level,score,findingCount`）。包来源：位置参数、`--file`（每行一个）或 `--batch`（上次批量检查）。输出到 stdout 或 `--output <path>`；`--concurrency` 控制扫描并行度。无效条目以 `error` 行导出。
+- **遥测与分析。** `TelemetryManager`（`src/telemetry/telemetry.ts`）在 `~/.npm-safe/telemetry.json` 中聚合可选、仅本地的用量数据：按事件计数（`check`、`ci`）、已扫描包总数、安全级别分布、错误计数，以及最近 200 条事件的滚动窗口。默认关闭，数据不发送到任何地方。CLI：`npm-safe telemetry status | enable | disable | export | reset`。启用后，`check`（单包与批量）与 `ci` 自动记录事件。
+
+测试套件从 260 个增至 277 个，全部通过。
+
+### 3.14 共享检查历史（2026-08-03）
+
+检查历史从仅扩展使用的 `history.json` 迁移到共享 SQLite 数据库，使 CLI 与 GUI 看到相同的记录：
+
+- **表结构。** 新增 `check_history` 表（迁移 `002_check_history.sql`，按时间戳建索引）：`package_name`、`level`、`score`、`timestamp`，上限 1000 条，新的在前。
+- **引擎 API。** `NpmSafeEngine.recordCheckHistory(result)`、`recordHistoryEntry(entry)`、`getCheckHistory(limit)`、`clearCheckHistory()`。
+- **CLI。** `check`（单包与批量）和 `ci` 将每次成功检查写入数据库。
+- **桌面扩展。** `checkPackage` 通过引擎记录；`getHistory` 从数据库读取；一次性迁移将旧 `history.json` 条目导入并删除文件。GUI 前端无需改动（字段名一致）。
+
+测试套件从 277 个增至 283 个，全部通过。
+
+### 3.15 安装时安全检查（2026-08-03）
+
+新增可选安装门禁，让人工用户（而非仅 AI 代理）也能获得安装前安全检查：
+
+- **`npm-safe install [args...]`** 包装 `npm install`。门禁启用时，先检查每个位置参数包名；任何分数低于阈值（默认 85，0-100）的包都会被列出并要求手动确认（`y/n`），确认后才执行真正的 `npm install`。选项：`--yes`（自动确认）、`--dry-run`（仅检查+确认）、`--threshold`（本次运行覆盖）。退出码：0 通过、1 错误、3 用户中止。
+- **`npm-safe gate status | enable | disable | set-threshold <n>`** 管理开关，持久化在共享设置表（`installGate.enabled`、`installGate.threshold`），CLI 与 GUI 保持同步。默认关闭。
+- **GUI。** 设置 → 安装安全检查：门禁开关 + 阈值输入（0-100，默认 85），通过既有 settings IPC 保存。
+- **Shell 集成。** `npm-safe gate shell` 将 `npm`/`pnpm`/`yarn` 的幂等包装函数写入用户 shell 配置（Windows 上为 PowerShell `$PROFILE`，其他平台为 `~/.zshrc`/`~/.bashrc`），使每次 `pnpm add`/`npm install <pkg>` 都自动经过 `npm-safe install`（门禁随后运行项目自身的包管理器）。`--remove` 可卸载包装。
+
+测试套件从 283 个增至 291 个，全部通过。
+
+### 3.16 安装门禁的 Shell 包装（2026-08-03）
+
+`npm-safe gate shell` 让门禁对人工用户（而非仅 AI 代理）自动化：
+
+- 将 `npm`/`pnpm`/`yarn` 的幂等包装函数写入用户 shell 配置（Windows 上为 PowerShell `$PROFILE`——`Documents/PowerShell` 或 `WindowsPowerShell`——否则为 `~/.zshrc`/`~/.bashrc`，依据 `$SHELL` 检测）。包装内容按目标文件扩展名选择（`.ps1` → PowerShell 函数，否则 POSIX 函数），行为与平台无关、可测试。
+- 重启 shell 后，`npm install <pkg>` / `pnpm add <pkg>` / `yarn add <pkg>` 会先执行 `npm-safe install ...`；门禁检查包并在低于阈值时提示，确认后才运行真正的包管理器（从项目自动检测）。非安装调用原样透传。
+- `--remove` 移除该块；重复运行复用标记块原地更新（不重复）。`gate enable` 会输出指向 `gate shell` 的提示。
+
+测试套件从 291 个增至 296 个，全部通过。
+
+### 3.17 doctor 诊断命令（2026-08-03）
+
+`npm-safe doctor` 一键诊断安装与门禁配置：
+
+- **npm 全局 bin 是否在 PATH 中** —— 检查 `%APPDATA%\npm`（或 `npm prefix -g`）可达性，否则提示 `setx PATH ...`。这能捕获常见的 Windows 问题：`npm-safe` 在 VS Code 集成终端可用（其环境不同），但外部终端找不到（新 shell 从注册表读取 PATH）。
+- **安装门禁** —— 启用状态 + 阈值。
+- **shim / 包装** —— Windows 上：`~/.npm-safe/bin` 下 shim 文件存在、该目录在 PATH 中且位于真实 npm 目录之前（门禁确实拦截）；其他平台：shell profile 包含包装块。
+- **数据库** —— 共享的 `~/.npm-safe/npm-safe.db` 可写。
+
+任一检查失败时非零退出并打印可执行的修复建议。README/README_zh 补充了 Windows PATH 配置说明。
+
+测试套件从 296 个增至 303 个，全部通过。
+
+### 3.18 Windows 拦截细化（2026-08-03）
+
+真实 Windows 环境测试暴露了 PATH shim 方案的问题并已修复：
+
+- **系统 PATH 优先级。** 部分机器把机器 PATH 放在用户 PATH 之前，用户级 shim 目录条目仍然输给 Node 安装目录。新增 `npm-safe gate shell --machine`（管理员运行）：通过 PowerShell 将 shim 目录前置到**系统** PATH——一条命令、幂等，且可靠地排在 `D:\nodejs` 之前，对包括 cmd.exe 在内的所有 shell 生效。成功提示会要求用户重启 cmd。
+- **shim 卫生。** shim 现在只拦截 `install`/`add`/`i`，其它调用（如 `npm --version`、`npm run`）直接转发真实二进制；调用 `npm-safe install` 前剥离已消费的子命令，因此 `npm i axios` 不再把别名 `i` 当作包名。真实二进制通过 `NPMSAFE_REAL_*` 环境变量传递以避免 shim 递归。
+- **doctor 准确性。** 拦截检查改为权威执行 `where npm.cmd`（首个命中必须是 shim），不再比较 PATH 索引——对重复条目、大小写、短路径变体免疫。修复提示说明 `setx` 不会刷新已运行进程——需注销/重启 explorer.exe 后再开新终端。
+- **文档。** README/README_zh 改为按 shell 分场景的激活表格，并停止推荐 `setx`（一次真实事故中长用户 PATH 被 1024 字符截断后，已弃用该建议）。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -300,7 +376,7 @@ CI/CD 计划于 2026-08-02 交付：
 | `README.md`（工作区根目录） | 英文项目说明：安装配置、CLI 用法、架构、设计决策、阶段状态 |
 | `README_zh.md`（工作区根目录） | 说明文档的中文翻译，与英文版互相链接 |
 | `packages/core/ARCHITECTURE.md` | 层映射、模块依赖图、数据流（热路径和刷新路径）、数据库模式、迁移系统、错误分类、设计决策 |
-| `packages/core/API.md` | 完整公共 API 参考：`NpmSafeEngine`（全部 24 个方法）、导出的接口和类型定义 |
+| `packages/core/API.md` | 完整公共 API 参考：`NpmSafeEngine`（全部 29 个方法）、导出的接口和类型定义 |
 | `packages/core/SCANNER_RULES.md` | 全部 10 条内置规则的参考：类别、严重性、检测逻辑、缓解措施 |
 | `packages/core/HANDOVER.md` | 本文档，英文版 |
 | `packages/core/HANDOVER_zh.md` | 中文交接文档 |
@@ -315,9 +391,10 @@ Neutralinojs 图形界面（MD3）计划已交付，不再列入下表；详见�
 
 | 优先级 | 计划 | 描述 |
 |---|---|---|
-| 1 | **多包批量 API** | 在 `refreshAll()` 之外扩展：支持多包名的批量 `checkPackage`、批量搜索和批量报告导出。 |
-| 2 | **遥测与分析** | 结构化日志、可选的使用报告和指标导出。 |
-| 3 | **npm 发布者配置** | 该包目前为 `"private": true`。当需要发布时，添加 `publishConfig`、`.npmignore` 和来源证明（provenance）设置。 |
+| 1 | **结构化命令日志** | 为 CLI 命令补充 JSONL 结构化日志；用量统计与指标导出已由遥测模块覆盖。 |
+
+> **按决定暂缓（2026-08-03）：** npm 发布者配置（`publishConfig`、`.npmignore`、
+> provenance）有意暂不推进——包保持 `"private": true`，暂不发布。
 
 ---
 

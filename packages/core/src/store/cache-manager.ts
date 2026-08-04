@@ -415,4 +415,69 @@ export class CacheManager {
       .all() as ReadonlyArray<{ readonly name: string }>;
     return rows.map((r) => r.name);
   }
+
+  // --------------------------------------------------------------------------
+  // Check history
+  // --------------------------------------------------------------------------
+
+  /**
+   * Append an entry to the persistent check history, keeping only the most
+   * recent {@link MAX_CHECK_HISTORY} entries.
+   */
+  async addHistoryEntry(entry: {
+    readonly packageName: string;
+    readonly level: string;
+    readonly score: number;
+    readonly timestamp: string;
+  }): Promise<void> {
+    this.db
+      .prepare<[string, string, number, string]>(
+        `INSERT INTO check_history (package_name, level, score, timestamp)
+         VALUES (?, ?, ?, ?)`,
+      )
+      .run(entry.packageName, entry.level, entry.score, entry.timestamp);
+    this.db
+      .prepare(
+        `DELETE FROM check_history WHERE id NOT IN (
+           SELECT id FROM check_history ORDER BY timestamp DESC, id DESC LIMIT ${MAX_CHECK_HISTORY}
+         )`,
+      )
+      .run();
+  }
+
+  /**
+   * Return the persistent check history, newest first.
+   */
+  async getHistory(limit?: number): Promise<
+    ReadonlyArray<{ readonly packageName: string; readonly level: string; readonly score: number; readonly timestamp: string }>
+  > {
+    const capped = Math.max(1, Math.min(limit ?? MAX_CHECK_HISTORY, MAX_CHECK_HISTORY));
+    const rows = this.db
+      .prepare(
+        `SELECT package_name, level, score, timestamp FROM check_history
+         ORDER BY timestamp DESC, id DESC LIMIT ${capped}`,
+      )
+      .all() as ReadonlyArray<{
+      readonly package_name: string;
+      readonly level: string;
+      readonly score: number;
+      readonly timestamp: string;
+    }>;
+    return rows.map((r) => ({
+      packageName: r.package_name,
+      level: r.level,
+      score: r.score,
+      timestamp: r.timestamp,
+    }));
+  }
+
+  /**
+   * Remove every entry from the persistent check history.
+   */
+  async clearHistory(): Promise<void> {
+    this.db.prepare("DELETE FROM check_history").run();
+  }
 }
+
+/** Maximum number of check-history entries retained in the database. */
+export const MAX_CHECK_HISTORY = 1000;
