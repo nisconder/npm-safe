@@ -1,11 +1,11 @@
-﻿# @npm-safe — 本地 npm 包安全引擎
+# @npm-safe — 本地 npm 包安全引擎
 
 [English](README.md)
 
 ![版本](https://img.shields.io/badge/版本-v0.1.0-2196F3)
 ![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
-![语言](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
-![测试](https://img.shields.io/badge/测试-206%20通过-brightgreen)
+![语言](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
+![测试](https://img.shields.io/badge/测试-303%20通过-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
 
@@ -378,6 +378,9 @@ npm-safe/
   pnpm-lock.yaml           # 锁文件
   pnpm-workspace.yaml      # workspace = packages/*
   tsconfig.base.json       # 共享 TypeScript 配置（ESNext, strict）
+  .github/
+    workflows/
+      ci.yml               # CI：类型检查 + 测试 + 依赖安全扫描
   packages/
     core/
       package.json         # @npm-safe/core v0.1.0, ESM, private

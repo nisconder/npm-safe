@@ -1,11 +1,11 @@
-﻿# @npm-safe — Local npm Package Security Engine
+# @npm-safe — Local npm Package Security Engine
 
 [中文版](README_zh.md)
 
 ![Version](https://img.shields.io/badge/version-v0.1.0-2196F3)
 ![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
-![Language](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-206%20passing-brightgreen)
+![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-303%20passing-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
 
@@ -441,6 +441,9 @@ npm-safe/
   pnpm-lock.yaml           # lockfile
   pnpm-workspace.yaml      # workspace = packages/*
   tsconfig.base.json       # shared TypeScript config (ESNext, strict)
+  .github/
+    workflows/
+      ci.yml               # CI: typecheck + tests + dependency security scan
   packages/
     core/
       package.json         # @npm-safe/core v0.1.0, ESM, private

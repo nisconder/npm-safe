@@ -10,7 +10,7 @@ A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core
 - **Check** — enter a package name (press Enter or click 检查) and view its security level, score, and detailed findings.
 - **Search** — keyword search against the npm registry (1-250 results, default 20); click a result to jump straight to Check.
 - **Watch** — add/remove packages from the watchlist and refresh individual or all watched packages.
-- **评价体系 (Rules)** — list every registered scan rule with its source and description; toggle each rule on/off and override its severity; reload plugin rules from `~/.npm-safe/rules/`.
+- **Rules** — list every registered scan rule with its source and description; toggle each rule on/off and override its severity; reload plugin rules from `~/.npm-safe/rules/`.
 - **LLM** — configure the optional LLM scan: enable/disable switch, provider (OpenAI / Gemini / Anthropic), API key, model, and base URL, plus a test-connection button. The API key is masked in the status display.
 - **Settings** — read/write arbitrary engine settings (e.g. `proxy`, `lang`).
 - **Material You theming** — independent light/dark palettes (seed `#4f8cff`), toggled from the custom title bar and remembered across sessions.
@@ -135,7 +135,7 @@ The desktop app is a three-layer Neutralinojs application:
                         │ WebSocket IPC (extensions.dispatch)
 ┌───────────────────────▼─────────────────────────────┐
 │  Extension  resources/extensions/core/main.mjs     │
-│  Node.js process hosting NpmSafeEngine (12 methods)│
+│  Node.js process hosting NpmSafeEngine (20 methods)│
 │  History persistence → ~/.npm-safe/history.json    │
 └───────────────────────┬─────────────────────────────┘
                         │ spawns & manages
@@ -162,7 +162,7 @@ A Node.js process spawned by the Neutralinojs server (declared in `neutralino.co
 
 - Owns the `NpmSafeEngine` instance backed by SQLite at `~/.npm-safe/npm-safe.db`.
 - Broadcasts `engineReady` on WebSocket connect so the frontend can hydrate persisted preferences (theme, last tab) from the settings table.
-- Exposes **21 IPC methods**: `checkPackage`, `searchPackages`, `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`, `refreshPackage`, `refreshAll`, `getSetting`, `setSetting`, `getHistory`, `addHistory`, `clearHistory`, `listRules`, `setRuleEnabled`, `setRuleSeverity`, `setRuleOptions`, `loadRulePlugins`, `getLlmStatus`, `setLlmConfig`, `testLlmConnection`.
+- Exposes **20 IPC methods**: `checkPackage`, `searchPackages`, `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`, `refreshPackage`, `refreshAll`, `getSetting`, `setSetting`, `getHistory`, `addHistory`, `clearHistory`, `listRules`, `setRuleEnabled`, `setRuleSeverity`, `setRuleOptions`, `loadRulePlugins`, `getLlmStatus`, `setLlmConfig`, `testLlmConnection`.
 - Maintains check history in `~/.npm-safe/history.json` (unshift, capped at 1000 entries; `checkPackage` records an entry automatically when the package exists and a security report is produced).
 - Writes diagnostic logs to `%TEMP%/npmsafe-extension.log` (Windows) or `$TMPDIR/npmsafe-extension.log` (macOS/Linux).
 - Closes the engine and exits when the WebSocket connection to the server drops.
@@ -230,3 +230,4 @@ packages/desktop/
 ## What's Next?
 
 What's our next surprise? **It's coming soon!**
+

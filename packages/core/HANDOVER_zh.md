@@ -1,4 +1,4 @@
-﻿# @npm-safe/core：项目交接文档
+# @npm-safe/core：项目交接文档
 
 **日期：** 2026-08-01
 **包名：** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0

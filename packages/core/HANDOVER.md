@@ -1,4 +1,4 @@
-﻿# @npm-safe/core: Project Handover
+# @npm-safe/core: Project Handover
 
 **Date:** 2026-08-01
 **Package:** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
