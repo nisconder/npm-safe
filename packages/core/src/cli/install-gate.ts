@@ -1,5 +1,5 @@
 ﻿import { Command } from "commander";
-import { spawnSync } from "node:child_process";
+import { spawnSync, execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -147,7 +147,40 @@ export function registerInstallGateCommands(program: Command): void {
     .description("Install shell wrappers + PATH shims so npm/pnpm/yarn go through the gate automatically")
     .option("--file <path>", "Target a specific shell config file (default: auto-detected)")
     .option("--remove", "Remove the previously installed wrappers and shims")
-    .action(async (options: { file?: string; remove?: boolean }) => {
+    .option("--machine", "Windows: prepend the shim dir to the system PATH (run as administrator)")
+    .action(async (options: { file?: string; remove?: boolean; machine?: boolean }) => {
+      if (options.machine) {
+        if (process.platform !== "win32") {
+          console.error(t("gate.shell.machineWinOnly"));
+          process.exitCode = 1;
+          return;
+        }
+        try {
+          installShims();
+          const dir = getShimDir();
+          const script =
+            `$s = '${dir}'; ` +
+            `$m = [Environment]::GetEnvironmentVariable('Path', 'Machine'); ` +
+            `if (($m -split ';') -contains $s) { 'already' } else { ` +
+            `[Environment]::SetEnvironmentVariable('Path', $s + ';' + $m, 'Machine'); 'ok' }`;
+          const out = execFileSync("powershell", ["-NoProfile", "-Command", script], {
+            encoding: "utf8",
+          }).trim();
+          if (out === "already") {
+            console.log(t("gate.shell.machineAlready", { path: dir }));
+          } else {
+            console.log(t("gate.shell.machineInstalled", { path: dir }));
+          }
+        } catch (err) {
+          console.error(
+            t("gate.shell.machineFailed", {
+              message: err instanceof Error ? err.message : String(err),
+            }),
+          );
+          process.exitCode = 1;
+        }
+        return;
+      }
       if (options.remove) {
         let anything = false;
         const target = options.file ?? detectShellConfig();

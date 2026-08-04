@@ -347,22 +347,25 @@ npm-safe install axios --dry-run   # check + prompt without installing
 
 `gate enable` does everything in one step: it enables the check, installs
 **PATH shims** into `~/.npm-safe/bin` (npm.cmd / pnpm.cmd / yarn.cmd — they
-work in every shell, including **cmd.exe**), and appends idempotent wrapper
-functions for `npm`, `pnpm`, and `yarn` to your shell config (PowerShell
-`$PROFILE` on Windows, `~/.zshrc`/`~/.bashrc` otherwise). Two ways to
-activate:
+work in every shell), and appends wrapper functions for `npm`, `pnpm`, and
+`yarn` to your shell config (PowerShell `$PROFILE` on Windows,
+`~/.zshrc`/`~/.bashrc` otherwise). How to activate:
 
-- **Windows (any shell, incl. cmd):** add `%USERPROFILE%\.npm-safe\bin` to
-  your PATH (System Settings → Environment Variables, or `setx PATH
-  "%USERPROFILE%\.npm-safe\bin;%PATH%"` in cmd).
-- **PowerShell / bash / zsh:** just restart your shell (the profile
-  wrappers are loaded automatically).
+| Your shell | Activation |
+|---|---|
+| PowerShell / bash / zsh | Just restart the shell — the profile wrappers load automatically |
+| **Windows cmd** (or any shell where the shim dir isn't first in PATH) | Run **once as administrator**: `npm-safe gate shell --machine` — this prepends the shim directory to the **system** PATH, so every new terminal (incl. cmd) is intercepted. Reopen terminals afterwards. |
+
+On Windows, only the system PATH reliably precedes the Node.js installation
+directory; user-PATH edits are not enough when a tool puts the machine PATH
+first. `npm-safe doctor` verifies that `where npm.cmd` resolves to the shim
+first and prints the exact fix.
 
 Pass `--shell-file <path>` to target a specific config file, `--no-shell` to
-skip both. After activation, any `pnpm add <pkg>` or `npm install <pkg>`
-first runs `npm-safe install ...` — the gate checks the package and asks for
+skip. After activation, any `pnpm add <pkg>` or `npm install <pkg>` first
+runs `npm-safe install ...` — the gate checks the package and asks for
 confirmation below the threshold before the real package manager runs.
-Remove the wrappers with:
+Remove everything with:
 
 ```bash
 npm-safe gate shell --remove

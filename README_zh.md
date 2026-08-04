@@ -295,20 +295,22 @@ npm-safe install axios --dry-run   # 只检查+确认，不实际安装
 ```
 
 `gate enable` 一步完成：开启检查、安装 **PATH shim**（`~/.npm-safe/bin`
-下的 npm.cmd / pnpm.cmd / yarn.cmd——对包括 **cmd.exe** 在内的所有 shell
-生效），并把 `npm`、`pnpm`、`yarn` 的幂等包装函数写入 shell 配置（Windows
-上为 PowerShell `$PROFILE`，其他平台为 `~/.zshrc`/`~/.bashrc`）。两种激活
-方式：
+下的 npm.cmd / pnpm.cmd / yarn.cmd——对所有 shell 生效），并把 `npm`、
+`pnpm`、`yarn` 的包装函数写入 shell 配置（Windows 上为 PowerShell
+`$PROFILE`，其他平台为 `~/.zshrc`/`~/.bashrc`）。激活方式：
 
-- **Windows（任意 shell，含 cmd）：** 把 `%USERPROFILE%\.npm-safe\bin`
-  加入 PATH（系统设置 → 环境变量，或在 cmd 中运行 `setx PATH
-  "%USERPROFILE%\.npm-safe\bin;%PATH%"`）。
-- **PowerShell / bash / zsh：** 直接重启 shell 即可（profile 包装会自动
-  加载）。
+| 你的 shell | 激活方式 |
+|---|---|
+| PowerShell / bash / zsh | 直接重启 shell 即可（profile 包装自动加载） |
+| **Windows cmd**（或 shim 目录不在 PATH 最前的任何 shell） | **以管理员身份运行一次**：`npm-safe gate shell --machine`——该命令把 shim 目录加到**系统** PATH 最前，之后所有新终端（含 cmd）都被拦截。完成后重新打开终端。 |
+
+在 Windows 上，只有系统 PATH 能可靠地排在 Node 安装目录之前；当某些工具把
+机器 PATH 放在前面时，仅修改用户 PATH 不够。`npm-safe doctor` 会验证
+`where npm.cmd` 是否优先解析到 shim，并给出确切修复命令。
 
 可用 `--shell-file <path>` 指定配置文件，`--no-shell` 跳过。激活后，任何
 `pnpm add <pkg>` 或 `npm install <pkg>` 都会先执行 `npm-safe install ...`——
-门禁检查包，低于阈值时确认通过后才会运行真正的包管理器。移除包装：
+门禁检查包，低于阈值时确认通过后才会运行真正的包管理器。移除：
 
 ```bash
 npm-safe gate shell --remove
