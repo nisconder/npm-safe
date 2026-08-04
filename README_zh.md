@@ -5,13 +5,13 @@
 ![版本](https://img.shields.io/badge/版本-v0.1.0-2196F3)
 ![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
 ![语言](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
-![测试](https://img.shields.io/badge/测试-303%20通过-brightgreen)
+![测试](https://img.shields.io/badge/测试-307%20通过-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
-**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，29 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（240 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`、`rules`、`llm` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic）及持久化配置，以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/评价体系/LLM/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
+**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，29 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（307 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`、`rules`、`llm` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic）及持久化配置，以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/评价体系/LLM/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
 
 ---
 
@@ -281,6 +281,12 @@ npm-safe telemetry reset          # 清空全部采集数据
 桌面扩展在启动时也会读取持久化的 `proxy` 设置并配置引擎——在 GUI 或通过
 `npm-safe settings set proxy ...` 配置的代理同样作用于桌面端扫描。
 
+### 命令日志
+
+每次 CLI 调用都会在进程退出时向 `~/.npm-safe/commands.jsonl` 追加一行
+JSONL，字段为 `{ timestamp, command, argv, exitCode, durationMs }`。可通过
+`NPM_SAFE_COMMAND_LOG` 环境变量重定向日志位置。
+
 ### 安装时安全检查（可选）
 
 `npm-safe install` 包装了 `npm install` 并带可选安全门禁：先检查每个目标包，
@@ -335,7 +341,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-303 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作、报告导出、遥测管理器、共享检查历史、安装门禁、doctor 诊断以及 CLI 本身。
+307 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作、报告导出、遥测管理器、共享检查历史、安装门禁、doctor 诊断、结构化命令日志以及 CLI 本身。
 
 ---
 
@@ -383,7 +389,8 @@ npm-safe/
       ci.yml               # CI：类型检查 + 测试 + 依赖安全扫描
   packages/
     core/
-      package.json         # @npm-safe/core v0.1.0, ESM, private
+      package.json         # @npm-safe/core v0.1.0, ESM, publishConfig（public、provenance）
+      .npmignore           # 发布排除规则
       tsconfig.json        # extends ../../tsconfig.base.json
       API.md               # 公共 API 参考文档
       ARCHITECTURE.md      # 分层架构图、数据流、数据库模式
@@ -397,6 +404,7 @@ npm-safe/
         index.ts           # NpmSafeEngine 门面 — 统一公共 API
         cli/
           cli.ts           # CLI 入口 — commander 程序 + check 简写
+          command-log.ts   # 结构化 JSONL 命令日志（~/.npm-safe/commands.jsonl）
           check.ts         # check 命令（与简写共用）
           search.ts        # search 命令
           watch.ts         # 监控列表命令（list/add/remove）
@@ -530,10 +538,15 @@ npm-safe/
 
 ## 下一步计划（第三阶段）
 
-第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）、CI/CD 集成、多包批量操作、报告导出、可选的本地遥测、CLI 与 GUI 共享检查历史，以及安装时安全检查（shell 包装 + PATH shim + doctor），随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段剩余工作：
+第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）、CI/CD 集成、多包批量操作、报告导出、可选的本地遥测、CLI 与 GUI 共享检查历史，以及安装时安全检查（shell 包装 + PATH shim + doctor），随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段的最后两项工作已于 2026-08-04 完成：
 
-- **结构化命令日志。** 为命令补充结构化 JSONL 日志（使用统计与指标导出已由遥测模块覆盖）。
+- **结构化命令日志。** 每次 CLI 调用通过 `process.on("exit")` 向
+  `~/.npm-safe/commands.jsonl` 追加一行 JSONL（`{ timestamp, command, argv,
+  exitCode, durationMs }`）。
+- **npm 发布者配置。** `publishConfig`（`access: "public"`、
+  `provenance: true`）、完整包元数据与 `.npmignore`。由于 provenance 需要
+  OIDC，实际发布必须通过 GitHub Actions 工作流进行。
 
-> npm 发布有意暂缓——包目前保持 `"private": true`。
+项目已功能完备：所有计划工作项均已完成。
 
 

@@ -2,7 +2,7 @@
 
 **日期：** 2026-08-01
 **包名：** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
-**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（17 个源文件）和 CLI（9 个文件）已交付，240 个测试全部通过，代理支持、中英文本地化、多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）、Neutralinojs 桌面 GUI（原生 JS、Material You）、自定义扫描规则插件系统，以及 LLM 配置管理（CLI + GUI）均已上线，零 TypeScript 错误。2026-08-02 的缺陷修复轮次对桌面 GUI 进行了 XSS 到 RCE 加固、增加了监控列表外键预检查、修正了 refresh 语义，并支持亚秒级 TTL（见第 3.8 节）。
+**状态：** 所有第一阶段和第二阶段计划均已完成。引擎核心（17 个源文件）和 CLI（9 个文件）已交付，307 个测试全部通过，代理支持、中英文本地化、多提供者 LLM 扫描（OpenAI / Gemini / Anthropic）、Neutralinojs 桌面 GUI（原生 JS、Material You）、自定义扫描规则插件系统，以及 LLM 配置管理（CLI + GUI）均已上线，零 TypeScript 错误。2026-08-02 的缺陷修复轮次对桌面 GUI 进行了 XSS 到 RCE 加固、增加了监控列表外键预检查、修正了 refresh 语义，并支持亚秒级 TTL（见第 3.8 节）。结构化命令日志与 npm 发布者配置于 2026-08-04 完成（见第 3.19 节），所有计划工作项现已全部完成。
 
 [English](HANDOVER.md)
 
@@ -31,7 +31,8 @@
 | 报告导出 | **已完成**（2026-08-03） | `npm-safe report`（JSON/CSV，--file/--batch/--output），见第 3.13 节 |
 | 遥测与分析 | **已完成**（2026-08-03） | 可选的本地遥测、`npm-safe telemetry` CLI，见第 3.13 节 |
 | 安装时安全检查 | **已完成**（2026-08-03） | 可选的 `npm-safe install` 门禁（阈值 85）+ GUI 开关 + shell 包装/PATH shim/`--machine`，见第 3.15-3.18 节 |
-| npm 发布者配置 | **暂缓**（2026-08-03） | 按决定暂缓——包保持 `"private": true`，暂不发布 |
+| 结构化命令日志 | **已完成**（2026-08-04） | 每次调用追加一行 JSONL 至 `~/.npm-safe/commands.jsonl`，通过 `process.on("exit")` 接入 |
+| npm 发布者配置 | **已完成**（2026-08-04） | publishConfig（access public、provenance）、元数据、.npmignore；provenance 需要 GHA OIDC |
 
 ---
 
@@ -365,6 +366,25 @@ CI/CD 计划于 2026-08-02 交付：
 - **doctor 准确性。** 拦截检查改为权威执行 `where npm.cmd`（首个命中必须是 shim），不再比较 PATH 索引——对重复条目、大小写、短路径变体免疫。修复提示说明 `setx` 不会刷新已运行进程——需注销/重启 explorer.exe 后再开新终端。
 - **文档。** README/README_zh 改为按 shell 分场景的激活表格，并停止推荐 `setx`（一次真实事故中长用户 PATH 被 1024 字符截断后，已弃用该建议）。
 
+### 3.19 结构化命令日志 + npm 发布者配置（2026-08-04）
+
+最后两项工作于 2026-08-04 交付：
+
+- **结构化命令日志。** `packages/core/src/cli/` 下新增 `command-log.ts`
+  模块，通过 `cli.ts` 中的 `process.on("exit")` 接入。每次 CLI 调用都会向
+  `~/.npm-safe/commands.jsonl` 追加一行 JSONL，携带 `{ timestamp, command,
+  argv, exitCode, durationMs }`。日志位置可通过 `NPM_SAFE_COMMAND_LOG`
+  环境变量重定向，便于测试。由 `test/command-log.test.ts`（4 个测试）覆盖。
+- **npm 发布者配置。** `packages/core/package.json` 现可发布：移除了
+  `private`，`publishConfig` 设置 `access: "public"` 与 `provenance: true`，
+  并补充了完整包元数据（`description`、`keywords`、`author`、`homepage`、
+  `repository`、`bugs`）。新增 `packages/core/.npmignore` 控制发布内容；
+  `files` 白名单（`dist`、`skill`、`scripts/install-skill.mjs`）保持不变。
+  注意：`provenance: true` 需要 GitHub Actions OIDC，实际发布必须通过
+  GHA 工作流。
+
+测试套件从 303 个增至 307 个，全部通过。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -385,16 +405,16 @@ CI/CD 计划于 2026-08-02 交付：
 
 ## 5. 剩余计划（未来阶段）
 
-以下计划尚未启动。它们按大致优先级排列。
-Neutralinojs 图形界面（MD3）计划已交付，不再列入下表；详见第 3.6 节
-已交付的桌面 GUI。
+截至 2026-08-04，所有计划工作项均已全部完成。最后两项为：
 
-| 优先级 | 计划 | 描述 |
-|---|---|---|
-| 1 | **结构化命令日志** | 为 CLI 命令补充 JSONL 结构化日志；用量统计与指标导出已由遥测模块覆盖。 |
+- **结构化命令日志。** 已交付。每次 CLI 调用通过 `process.on("exit")`
+  向 `~/.npm-safe/commands.jsonl` 追加一行 JSONL，字段为 `{ timestamp,
+  command, argv, exitCode, durationMs }`（见第 3.19 节）。
+- **npm 发布者配置。** 已交付。`publishConfig`（`access: "public"`、
+  `provenance: true`）、完整包元数据与 `.npmignore`（见第 3.19 节）。注意：
+  `provenance: true` 需要 GitHub Actions OIDC，实际发布必须通过 GHA。
 
-> **按决定暂缓（2026-08-03）：** npm 发布者配置（`publishConfig`、`.npmignore`、
-> provenance）有意暂不推进——包保持 `"private": true`，暂不发布。
+已无剩余计划。
 
 ---
 

@@ -5,7 +5,7 @@
 ![Version](https://img.shields.io/badge/version-v0.1.0-2196F3)
 ![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
 ![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-303%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-307%20passing-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
 
@@ -18,7 +18,7 @@ designed to operate as a library rather than a standalone service.
 
 **Status: Phase 1 complete (engine core) + Phase 2 complete.** Engine core
 delivered with 29 source files and zero TypeScript errors. Phase 2 added a
-full test suite (240 tests, all passing), a CLI binary with commands for
+full test suite (307 tests, all passing), a CLI binary with commands for
 `check`, `search`, `watch`, `refresh`, `settings`, `lang`, `rules`, and `llm`,
 proxy support for restricted networks, an optional multi-provider LLM scan
 provider (OpenAI / Gemini / Anthropic) with persisted configuration, and a
@@ -330,6 +330,13 @@ it reads the settings table and configures the engine, so a proxy configured
 in the GUI or via `npm-safe settings set proxy ...` applies to desktop
 scans too.
 
+### Command log
+
+Every CLI invocation appends one JSONL line to
+`~/.npm-safe/commands.jsonl` with `{ timestamp, command, argv, exitCode,
+durationMs }`, written on process exit. The location can be redirected with
+the `NPM_SAFE_COMMAND_LOG` environment variable.
+
 ### Install-time security gate (opt-in)
 
 `npm-safe install` wraps `npm install` with an optional security gate: every
@@ -392,12 +399,12 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-303 tests cover every module: validators, static rules, rate limiter, store
+307 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
 integration surface, the LLM providers, the LLM configuration manager, the
 rule plugin system, the CI command, batch operations, report export, the
 telemetry manager, the shared check history, the install gate, the doctor
-diagnostics, and the CLI itself.
+diagnostics, the structured command log, and the CLI itself.
 
 ---
 
@@ -446,7 +453,8 @@ npm-safe/
       ci.yml               # CI: typecheck + tests + dependency security scan
   packages/
     core/
-      package.json         # @npm-safe/core v0.1.0, ESM, private
+      package.json         # @npm-safe/core v0.1.0, ESM, publishConfig (public, provenance)
+      .npmignore           # publish exclude rules
       tsconfig.json        # extends ../../tsconfig.base.json
       API.md               # public API reference
       ARCHITECTURE.md      # layer map, data flows, DB schema
@@ -460,6 +468,7 @@ npm-safe/
         index.ts           # NpmSafeEngine facade — unified public API
         cli/
           cli.ts           # CLI entry — commander program + shorthand check
+          command-log.ts   # structured JSONL command log (~/.npm-safe/commands.jsonl)
           check.ts         # check command (shared with shorthand)
           search.ts        # search command
           watch.ts         # watchlist commands (list/add/remove)
@@ -605,12 +614,17 @@ configuration management (CLI + GUI), CI/CD integration, multi-package batch
 operations, report export, opt-in telemetry, a shared check history between
 CLI and GUI, and an install-time security gate (shell wrappers + PATH shims +
 doctor), followed by a security hardening pass (2026-08-02) that fixed
-12 issues found by a bug screen. Remaining work for Phase 3:
+12 issues found by a bug screen. The final two Phase 3 items were completed
+on 2026-08-04:
 
-- **Structured command logs.** JSONL logs for CLI commands (usage stats and
-  metrics export are already covered by the telemetry module).
+- **Structured command logs.** Every CLI invocation appends one JSONL line to
+  `~/.npm-safe/commands.jsonl` (`{ timestamp, command, argv, exitCode,
+  durationMs }`), wired via `process.on("exit")`.
+- **npm publisher configuration.** `publishConfig` (`access: "public"`,
+  `provenance: true`), full package metadata, and `.npmignore`. The actual
+  publish must go through the GitHub Actions workflow, since provenance
+  requires OIDC.
 
-> npm publishing is intentionally deferred — the package remains
-> `"private": true` for now.
+The project is feature-complete: all planned work items are done.
 
 

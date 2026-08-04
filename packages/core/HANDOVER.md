@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-01
 **Package:** @npm-safe/core v0.1.0 + @npm-safe/desktop v0.1.0
-**Status:** All Phase 1 and Phase 2 plans complete. Engine core (17 source files) plus CLI (9 files) delivered, 240 tests passing, proxy support, en/zh localization, multi-provider LLM scanning (OpenAI / Gemini / Anthropic), a Neutralinojs desktop GUI (vanilla JS, Material You), a plugin system for custom scan rules, and LLM configuration management (CLI + GUI) shipped, zero TypeScript errors. A bug-fix pass on 2026-08-02 hardened the desktop GUI against XSS-to-RCE, added a watchlist foreign-key pre-check, corrected refresh semantics, and added sub-second TTL support (see section 3.8).
+**Status:** All Phase 1 and Phase 2 plans complete. Engine core (17 source files) plus CLI (9 files) delivered, 307 tests passing, proxy support, en/zh localization, multi-provider LLM scanning (OpenAI / Gemini / Anthropic), a Neutralinojs desktop GUI (vanilla JS, Material You), a plugin system for custom scan rules, and LLM configuration management (CLI + GUI) shipped, zero TypeScript errors. A bug-fix pass on 2026-08-02 hardened the desktop GUI against XSS-to-RCE, added a watchlist foreign-key pre-check, corrected refresh semantics, and added sub-second TTL support (see section 3.8). Structured command logs and the npm publisher configuration were completed on 2026-08-04 (see section 3.19); every planned work item is now done.
 
 [中文版](HANDOVER_zh.md)
 
@@ -31,7 +31,8 @@ This document records every project plan and its completion status.
 | Report export | **Done** (2026-08-03) | `npm-safe report` (JSON/CSV, --file/--batch/--output), see section 3.13 |
 | Telemetry and analytics | **Done** (2026-08-03) | Opt-in local telemetry, `npm-safe telemetry` CLI, see section 3.13 |
 | Install-time security gate | **Done** (2026-08-03) | Opt-in `npm-safe install` gate (threshold 85) + GUI toggle + shell wrappers/PATH shims/`--machine`, see sections 3.15-3.18 |
-| npm publisher configuration | **Deferred** (2026-08-03) | On hold by decision — package stays `"private": true`, not publishing for now |
+| Structured command logs | **Done** (2026-08-04) | JSONL per-invocation log at `~/.npm-safe/commands.jsonl`, wired via `process.on("exit")` |
+| npm publisher configuration | **Done** (2026-08-04) | publishConfig (access public, provenance), metadata, .npmignore; provenance needs GHA OIDC |
 
 ---
 
@@ -520,6 +521,28 @@ were fixed:
   table and stopped recommending `setx` (1024-char truncation risk after a
   real incident where a long user PATH was truncated).
 
+### 3.19 Structured command logs + npm publisher configuration (2026-08-04)
+
+The final two work items were delivered on 2026-08-04:
+
+- **Structured command logs.** A new `command-log.ts` module under
+  `packages/core/src/cli/` is wired into `cli.ts` via
+  `process.on("exit")`. Every CLI invocation appends one JSONL line to
+  `~/.npm-safe/commands.jsonl` carrying `{ timestamp, command, argv,
+  exitCode, durationMs }`. The log location can be redirected for testing
+  with the `NPM_SAFE_COMMAND_LOG` environment variable. Covered by
+  `test/command-log.test.ts` (4 tests).
+- **npm publisher configuration.** `packages/core/package.json` is now
+  publishable: `private` was removed, `publishConfig` sets `access: "public"`
+  and `provenance: true`, and full package metadata (`description`,
+  `keywords`, `author`, `homepage`, `repository`, `bugs`) was added. A new
+  `packages/core/.npmignore` controls the published contents; the `files`
+  allowlist (`dist`, `skill`, `scripts/install-skill.mjs`) is unchanged.
+  Note: `provenance: true` requires GitHub Actions OIDC, so the actual
+  publish must go through the GHA workflow.
+
+The test suite grew from 303 to 307 tests; all pass.
+
 ---
 
 ## 4. Documentation Deliverables (Completed)
@@ -540,17 +563,18 @@ The Phase 1 documentation pack, plus the Phase 2 updates, is complete:
 
 ## 5. Remaining Plans (Future Phases)
 
-The following plans are not started. They are listed in rough priority order.
-The Neutralinojs GUI (MD3) plan is delivered and no longer listed here; it is
-covered by the shipped desktop GUI in section 3.6.
+All planned work items are complete as of 2026-08-04. The final two items
+were:
 
-| Priority | Plan | Description |
-|---|---|---|
-| 1 | **Structured command logs** | JSONL logs for CLI commands; usage stats and metrics export are already covered by the telemetry module. |
+- **Structured command logs.** Delivered. Every CLI invocation appends one
+  JSONL line to `~/.npm-safe/commands.jsonl` with `{ timestamp, command,
+  argv, exitCode, durationMs }`, wired via `process.on("exit")` (section 3.19).
+- **npm publisher configuration.** Delivered. `publishConfig` (`access:
+  "public"`, `provenance: true`), full package metadata, and `.npmignore`
+  (section 3.19). Note: `provenance: true` requires GitHub Actions OIDC, so
+  the actual publish must go through GHA.
 
-> **Deferred by decision (2026-08-03):** npm publisher configuration
-> (`publishConfig`, `.npmignore`, provenance) is intentionally on hold — the
-> package stays `"private": true` and will not be published for now.
+There are no remaining plans.
 
 ---
 
