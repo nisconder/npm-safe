@@ -635,6 +635,11 @@ each GitHub Release — not as an npm package. To download:
    (macOS/Linux). The app bundles the `@npm-safe/core` engine and stores data
    in `~/.npm-safe/`.
 
+The app checks for updates automatically on startup: when a newer version is
+available on the Releases page, it prompts and installs the update in place,
+then restarts. Only the first installation requires a manual ZIP download —
+subsequent updates are automatic.
+
 ---
 
 ## What Is Next (Phase 3)

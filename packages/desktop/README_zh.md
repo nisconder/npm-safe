@@ -115,6 +115,10 @@ pnpm run build
 这些 ZIP 即分发产物——由 `desktop-release.yml` 工作流在每个 `v*` 标签上附加到
 GitHub Release，用户无需自行构建即可下载 GUI。
 
+应用内置自动更新机制：启动时会检查 GitHub 发布页面上的 `update_manifest.json`，
+自动安装更新的 `resources.neu` 更新负载。发布工作流会将清单与
+`resources.neu` 连同便携 ZIP 一并上传。
+
 ## Windows 首次运行注意事项
 
 如果 WebView2 窗口因回环隔离错误无法加载，请以管理员身份在 PowerShell 中运行一次：

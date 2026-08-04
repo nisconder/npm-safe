@@ -118,6 +118,11 @@ produces portable ZIP files for all platforms in `packages/desktop/dist/`
 attached to GitHub Releases by the `desktop-release.yml` workflow on each
 `v*` tag, so users can download the GUI without building it.
 
+The app ships with a built-in auto-updater: on startup it checks
+`update_manifest.json` on the GitHub Releases page and installs newer
+`resources.neu` payloads automatically. The release workflow uploads the
+manifest + resources.neu alongside the portable ZIP.
+
 ## Windows First-Run Notes
 
 If the WebView2 window fails to load with a loopback error, run once in an

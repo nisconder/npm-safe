@@ -556,6 +556,8 @@ Neutralinojs 桌面图形界面（Material You 仪表盘，含检查、搜索、
 2. 选择最新版本，下载对应平台的 ZIP（`npm-safe-win_x64.zip`、`npm-safe-linux_x64.zip` 或 `npm-safe-mac_x64.zip`）。
 3. 解压并运行 `npm-safe` 可执行文件（Windows）或 `npm-safe` 二进制（macOS/Linux）。应用内置 `@npm-safe/core` 引擎，数据存储在 `~/.npm-safe/`。
 
+应用启动时会自动检查更新：当发布页面存在更新版本时，会提示并就地安装更新，然后自动重启。只有首次安装需要手动下载 ZIP——之后的更新全自动进行。
+
 ---
 
 ## 下一步计划（第三阶段）
