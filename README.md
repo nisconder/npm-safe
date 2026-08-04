@@ -103,6 +103,9 @@ npm-safe ci --lockfile             # Scan every dependency (incl. transitive) in
 npm-safe report lodash express     # Export security reports (JSON/CSV)
 npm-safe telemetry status          # Show telemetry status (opt-in, local only)
 npm-safe gate status               # Show install gate status (opt-in)
+npm-safe gate enable               # Enable the gate + auto-install wrappers/shims
+npm-safe gate shell                # Install shell wrappers + PATH shims
+npm-safe gate shell --machine      # Windows (admin): prepend shims to system PATH
 npm-safe install axios             # Install with the security gate (if enabled)
 npm-safe doctor                    # Diagnose PATH / gate / shim setup
 ```
@@ -389,12 +392,12 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 pnpm -F @npm-safe/core test
 ```
 
-291 tests cover every module: validators, static rules, rate limiter, store
+303 tests cover every module: validators, static rules, rate limiter, store
 layer, registry client (with mocked fetch), refresh scheduler, the engine
 integration surface, the LLM providers, the LLM configuration manager, the
 rule plugin system, the CI command, batch operations, report export, the
-telemetry manager, the shared check history, the install gate, and the CLI
-itself.
+telemetry manager, the shared check history, the install gate, the doctor
+diagnostics, and the CLI itself.
 
 ---
 
@@ -403,7 +406,7 @@ itself.
 Detailed documentation for the engine is available under `packages/core/`:
 
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- Layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.
-- **[API.md](packages/core/API.md)** -- Complete public API reference covering the `NpmSafeEngine` class (all 25 public methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
+- **[API.md](packages/core/API.md)** -- Complete public API reference covering the `NpmSafeEngine` class (all 29 public methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- Comprehensive reference for all 10 built-in static analysis rules. Each rule documents its category, severity, detection logic (regex patterns), and mitigation recommendations.
 - **[README_zh.md](README_zh.md)** -- Chinese translation of the project README.
 
@@ -533,7 +536,7 @@ result as a single `NpmSafeEngine` class.
                            +-----------------------+
                            |      index.ts          |
                            |  NpmSafeEngine facade  |
-                           |  25 public methods     |
+                           |  29 public methods     |
                            +-----------+-----------+
                                        |
               +------------------------+------------------------+
@@ -564,7 +567,7 @@ result as a single `NpmSafeEngine` class.
 | **Scanner** | `scanner/static-rules.ts`, `scanner/rule-config.ts`, `scanner/rule-loader.ts`, `scanner/types.ts` | Pure static analysis of package metadata and README content. Ten built-in rules detect install scripts, obfuscation, typosquatting, secret exposure, homograph attacks, and more; plus runtime rule registration, per-rule config overrides, and plugin discovery. |
 | **Scheduler** | `scheduler/refresh-scheduler.ts`, `scheduler/rate-limiter.ts` | Manages periodic refresh cycles for watched packages. A token bucket (5 tokens/s, 10 burst) limits registry request frequency. |
 | **Store** | `store/database.ts`, `store/cache-manager.ts`, `store/schema.ts` | Persistent storage via better-sqlite3 with WAL mode. Handles migrations, TTL-based caching of metadata and scan reports, watchlist persistence, and key-value settings. |
-| **Facade** | `index.ts` | The `NpmSafeEngine` class composes all four layers. Exposes 25 public methods: `checkPackage`, `searchPackages`, watchlist CRUD, refresh operations, settings access, lifecycle, rule management, and LLM configuration (`startAutoRefresh`, `stopAutoRefresh`, `close`). |
+| **Facade** | `index.ts` | The `NpmSafeEngine` class composes all four layers. Exposes 29 public methods: `checkPackage`, `searchPackages`, watchlist CRUD, refresh operations, settings access, lifecycle, rule management, and LLM configuration (`startAutoRefresh`, `stopAutoRefresh`, `close`). |
 
 A sixth auxiliary layer, **Translator** (`translator/types.ts`,
 `translator/provider.ts`), provides a pluggable translation interface for
@@ -593,15 +596,16 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 ## What Is Next (Phase 3)
 
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test
-suite, CLI, proxy support, the LLM scan provider with persisted configuration, a
-Neutralinojs desktop GUI, a plugin system for custom scan rules, LLM
-configuration management (CLI + GUI), CI/CD integration, and multi-package
-batch operations, followed by a security hardening pass (2026-08-02) that fixed
+suite, CLI, proxy support, the LLM scan provider with persisted configuration,
+a Neutralinojs desktop GUI, a plugin system for custom scan rules, LLM
+configuration management (CLI + GUI), CI/CD integration, multi-package batch
+operations, report export, opt-in telemetry, a shared check history between
+CLI and GUI, and an install-time security gate (shell wrappers + PATH shims +
+doctor), followed by a security hardening pass (2026-08-02) that fixed
 12 issues found by a bug screen. Remaining work for Phase 3:
 
-- **Telemetry and analytics.** Structured logging and metrics export are now
-  covered by the local telemetry module; remaining items: structured JSONL
-  logs for commands.
+- **Structured command logs.** JSONL logs for CLI commands (usage stats and
+  metrics export are already covered by the telemetry module).
 
 > npm publishing is intentionally deferred — the package remains
 > `"private": true` for now.

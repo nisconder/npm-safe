@@ -73,6 +73,12 @@ The dashboard is re-rendered every time you navigate back to the tab.
 - Read a setting: enter a key (e.g. `proxy`, `lang`) and click **读取**.
 - Write a setting: enter a key and value, then click **写入**.
 - Results are shown inline; unset keys display "(未设置)".
+- **安装安全检查 (Install gate)** — a switch and a threshold input (0-100,
+  default 85). Turning it on enables the gate shared with the CLI
+  (`installGate.enabled` / `installGate.threshold` in the settings table):
+  when active, `npm-safe install` (or the PATH shims / shell wrappers)
+  checks every package and requires confirmation for packages scoring below
+  the threshold.
 
 ## Prerequisites
 

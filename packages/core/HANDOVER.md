@@ -30,7 +30,7 @@ This document records every project plan and its completion status.
 | Multi-package batch API | **Done** (2026-08-02) | `checkPackages` (parallel + rate-limited), batch `check`, `ci --lockfile`, see section 3.12 |
 | Report export | **Done** (2026-08-03) | `npm-safe report` (JSON/CSV, --file/--batch/--output), see section 3.13 |
 | Telemetry and analytics | **Done** (2026-08-03) | Opt-in local telemetry, `npm-safe telemetry` CLI, see section 3.13 |
-| Install-time security gate | **Done** (2026-08-03) | Opt-in `npm-safe install` gate (threshold 85) + GUI settings toggle, see section 3.15 |
+| Install-time security gate | **Done** (2026-08-03) | Opt-in `npm-safe install` gate (threshold 85) + GUI toggle + shell wrappers/PATH shims/`--machine`, see sections 3.15-3.18 |
 | npm publisher configuration | **Deferred** (2026-08-03) | On hold by decision — package stays `"private": true`, not publishing for now |
 
 ---
@@ -45,7 +45,7 @@ All source files reside under `packages/core/src/`:
 
 | File | Role |
 |---|---|
-| `index.ts` | `NpmSafeEngine` facade, composes every dependency, exposes 25 public methods |
+| `index.ts` | `NpmSafeEngine` facade, composes every dependency, exposes 29 public methods |
 | `registry/types.ts` | Foundational types: `PackageMetadata`, `AbbreviatedVersion`, `SearchResult`, `NpmRegistryError`, `PackageIdentifier`, `ValidationResult` |
 | `registry/validator.ts` | Pure validators: `validatePackageName`, `validateVersion`, `validateDomain`, `isKnownRegistryDomain` |
 | `registry/client.ts` | `NpmRegistryClient`, HTTP fetch with 10s timeout, 3 retries, exponential backoff (1s/2s/4s) |
@@ -493,6 +493,32 @@ Exits non-zero when any check fails and prints actionable fixes.
 README/README_zh gained a Windows PATH setup note.
 
 The test suite grew from 296 to 303 tests; all pass.
+
+### 3.18 Windows interception refinements (2026-08-03)
+
+Real-world Windows testing exposed issues with the PATH-shim approach that
+were fixed:
+
+- **System-PATH precedence.** Some machines put the machine PATH before the
+  user PATH, so user-level shim-directory entries still lose to the Node
+  install dir. New `npm-safe gate shell --machine` (run as administrator)
+  prepends the shim directory to the **system** PATH via PowerShell — one
+  command, idempotent, and it reliably precedes `D:\nodejs` on every shell
+  including cmd.exe. The success message asks the user to restart cmd.
+- **Shim hygiene.** Shims now only intercept `install`/`add`/`i` and forward
+  every other invocation (e.g. `npm --version`, `npm run`) straight to the
+  real binary; the consumed subcommand is stripped before calling
+  `npm-safe install`, so `npm i axios` no longer treats the alias `i` as a
+  package name. The real binary is passed via `NPMSAFE_REAL_*` env vars to
+  avoid shim recursion.
+- **Doctor accuracy.** The interception check now runs `where npm.cmd`
+  authoritatively (first hit must be the shim) instead of comparing PATH
+  indices, which is immune to duplicate entries and case/short-path
+  variants. Fix hints mention that `setx` does not refresh running
+  processes — log off/on or restart explorer.exe, then open a new terminal.
+- **Documentation.** README/README_zh switched to a per-shell activation
+  table and stopped recommending `setx` (1024-char truncation risk after a
+  real incident where a long user PATH was truncated).
 
 ---
 

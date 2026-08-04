@@ -75,6 +75,7 @@ If the CLI is not found, locate the repository (or the global binary) before run
 | `npm-safe telemetry status` | Show opt-in local telemetry stats. | `npm-safe telemetry status` |
 | `npm-safe gate status` | Show the install gate switch and threshold. | `npm-safe gate status` |
 | `npm-safe install <pkg...>` | Gated install: checks every package first, requires confirmation below the threshold (default 85) when enabled. | `npm-safe install axios` |
+| `npm-safe doctor` | Diagnose the installation (PATH, gate, shims) and print fixes. | `npm-safe doctor` |
 
 Global options apply to every command: `-d/--db <path>` to override the database path (default `~/.npm-safe/npm-safe.db`), `-p/--proxy <url>` to route requests through a proxy for one invocation, `-j/--json` for machine-readable output, and `-v/--version` to print the version.
 

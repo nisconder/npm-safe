@@ -30,7 +30,7 @@
 | 多包批量 API | **已完成**（2026-08-02） | `checkPackages`（并行 + 限速）、批量 `check`、`ci --lockfile`，见第 3.12 节 |
 | 报告导出 | **已完成**（2026-08-03） | `npm-safe report`（JSON/CSV，--file/--batch/--output），见第 3.13 节 |
 | 遥测与分析 | **已完成**（2026-08-03） | 可选的本地遥测、`npm-safe telemetry` CLI，见第 3.13 节 |
-| 安装时安全检查 | **已完成**（2026-08-03） | 可选的 `npm-safe install` 门禁（阈值 85）+ GUI 设置开关，见第 3.15 节 |
+| 安装时安全检查 | **已完成**（2026-08-03） | 可选的 `npm-safe install` 门禁（阈值 85）+ GUI 开关 + shell 包装/PATH shim/`--machine`，见第 3.15-3.18 节 |
 | npm 发布者配置 | **暂缓**（2026-08-03） | 按决定暂缓——包保持 `"private": true`，暂不发布 |
 
 ---
@@ -45,7 +45,7 @@
 
 | 文件 | 职责 |
 |---|---|
-| `index.ts` | `NpmSafeEngine` 门面 — 组合所有依赖，暴露 25 个公共方法 |
+| `index.ts` | `NpmSafeEngine` 门面 — 组合所有依赖，暴露 29 个公共方法 |
 | `registry/types.ts` | 基础类型定义：`PackageMetadata`、`AbbreviatedVersion`、`SearchResult`、`NpmRegistryError`、`PackageIdentifier`、`ValidationResult` |
 | `registry/validator.ts` | 纯校验器：`validatePackageName`、`validateVersion`、`validateDomain`、`isKnownRegistryDomain` |
 | `registry/client.ts` | `NpmRegistryClient` — HTTP 请求，10s 超时，3 次重试，指数退避（1s/2s/4s） |
@@ -74,7 +74,7 @@
 
 辅助翻译器层（`translator/`）提供了可插拔的翻译接口，但第一阶段尚未接入核心扫描流水线。
 
-### 公共 API（`NpmSafeEngine` 上的 25 个方法）
+### 公共 API（`NpmSafeEngine` 上的 29 个方法）
 
 - `checkPackage(name)` — 缓存优先的安全检查；返回包含元数据 + 静态扫描报告的 `CheckResult`
 - `searchPackages(query, size?)` — 委托给 registry 搜索端点
@@ -97,7 +97,7 @@
 
 - 通过 `pnpm -F @npm-safe/core exec tsc --noEmit` 验证，tsc 零错误零警告
 - 模块图已解析：`index.ts` 中的 10 个相对导入均解析到现有文件，传递遍历无误
-- 25 个公共 API 方法均可通过 `NpmSafeEngine` 实例访问
+- 29 个公共 API 方法均可通过 `NpmSafeEngine` 实例访问
 - 构造函数依赖注入已验证：6 个依赖均正确实例化
 - `index.ts` 导出 3 个符号：`NpmSafeEngine`、`NpmSafeEngineOptions`、`CheckResult`
 
@@ -356,6 +356,15 @@ CI/CD 计划于 2026-08-02 交付：
 
 测试套件从 296 个增至 303 个，全部通过。
 
+### 3.18 Windows 拦截细化（2026-08-03）
+
+真实 Windows 环境测试暴露了 PATH shim 方案的问题并已修复：
+
+- **系统 PATH 优先级。** 部分机器把机器 PATH 放在用户 PATH 之前，用户级 shim 目录条目仍然输给 Node 安装目录。新增 `npm-safe gate shell --machine`（管理员运行）：通过 PowerShell 将 shim 目录前置到**系统** PATH——一条命令、幂等，且可靠地排在 `D:\nodejs` 之前，对包括 cmd.exe 在内的所有 shell 生效。成功提示会要求用户重启 cmd。
+- **shim 卫生。** shim 现在只拦截 `install`/`add`/`i`，其它调用（如 `npm --version`、`npm run`）直接转发真实二进制；调用 `npm-safe install` 前剥离已消费的子命令，因此 `npm i axios` 不再把别名 `i` 当作包名。真实二进制通过 `NPMSAFE_REAL_*` 环境变量传递以避免 shim 递归。
+- **doctor 准确性。** 拦截检查改为权威执行 `where npm.cmd`（首个命中必须是 shim），不再比较 PATH 索引——对重复条目、大小写、短路径变体免疫。修复提示说明 `setx` 不会刷新已运行进程——需注销/重启 explorer.exe 后再开新终端。
+- **文档。** README/README_zh 改为按 shell 分场景的激活表格，并停止推荐 `setx`（一次真实事故中长用户 PATH 被 1024 字符截断后，已弃用该建议）。
+
 ---
 
 ## 4. 文档交付物（已完成）
@@ -367,7 +376,7 @@ CI/CD 计划于 2026-08-02 交付：
 | `README.md`（工作区根目录） | 英文项目说明：安装配置、CLI 用法、架构、设计决策、阶段状态 |
 | `README_zh.md`（工作区根目录） | 说明文档的中文翻译，与英文版互相链接 |
 | `packages/core/ARCHITECTURE.md` | 层映射、模块依赖图、数据流（热路径和刷新路径）、数据库模式、迁移系统、错误分类、设计决策 |
-| `packages/core/API.md` | 完整公共 API 参考：`NpmSafeEngine`（全部 25 个方法）、导出的接口和类型定义 |
+| `packages/core/API.md` | 完整公共 API 参考：`NpmSafeEngine`（全部 29 个方法）、导出的接口和类型定义 |
 | `packages/core/SCANNER_RULES.md` | 全部 10 条内置规则的参考：类别、严重性、检测逻辑、缓解措施 |
 | `packages/core/HANDOVER.md` | 本文档，英文版 |
 | `packages/core/HANDOVER_zh.md` | 中文交接文档 |
