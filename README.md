@@ -605,6 +605,22 @@ into the core scan pipeline in Phase 1 but is fully typed and importable.
 
 ---
 
+## Publishing
+
+`@npm-safe/core` is published to the npm registry from GitHub Actions with
+SLSA provenance attestation. To release a version:
+
+1. Create an npm automation token and store it as the `NPM_TOKEN` GitHub
+   secret on the repository.
+2. Tag the release: `git tag v0.1.0 && git push origin v0.1.0`.
+3. The `Publish` workflow (`.github/workflows/publish.yml`) runs tests and
+   the build, then runs `npm publish --provenance --access public`.
+
+Publishing requires GitHub Actions OIDC, so `npm publish` run locally will
+not attach provenance and is not the supported path.
+
+---
+
 ## What Is Next (Phase 3)
 
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test

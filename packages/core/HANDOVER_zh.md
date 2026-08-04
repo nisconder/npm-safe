@@ -32,7 +32,7 @@
 | 遥测与分析 | **已完成**（2026-08-03） | 可选的本地遥测、`npm-safe telemetry` CLI，见第 3.13 节 |
 | 安装时安全检查 | **已完成**（2026-08-03） | 可选的 `npm-safe install` 门禁（阈值 85）+ GUI 开关 + shell 包装/PATH shim/`--machine`，见第 3.15-3.18 节 |
 | 结构化命令日志 | **已完成**（2026-08-04） | 每次调用追加一行 JSONL 至 `~/.npm-safe/commands.jsonl`，通过 `process.on("exit")` 接入 |
-| npm 发布者配置 | **已完成**（2026-08-04） | publishConfig（access public、provenance）、元数据、.npmignore；provenance 需要 GHA OIDC |
+| npm 发布者配置 | **已完成**（2026-08-04） | publishConfig（access public、provenance）、元数据、.npmignore，以及 GHA 发布工作流 .github/workflows/publish.yml（在 v* 标签上执行带来源证明的 npm publish；需要 NPM_TOKEN secret） |
 
 ---
 
@@ -380,8 +380,10 @@ CI/CD 计划于 2026-08-02 交付：
   并补充了完整包元数据（`description`、`keywords`、`author`、`homepage`、
   `repository`、`bugs`）。新增 `packages/core/.npmignore` 控制发布内容；
   `files` 白名单（`dist`、`skill`、`scripts/install-skill.mjs`）保持不变。
-  注意：`provenance: true` 需要 GitHub Actions OIDC，实际发布必须通过
-  GHA 工作流。
+  注意：`provenance: true` 需要 GitHub Actions OIDC，因此实际发布通过
+  `.github/workflows/publish.yml` 中的 GHA 工作流执行；该工作流在
+  `v*` 标签推送（或手动触发）时执行带来源证明的 `npm publish`，需要
+  `NPM_TOKEN` secret。
 
 测试套件从 303 个增至 307 个，全部通过。
 

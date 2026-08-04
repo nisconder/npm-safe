@@ -536,6 +536,18 @@ npm-safe/
 
 ---
 
+## 发布
+
+`@npm-safe/core` 通过 GitHub Actions 发布到 npm 注册表，并附带 SLSA 来源证明。发布版本的步骤：
+
+1. 创建 npm automation token，并将其作为 `NPM_TOKEN` GitHub secret 存储在仓库中。
+2. 打标签：`git tag v0.1.0 && git push origin v0.1.0`。
+3. `Publish` 工作流（`.github/workflows/publish.yml`）会先运行测试和构建，然后执行 `npm publish --provenance --access public`。
+
+发布依赖 GitHub Actions OIDC，因此在本地运行 `npm publish` 不会附带来源证明，也不属于受支持的发布路径。
+
+---
+
 ## 下一步计划（第三阶段）
 
 第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）、CI/CD 集成、多包批量操作、报告导出、可选的本地遥测、CLI 与 GUI 共享检查历史，以及安装时安全检查（shell 包装 + PATH shim + doctor），随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段的最后两项工作已于 2026-08-04 完成：

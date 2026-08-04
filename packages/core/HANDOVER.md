@@ -32,7 +32,7 @@ This document records every project plan and its completion status.
 | Telemetry and analytics | **Done** (2026-08-03) | Opt-in local telemetry, `npm-safe telemetry` CLI, see section 3.13 |
 | Install-time security gate | **Done** (2026-08-03) | Opt-in `npm-safe install` gate (threshold 85) + GUI toggle + shell wrappers/PATH shims/`--machine`, see sections 3.15-3.18 |
 | Structured command logs | **Done** (2026-08-04) | JSONL per-invocation log at `~/.npm-safe/commands.jsonl`, wired via `process.on("exit")` |
-| npm publisher configuration | **Done** (2026-08-04) | publishConfig (access public, provenance), metadata, .npmignore; provenance needs GHA OIDC |
+| npm publisher configuration | **Done** (2026-08-04) | publishConfig (access public, provenance), metadata, .npmignore, and GHA publish workflow at \`.github/workflows/publish.yml\` (npm publish with provenance on \`v*\` tags; requires \`NPM_TOKEN\` secret) |
 
 ---
 
@@ -538,8 +538,11 @@ The final two work items were delivered on 2026-08-04:
   `keywords`, `author`, `homepage`, `repository`, `bugs`) was added. A new
   `packages/core/.npmignore` controls the published contents; the `files`
   allowlist (`dist`, `skill`, `scripts/install-skill.mjs`) is unchanged.
-  Note: `provenance: true` requires GitHub Actions OIDC, so the actual
-  publish must go through the GHA workflow.
+   Note: `provenance: true` requires GitHub Actions OIDC, so the actual
+   publish goes through the GitHub Actions workflow at
+   `.github/workflows/publish.yml`, which runs `npm publish` with provenance
+   on `v*` tag pushes (or manual dispatch) and requires the `NPM_TOKEN`
+   secret.
 
 The test suite grew from 303 to 307 tests; all pass.
 
