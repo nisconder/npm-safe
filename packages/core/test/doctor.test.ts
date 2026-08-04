@@ -49,8 +49,13 @@ describe("CLI doctor", () => {
       const { stdout } = runCli(["doctor"], home);
       assert.ok(stdout.includes("Install gate: enabled"));
       const shimDir = path.join(home, ".npm-safe", "bin");
-      assert.ok(existsSync(path.join(shimDir, "npm.cmd")));
-      assert.ok(stdout.includes(shimDir));
+      // .cmd shims only exist on Windows; other platforms use profile wrappers.
+      if (process.platform === "win32") {
+        assert.ok(existsSync(path.join(shimDir, "npm.cmd")));
+        assert.ok(stdout.includes(shimDir));
+      } else {
+        assert.ok(stdout.includes("Shell wrappers"));
+      }
     } finally {
       rmSync(home, { recursive: true, force: true });
     }
