@@ -7,6 +7,8 @@
 
 const EXT_ID = "js.npmsafe.core";
 
+const UPDATE_MANIFEST_URL = "https://github.com/nisconder/npm-safe/releases/latest/download/update_manifest.json";
+
 let engineReady = false;
 
 // ---------------------------------------------------------------------------
@@ -60,6 +62,26 @@ function callEngine(method, data) {
       _requestId: requestId,
     });
   });
+}
+
+async function checkForUpdates() {
+  try {
+    const manifest = await Neutralino.updater.checkForUpdates(UPDATE_MANIFEST_URL);
+    if (manifest.version && manifest.version !== NL_APPVERSION) {
+      const choice = await Neutralino.os.showMessageBox(
+        "更新",
+        `发现新版本 ${manifest.version}，是否立即更新？`,
+        "YES_NO",
+        "QUESTION",
+      );
+      if (choice === "YES") {
+        await Neutralino.updater.install();
+        await Neutralino.app.restartProcess();
+      }
+    }
+  } catch {
+    // Offline or no update — silently ignore.
+  }
 }
 
 function registerEngineEvents() {
@@ -925,6 +947,8 @@ function escapeAttr(str) {
 // ---------------------------------------------------------------------------
 
 Neutralino.init();
+
+void checkForUpdates();
 
 Neutralino.events.on("windowClose", () => {
   Neutralino.app.exit();

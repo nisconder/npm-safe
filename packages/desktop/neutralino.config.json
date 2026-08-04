@@ -21,6 +21,7 @@
     "extensions.*",
     "filesystem.*",
     "clipboard.*",
+    "updater.*",
     "debug.log"
   ],
   "extensions": [
