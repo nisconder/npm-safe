@@ -30,6 +30,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Update Neutralinojs binaries
+        working-directory: packages/desktop
+        run: npx neu update
+
       - name: Build desktop app
         working-directory: packages/desktop
         run: pnpm run build
