@@ -111,7 +111,12 @@ cd packages/desktop
 pnpm run build
 ```
 
-The `build` script runs `pnpm run build:core && neu build --release` and outputs the release bundle via Neutralinojs.
+The `build` script runs `pnpm run build:core && neu build --release` and
+produces portable ZIP files for all platforms in `packages/desktop/dist/`
+(e.g. `npm-safe-win_x64.zip`, `npm-safe-linux_x64.zip`,
+`npm-safe-mac_x64.zip`). These ZIPs are the distribution artifact — they are
+attached to GitHub Releases by the `desktop-release.yml` workflow on each
+`v*` tag, so users can download the GUI without building it.
 
 ## Windows First-Run Notes
 

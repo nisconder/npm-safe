@@ -621,6 +621,22 @@ not attach provenance and is not the supported path.
 
 ---
 
+## Desktop GUI
+
+The Neutralinojs desktop GUI (Material You dashboard with check, search,
+watch, rules, LLM, and settings tabs) is distributed as portable ZIP assets on
+each GitHub Release — not as an npm package. To download:
+
+1. Open the [Releases page](https://github.com/nisconder/npm-safe/releases).
+2. Pick the latest release and download the ZIP for your platform
+   (`npm-safe-win_x64.zip`, `npm-safe-linux_x64.zip`, or
+   `npm-safe-mac_x64.zip`).
+3. Unzip and run the `npm-safe` executable (Windows) or `npm-safe` binary
+   (macOS/Linux). The app bundles the `@npm-safe/core` engine and stores data
+   in `~/.npm-safe/`.
+
+---
+
 ## What Is Next (Phase 3)
 
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test

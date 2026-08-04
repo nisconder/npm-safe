@@ -109,7 +109,11 @@ cd packages/desktop
 pnpm run build
 ```
 
-`build` 脚本执行 `pnpm run build:core && neu build --release`，通过 Neutralinojs 输出发布包。
+`build` 脚本执行 `pnpm run build:core && neu build --release`，在
+`packages/desktop/dist/` 下生成所有平台的便携 ZIP 文件（例如
+`npm-safe-win_x64.zip`、`npm-safe-linux_x64.zip`、`npm-safe-mac_x64.zip`）。
+这些 ZIP 即分发产物——由 `desktop-release.yml` 工作流在每个 `v*` 标签上附加到
+GitHub Release，用户无需自行构建即可下载 GUI。
 
 ## Windows 首次运行注意事项
 

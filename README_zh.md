@@ -548,6 +548,16 @@ npm-safe/
 
 ---
 
+## 桌面图形界面
+
+Neutralinojs 桌面图形界面（Material You 仪表盘，含检查、搜索、监控、规则、LLM 和设置标签页）以便携 ZIP 资产的形式随每个 GitHub Release 分发——而非作为 npm 包。下载方式：
+
+1. 打开[发布页面](https://github.com/nisconder/npm-safe/releases)。
+2. 选择最新版本，下载对应平台的 ZIP（`npm-safe-win_x64.zip`、`npm-safe-linux_x64.zip` 或 `npm-safe-mac_x64.zip`）。
+3. 解压并运行 `npm-safe` 可执行文件（Windows）或 `npm-safe` 二进制（macOS/Linux）。应用内置 `@npm-safe/core` 引擎，数据存储在 `~/.npm-safe/`。
+
+---
+
 ## 下一步计划（第三阶段）
 
 第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）、CI/CD 集成、多包批量操作、报告导出、可选的本地遥测、CLI 与 GUI 共享检查历史，以及安装时安全检查（shell 包装 + PATH shim + doctor），随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段的最后两项工作已于 2026-08-04 完成：
