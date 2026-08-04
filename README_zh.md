@@ -1,4 +1,4 @@
-﻿﻿﻿# @npm-safe — 本地 npm 包安全引擎
+# @npm-safe — 本地 npm 包安全引擎
 
 [English](README.md)
 
