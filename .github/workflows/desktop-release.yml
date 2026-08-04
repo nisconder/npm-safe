@@ -1,0 +1,49 @@
+name: Desktop Release Assets
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write   # needed to upload release assets
+
+jobs:
+  desktop-build:
+    name: Build & attach desktop GUI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build desktop app
+        working-directory: packages/desktop
+        run: pnpm run build
+
+      - name: List dist artifacts
+        working-directory: packages/desktop
+        run: ls -la dist/
+
+      - name: Attach release assets
+        working-directory: packages/desktop
+        run: |
+          gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --generate-notes --notes "" || true
+          for f in dist/*.zip; do
+            gh release upload "${GITHUB_REF_NAME}" "$f" --clobber
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
