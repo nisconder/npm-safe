@@ -723,7 +723,7 @@ async function renderLlmConfig() {
     baseUrlInput.value = status.baseUrl ?? "";
 
     const configured = status.configured ? "已配置" : "未配置";
-    statusText.innerHTML = `<span class="badge ${status.enabled && status.configured ? "safe" : "unknown"}">${status.enabled ? "已启用" : "已禁用"}</span> ${status.provider} · ${configured}`;
+    statusText.innerHTML = `<span class="badge ${escapeAttr(status.enabled && status.configured ? "safe" : "unknown")}">${escapeHtml(status.enabled ? "已启用" : "已禁用")}</span> ${escapeHtml(status.provider)} · ${escapeHtml(configured)}`;
     resultArea.innerHTML = "";
   } catch (err) {
     resultArea.innerHTML = `<div class="card"><div class="card-title" style="color:var(--md-error)">加载失败</div>${escapeHtml(err.message)}</div>`;
