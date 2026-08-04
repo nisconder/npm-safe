@@ -17,6 +17,7 @@ import { registerTelemetryCommand } from "./telemetry.js";
 import { registerReportCommand } from "./report.js";
 import { registerInstallGateCommands } from "./install-gate.js";
 import { registerDoctorCommand } from "./doctor.js";
+import { logCommand } from "./command-log.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
@@ -52,6 +53,17 @@ registerTelemetryCommand(program);
 registerReportCommand(program);
 registerInstallGateCommands(program);
 registerDoctorCommand(program);
+
+const startedAt = Date.now();
+process.on("exit", (code) => {
+  logCommand({
+    timestamp: new Date().toISOString(),
+    command: program.args[0] ?? "(help)",
+    argv: process.argv.slice(2),
+    exitCode: code,
+    durationMs: Date.now() - startedAt,
+  });
+});
 
 program.parse();
 
