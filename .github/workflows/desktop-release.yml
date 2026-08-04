@@ -36,14 +36,28 @@ jobs:
 
       - name: List dist artifacts
         working-directory: packages/desktop
-        run: ls -la dist/
+        run: ls -la dist/ dist/npm-safe/ || true
+
+      - name: Prepare update assets
+        working-directory: packages/desktop
+        run: |
+          cp dist/npm-safe/resources.neu ./resources.neu
+          VERSION="${GITHUB_REF_NAME#v}"
+          cat > update_manifest.json <<EOF
+          {
+            "applicationId": "org.npmsafe.desktop",
+            "version": "${VERSION}",
+            "resourcesURL": "https://github.com/nisconder/npm-safe/releases/latest/download/resources.neu",
+            "data": {}
+          }
+          EOF
+          echo "Generated update_manifest.json:"
+          cat update_manifest.json
 
       - name: Attach release assets
         working-directory: packages/desktop
         run: |
           gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --generate-notes --notes "" || true
-          for f in dist/*.zip; do
-            gh release upload "${GITHUB_REF_NAME}" "$f" --clobber
-          done
+          gh release upload "${GITHUB_REF_NAME}" dist/*.zip resources.neu update_manifest.json --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
