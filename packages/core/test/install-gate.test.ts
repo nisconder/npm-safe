@@ -158,7 +158,11 @@ describe("CLI gate", () => {
           assert.ok(content.includes('if /i "%~1"=="add" goto :gated'));
           assert.ok(content.includes('if /i "%~1"=="i" goto :gated'));
           // The consumed subcommand is stripped before calling npm-safe install.
-          assert.ok(content.includes('set "ARGS=%ARGS:* =%"'));
+          assert.ok(content.includes('set "ARGS=%ORIG:* =%"'));
+          // Bare `npm install` (no package args) short-circuits straight to the
+          // real package manager instead of feeding the verb back to npm-safe.
+          assert.ok(content.includes('if "%ARGS%"=="%ORIG%"'));
+          assert.ok(content.includes('"%FOUND%" %*\n  exit /b %errorlevel%'));
         }
       } finally {
         rmSync(home, { recursive: true, force: true });

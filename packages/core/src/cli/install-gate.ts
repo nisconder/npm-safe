@@ -447,7 +447,7 @@ function runPackageManager(
   const quoted = [verb, ...args].map(quoteWinArg).join(" ");
   const result = spawnSync(
     process.env.ComSpec ?? "cmd.exe",
-    ["/d", "/s", "/c", `${binary} ${quoted}`],
+    ["/d", "/s", "/c", `"${binary}" ${quoted}`],
     { stdio: "inherit", cwd, env: { ...process.env, [envVar]: "" } },
   );
   return result.status ?? 1;
@@ -636,11 +636,16 @@ if /i "%~1"=="i" goto :gated
 "%FOUND%" %*
 exit /b %errorlevel%
 :gated
-set "ARGS=%*"
-set "ARGS=%ARGS:* =%"
+set "ORIG=%*"
+set "ARGS=%ORIG:* =%"
+if "%ARGS%"=="%ORIG%" (
+  "%FOUND%" %*
+  exit /b %errorlevel%
+)
 npm-safe install %ARGS%
 if errorlevel 1 exit /b %errorlevel%
 "%FOUND%" %*
+exit /b %errorlevel%
 `;
 }
 
