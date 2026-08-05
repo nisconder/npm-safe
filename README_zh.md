@@ -11,7 +11,7 @@
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
-**当前状态：功能完备（第一、第二、第三阶段均已完成）。** 引擎核心交付，29 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（307 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`、`rules`、`llm` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic）及持久化配置，以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/评价体系/LLM/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
+**当前状态：v0.2.0。**
 
 ---
 
@@ -559,18 +559,3 @@ Neutralinojs 桌面图形界面（Material You 仪表盘，含检查、搜索、
 3. 解压并运行 `npm-safe` 可执行文件（Windows）或 `npm-safe` 二进制（macOS/Linux）。应用内置 `@npm-safe/core` 引擎，数据存储在 `~/.npm-safe/`。
 
 应用启动时会自动检查更新：当发布页面存在更新版本时，会提示并就地安装更新，然后自动重启。只有首次安装需要手动下载 ZIP——之后的更新全自动进行。
-
----
-
-## 发布历史（第三阶段完成）
-
-第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）、CI/CD 集成、多包批量操作、报告导出、可选的本地遥测、CLI 与 GUI 共享检查历史，以及安装时安全检查（shell 包装 + PATH shim + doctor），随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段的最后两项工作已于 2026-08-04 完成：
-
-- **结构化命令日志。** 每次 CLI 调用通过 `process.on("exit")` 向
-  `~/.npm-safe/commands.jsonl` 追加一行 JSONL（`{ timestamp, command, argv,
-  exitCode, durationMs }`）。
-- **npm 发布者配置。** `publishConfig`（`access: "public"`、
-  `provenance: true`）、完整包元数据与 `.npmignore`。由于 provenance 需要
-  OIDC，实际发布必须通过 GitHub Actions 工作流进行。
-
-项目已功能完备：所有计划工作项均已完成。

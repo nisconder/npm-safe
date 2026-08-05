@@ -16,19 +16,7 @@ caches results in a local SQLite database, and exposes a typed API for
 querying, watching, and refreshing security assessments. The engine is
 designed to operate as a library rather than a standalone service.
 
-**Status: feature-complete (Phase 1, Phase 2, and Phase 3 done).** Engine core
-delivered with 29 source files and zero TypeScript errors. Phase 2 added a
-full test suite (307 tests, all passing), a CLI binary with commands for
-`check`, `search`, `watch`, `refresh`, `settings`, `lang`, `rules`, and `llm`,
-proxy support for restricted networks, an optional multi-provider LLM scan
-provider (OpenAI / Gemini / Anthropic) with persisted configuration, and a
-Neutralinojs desktop GUI with a Material You dashboard,
-check/search/watch/rules/llm/settings tabs, light/dark themes, and persistent
-check history. A hardening pass (2026-08-02) fixed 12 issues found by a bug
-screen, including two critical XSS-to-RCE exposures in the desktop GUI (all
-fields are now escaped), a watchlist refresh crash, and
-several CLI correctness problems such as the `-j` output flag and sub-second
-TTL precision.
+**Status: v0.2.0.**
 
 ---
 
@@ -639,27 +627,3 @@ The app checks for updates automatically on startup: when a newer version is
 available on the Releases page, it prompts and installs the update in place,
 then restarts. Only the first installation requires a manual ZIP download —
 subsequent updates are automatic.
-
----
-
-## Release History (Phase 3 Complete)
-
-Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test
-suite, CLI, proxy support, the LLM scan provider with persisted configuration,
-a Neutralinojs desktop GUI, a plugin system for custom scan rules, LLM
-configuration management (CLI + GUI), CI/CD integration, multi-package batch
-operations, report export, opt-in telemetry, a shared check history between
-CLI and GUI, and an install-time security gate (shell wrappers + PATH shims +
-doctor), followed by a security hardening pass (2026-08-02) that fixed
-12 issues found by a bug screen. The final two Phase 3 items were completed
-on 2026-08-04:
-
-- **Structured command logs.** Every CLI invocation appends one JSONL line to
-  `~/.npm-safe/commands.jsonl` (`{ timestamp, command, argv, exitCode,
-  durationMs }`), wired via `process.on("exit")`.
-- **npm publisher configuration.** `publishConfig` (`access: "public"`,
-  `provenance: true`), full package metadata, and `.npmignore`. The actual
-  publish must go through the GitHub Actions workflow, since provenance
-  requires OIDC.
-
-The project is feature-complete: all planned work items are done.
