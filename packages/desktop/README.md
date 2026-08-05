@@ -2,7 +2,7 @@
 
 [中文版](README_zh.md)
 
-![Version](https://img.shields.io/badge/version-v1.0.0-2196F3)
+![Version](https://img.shields.io/badge/version-v1.0.1-2196F3)
 ![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
 ![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
