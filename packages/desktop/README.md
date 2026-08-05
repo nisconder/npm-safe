@@ -2,7 +2,7 @@
 
 [中文版](README_zh.md)
 
-![Version](https://img.shields.io/badge/version-v0.1.0-2196F3)
+![Version](https://img.shields.io/badge/version-v0.2.0-2196F3)
 ![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
 ![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
@@ -238,9 +238,3 @@ packages/desktop/
 - **WebView2 loopback error on Windows** — run the `CheckNetIsolation.exe` command from [Windows First-Run Notes](#windows-first-run-notes).
 - **Engine requests time out after 30s** — the status bar shows the timeout error; check network connectivity (a `proxy` setting may be required on restricted networks).
 - **Extension not responding** — inspect the extension log (`%TEMP%/npmsafe-extension.log`) for errors and confirm the core engine built successfully before launching.
-
----
-
-## What's Next?
-
-What's our next surprise? **It's coming soon!**

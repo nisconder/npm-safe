@@ -16,7 +16,7 @@ caches results in a local SQLite database, and exposes a typed API for
 querying, watching, and refreshing security assessments. The engine is
 designed to operate as a library rather than a standalone service.
 
-**Status: Phase 1 complete (engine core) + Phase 2 complete.** Engine core
+**Status: feature-complete (Phase 1, Phase 2, and Phase 3 done).** Engine core
 delivered with 29 source files and zero TypeScript errors. Phase 2 added a
 full test suite (307 tests, all passing), a CLI binary with commands for
 `check`, `search`, `watch`, `refresh`, `settings`, `lang`, `rules`, and `llm`,
@@ -133,7 +133,7 @@ Features:
   straight to Check.
 - **Watch** — manage the watchlist and refresh individual packages or all
   watched packages.
-- **评价体系 (Rules)** — list all registered rules, toggle each rule, and
+- **Rules** — list all registered rules, toggle each rule, and
   override its severity. Reload custom rule plugins from `~/.npm-safe/rules/`.
 - **LLM** — configure optional LLM scanning: enable/disable switch, provider,
   API key, model, and base URL, with a test-connection button.
@@ -585,7 +585,7 @@ result as a single `NpmSafeEngine` class.
 A sixth auxiliary layer, **Translator** (`translator/types.ts`,
 `translator/provider.ts`), provides a pluggable translation interface for
 converting findings and summaries into different languages. It is not wired
-into the core scan pipeline in Phase 1 but is fully typed and importable.
+into the core scan pipeline but is fully typed and importable.
 
 ---
 
@@ -613,7 +613,7 @@ SLSA provenance attestation. To release a version:
 
 1. Create an npm automation token and store it as the `NPM_TOKEN` GitHub
    secret on the repository.
-2. Tag the release: `git tag v0.1.0 && git push origin v0.1.0`.
+2. Tag the release: `git tag vX.Y.Z && git push origin vX.Y.Z`.
 3. The `Publish` workflow (`.github/workflows/publish.yml`) runs tests and
    the build, then runs `npm publish --provenance --access public`.
 
@@ -642,7 +642,7 @@ subsequent updates are automatic.
 
 ---
 
-## What Is Next (Phase 3)
+## Release History (Phase 3 Complete)
 
 Phase 1 delivered a working, tsc-clean engine core. Phase 2 completed the test
 suite, CLI, proxy support, the LLM scan provider with persisted configuration,

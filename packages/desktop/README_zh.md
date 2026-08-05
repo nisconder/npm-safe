@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-![版本](https://img.shields.io/badge/版本-v0.1.0-2196F3)
+![版本](https://img.shields.io/badge/版本-v0.2.0-2196F3)
 ![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
 ![语言](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 ![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
@@ -231,9 +231,3 @@ packages/desktop/
 - **Windows 上出现 WebView2 回环错误** — 在[Windows 首次运行注意事项](#windows-首次运行注意事项)中运行 `CheckNetIsolation.exe` 命令。
 - **引擎请求 30 秒超时** — 状态栏会显示超时错误；请检查网络连接（受限网络可能需要设置 `proxy`）。
 - **扩展无响应** — 检查扩展日志（`%TEMP%/npmsafe-extension.log`）中的错误，并确认启动前核心引擎已成功构建。
-
----
-
-## 下一步计划？
-
-我们的下一个惊喜是什么？**敬请期待！**

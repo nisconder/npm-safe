@@ -11,7 +11,7 @@
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
-**当前状态：第一阶段已完成（引擎核心）+ 第二阶段已完成。** 引擎核心交付，29 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（307 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`、`rules`、`llm` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic）及持久化配置，以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/评价体系/LLM/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
+**当前状态：功能完备（第一、第二、第三阶段均已完成）。** 引擎核心交付，29 个源文件，零 TypeScript 错误。第二阶段已新增完整测试套件（307 个测试全部通过）、CLI 命令行工具（`check`、`search`、`watch`、`refresh`、`settings`、`lang`、`rules`、`llm` 命令）、受限网络下的代理支持、可选的多后端 LLM 扫描提供者（OpenAI / Gemini / Anthropic）及持久化配置，以及基于 Neutralinojs 的桌面 GUI，包含 Material You 风格的总览仪表盘、检查/搜索/监控/评价体系/LLM/设置标签页、浅色/深色主题和持久化检查历史。随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题，包括桌面 GUI 中两处严重的 XSS 到 RCE 漏洞（所有字段现已转义）、监控列表刷新崩溃，以及 `-j` 输出标志、亚秒级 TTL 精度等若干 CLI 正确性问题。
 
 ---
 
@@ -391,7 +391,7 @@ npm-safe/
       ci.yml               # CI：类型检查 + 测试 + 依赖安全扫描
   packages/
     core/
-      package.json         # @npm-safe/core v0.1.0, ESM, publishConfig（public、provenance）
+      package.json         # @npm-safe/core v0.2.0, ESM, publishConfig（public、provenance）
       .npmignore           # 发布排除规则
       tsconfig.json        # extends ../../tsconfig.base.json
       API.md               # 公共 API 参考文档
@@ -517,7 +517,7 @@ npm-safe/
 | **Store（存储层）** | `store/database.ts`, `store/cache-manager.ts`, `store/schema.ts` | 基于 better-sqlite3 的持久化存储，使用 WAL 模式。处理数据库迁移、基于 TTL 的元数据和扫描报告缓存、监控列表持久化，以及键值设置。 |
 | **Facade（门面层）** | `index.ts` | `NpmSafeEngine` 类组合上述四层。暴露 29 个公共方法：`checkPackage`、`searchPackages`、监控列表 CRUD、刷新操作、设置访问、规则管理、LLM 配置以及生命周期管理（`startAutoRefresh`、`stopAutoRefresh`、`close`）。 |
 
-第六层为辅助层 **Translator（翻译器）**（`translator/types.ts`、`translator/provider.ts`），提供可插拔的翻译接口，用于将发现结果和摘要转换为不同语言。该层在第一阶段尚未接入核心扫描流水线，但已完整定义类型并可导入使用。
+第六层为辅助层 **Translator（翻译器）**（`translator/types.ts`、`translator/provider.ts`），提供可插拔的翻译接口，用于将发现结果和摘要转换为不同语言。该层尚未接入核心扫描流水线，但已完整定义类型并可导入使用。
 
 ---
 
@@ -543,7 +543,7 @@ npm-safe/
 `@npm-safe/core` 通过 GitHub Actions 发布到 npm 注册表，并附带 SLSA 来源证明。发布版本的步骤：
 
 1. 创建 npm automation token，并将其作为 `NPM_TOKEN` GitHub secret 存储在仓库中。
-2. 打标签：`git tag v0.1.0 && git push origin v0.1.0`。
+2. 打标签：`git tag vX.Y.Z && git push origin vX.Y.Z`。
 3. `Publish` 工作流（`.github/workflows/publish.yml`）会先运行测试和构建，然后执行 `npm publish --provenance --access public`。
 
 发布依赖 GitHub Actions OIDC，因此在本地运行 `npm publish` 不会附带来源证明，也不属于受支持的发布路径。
@@ -562,7 +562,7 @@ Neutralinojs 桌面图形界面（Material You 仪表盘，含检查、搜索、
 
 ---
 
-## 下一步计划（第三阶段）
+## 发布历史（第三阶段完成）
 
 第一阶段交付了可用的、tsc 无错误的引擎核心。第二阶段已完成测试、CLI、代理支持、LLM 扫描提供者、Neutralinojs 桌面 GUI、扫描规则插件系统、LLM 配置管理（CLI + GUI）、CI/CD 集成、多包批量操作、报告导出、可选的本地遥测、CLI 与 GUI 共享检查历史，以及安装时安全检查（shell 包装 + PATH shim + doctor），随后于 2026-08-02 完成一轮安全加固，修复了漏洞排查发现的 12 个问题。第三阶段的最后两项工作已于 2026-08-04 完成：
 
