@@ -2,6 +2,11 @@
 
 [中文版](README_zh.md)
 
+![Version](https://img.shields.io/badge/version-v0.1.0-2196F3)
+![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
+![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
+![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
+
 A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core` engine. It provides a Material You dashboard for checking, searching, watching, and refreshing npm package security assessments, with persistent check history and a custom borderless window. The UI language is Chinese (zh-CN).
 
 ## Features
@@ -112,9 +117,8 @@ pnpm run build
 ```
 
 The `build` script runs `pnpm run build:core && neu build --release` and
-produces portable ZIP files for all platforms in `packages/desktop/dist/`
-(e.g. `npm-safe-win_x64.zip`, `npm-safe-linux_x64.zip`,
-`npm-safe-mac_x64.zip`). These ZIPs are the distribution artifact — they are
+produces a portable ZIP (`npm-safe-release.zip`) in `packages/desktop/dist/`.
+This ZIP is the distribution artifact — it is
 attached to GitHub Releases by the `desktop-release.yml` workflow on each
 `v*` tag, so users can download the GUI without building it.
 
@@ -240,5 +244,3 @@ packages/desktop/
 ## What's Next?
 
 What's our next surprise? **It's coming soon!**
-
-
