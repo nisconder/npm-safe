@@ -494,7 +494,7 @@ npm-safe/
       desktop-release.yml  # desktop ZIP assets on GitHub Releases
   packages/
     core/
-      package.json         # @npm-safe/core v1.0.0, ESM, publishConfig (public, provenance)
+      package.json         # @npm-safe/core v1.0.1, ESM, publishConfig (public, provenance)
       .npmignore           # publish exclude rules
       tsconfig.json        # extends ../../tsconfig.base.json
       API.md               # public API reference
