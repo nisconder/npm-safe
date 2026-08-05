@@ -1,6 +1,6 @@
 {
   "name": "@npm-safe/core",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Local npm package security engine: static and LLM-based supply-chain analysis, SQLite cache, CLI and desktop GUI.",
   "keywords": ["npm", "security", "supply-chain", "scanner", "static-analysis", "llm", "cli"],
   "license": "Apache-2.0",
