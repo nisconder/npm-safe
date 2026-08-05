@@ -144,7 +144,15 @@ npm-safe check lodash
 
 ## AI 技能
 
-名为 `npm-safe-scan` 的代理技能随本包一同分发，并在**安装时自动安装**：安装 `@npm-safe/core` 时，`postinstall` 钩子会将 `skill/npm-safe-scan/SKILL.md` 复制到 `~/.agents/skills/npm-safe-scan/SKILL.md`。任何能够从用户的 `~/.agents/skills/` 目录自动加载技能的 AI 代理随后即可自动调用 `npm-safe` 命令。技能的触发场景偏向安装意图：编码代理在**安装任何 npm 包之前**应自动运行 `npm-safe check <name>`。该技能文档记录了完整的命令集（check、批量 check、ci、report、rules、llm、watch、settings、telemetry）、常见工作流和 JSON 输出解读。
+`npm-safe-scan` 代理技能（供自动加载 `~/.agents/skills/` 的 AI 代理使用）随包分发，但**不会自动安装**。在交互式终端中安装 `@npm-safe/core` 时，系统会询问您是否安装；在 CI 或其他非交互环境中则静默跳过。
+
+手动管理技能：
+
+- `npm-safe skill install` — 安装到 `~/.agents/skills/npm-safe-scan/`
+- `npm-safe skill status` — 查看是否已安装
+- `npm-safe skill uninstall` — 卸载
+
+该技能让 AI 代理可调用 `npm-safe` 命令（check、search、watch、refresh、settings、lang）扫描 npm 包。
 
 ---
 
@@ -390,7 +398,7 @@ npm-safe/
       SCANNER_RULES.md     # 10 条静态规则参考
       skill/
         npm-safe-scan/
-          SKILL.md         # AI 技能，postinstall 自动安装
+          SKILL.md         # AI 技能，postinstall 询问安装 / `skill install`
       scripts/
         install-skill.mjs  # postinstall 钩子
       src/

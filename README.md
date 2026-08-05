@@ -178,16 +178,20 @@ Developer instructions for running and building the desktop app live in
 
 ## AI Skill
 
-An agent skill named `npm-safe-scan` is bundled with this package and
-**auto-installed on install** via a `postinstall` hook: installing
-`@npm-safe/core` copies `skill/npm-safe-scan/SKILL.md` to
-`~/.agents/skills/npm-safe-scan/SKILL.md`. Any AI agent that auto-loads skills
-from the user's `~/.agents/skills/` directory can then automatically invoke
-`npm-safe` commands. The skill's trigger is biased towards install intent: a
-coding agent is expected to run `npm-safe check <name>` **before installing
-any npm package**, and it documents the full command surface (check, batch
-check, ci, report, rules, llm, watch, settings, telemetry), common workflows,
-and JSON output interpretation.
+The `npm-safe-scan` agent skill (for AI agents that auto-load
+`~/.agents/skills/`) is bundled with the package but is NOT installed
+automatically. When you install `@npm-safe/core` in an interactive terminal,
+you are asked whether to install it; in CI or other non-interactive
+environments it is skipped silently.
+
+To manage the skill manually:
+
+- `npm-safe skill install` — install to `~/.agents/skills/npm-safe-scan/`
+- `npm-safe skill status` — check whether it is installed
+- `npm-safe skill uninstall` — remove it
+
+The skill lets AI agents invoke `npm-safe` commands (check, search, watch,
+refresh, settings, lang) to scan npm packages.
 
 ---
 
@@ -498,7 +502,7 @@ npm-safe/
       SCANNER_RULES.md     # 10 static rule reference
       skill/
         npm-safe-scan/
-          SKILL.md         # AI skill, auto-installed via postinstall
+          SKILL.md         # AI skill, ask-on-install via postinstall / `skill install`
       scripts/
         install-skill.mjs  # postinstall hook
       src/
