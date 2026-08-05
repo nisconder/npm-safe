@@ -39,7 +39,7 @@ describe("CLI", () => {
   it("prints version", () => {
     const { stdout, status } = runCli(["--version"]);
     assert.strictEqual(status, 0);
-    assert.ok(stdout.trim().startsWith("0."));
+    assert.match(stdout.trim(), /^\d+\.\d+\.\d+/);
   });
 
   it("shorthand: npm-safe <package> runs check", () => {
