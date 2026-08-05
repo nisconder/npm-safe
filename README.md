@@ -3,11 +3,13 @@
 [中文版](README_zh.md)
 
 ![Version](https://img.shields.io/github/v/release/nisconder/npm-safe?label=Version&color=2196F3)
+![npm](https://img.shields.io/npm/v/@npm-safe/core?label=npm&color=CB3837&logo=npm&logoColor=white)
 ![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
 ![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-307%20passing-brightgreen)
+![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
+![Stars](https://img.shields.io/github/stars/nisconder/npm-safe?style=social)
 
 @npm-safe is a local-first engine for analyzing npm packages against known
 supply-chain attack patterns. It fetches package metadata from the public npm
