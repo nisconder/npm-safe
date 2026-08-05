@@ -17,6 +17,7 @@ import { registerTelemetryCommand } from "./telemetry.js";
 import { registerReportCommand } from "./report.js";
 import { registerInstallGateCommands } from "./install-gate.js";
 import { registerDoctorCommand } from "./doctor.js";
+import { registerSkillCommand } from "./skill.js";
 import { logCommand } from "./command-log.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -53,6 +54,7 @@ registerTelemetryCommand(program);
 registerReportCommand(program);
 registerInstallGateCommands(program);
 registerDoctorCommand(program);
+registerSkillCommand(program);
 
 const startedAt = Date.now();
 process.on("exit", (code) => {
