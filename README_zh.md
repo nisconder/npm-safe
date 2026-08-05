@@ -1,4 +1,4 @@
-# @npm-safe — 本地 npm 包安全引擎
+# @npm-safe：本地 npm 包安全引擎
 
 [English](README.md)
 
@@ -11,44 +11,42 @@
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
-**当前状态：v0.2.0。**
+## 快速开始
 
----
+需要 Node.js 18 或更高版本。
 
-## 前置条件
-
-- [Node.js](https://nodejs.org/) 18 或更高版本（需要全局 `fetch`）
-- [pnpm](https://pnpm.io/) 9 或更高版本
-
----
-
-## 安装与配置
+**作为 CLI 安装（全局）：**
 
 ```bash
-pnpm install
-pnpm -F @npm-safe/core exec tsc --noEmit
+npm install -g @npm-safe/core
+npm-safe check lodash
 ```
 
-TypeScript 编译器（`tsc`）作为每个包的 devDependency 安装在 pnpm 的隔离存储中，**不会**提升至工作区根目录。因此在顶层运行 `npx tsc` 或 `tsc` 将会失败。`pnpm -F @npm-safe/core exec tsc --noEmit` 通过 pnpm 的过滤执行机制调用正确的二进制文件。此模式同样适用于其他包级别的 CLI 工具。
+**作为库安装：**
+
+```bash
+npm install @npm-safe/core
+```
+
+```ts
+import { NpmSafeEngine } from "@npm-safe/core";
+
+const engine = new NpmSafeEngine();
+const result = await engine.checkPackage("lodash");
+console.log(result.security.overallLevel, result.security.overallScore);
+engine.close();
+```
 
 ---
 
-## 命令行工具
+## 命令行用法
 
-编译并全局链接 CLI（或直接用 `node packages/core/dist/cli/cli.js`）：
+`npm-safe` 二进制随 `@npm-safe/core` 包一起分发。全局选项：
 
-```bash
-pnpm -F @npm-safe/core run build
-cd packages/core && npm link
-```
-
-> **Windows PATH 说明：** `npm link` 会把 `npm-safe` 安装到 npm 全局 bin
-> 目录（`%APPDATA%\npm`），外部终端需要该目录在 `PATH` 中才能找到它。
-> 官方 Node.js MSI 安装器会自动添加；自定义安装（如 Node 解压到自定义目录）
-> 需手动添加：`setx PATH "%APPDATA%\npm;%PATH%"`，然后重新打开终端。
-> 如有异常可运行 `npm-safe doctor` 诊断。
-
-### 命令
+- `-d, --db <path>`：自定义 SQLite 数据库路径（默认 `~/.npm-safe/npm-safe.db`）
+- `-p, --proxy <url>`：注册表请求的 HTTP 代理
+- `-j, --json`：JSON 输出
+- `-v, --version`：版本号
 
 ```bash
 npm-safe <package>                 # check 的简写
@@ -86,43 +84,17 @@ npm-safe install axios             # 带门禁安装（启用后生效）
 npm-safe doctor                    # 诊断 PATH / 门禁 / shim 配置
 ```
 
-### 桌面应用
-
-`packages/desktop/` 下提供基于 Neutralinojs 的桌面 GUI：
+日常示例：
 
 ```bash
-# 构建核心引擎并在开发模式下运行桌面应用
-cd packages/desktop
-pnpm run run
-
-# 构建发布包
-pnpm run build
+npm-safe check react                # 检查单个包
+npm-safe search "web framework"     # 搜索 npm 注册表
+npm-safe watch add lodash           # 监控包，跟踪变化
+npm-safe refresh                    # 刷新全部监控包
+npm-safe settings set lang zh       # 写入设置
 ```
 
-功能特性：
-
-- **总览仪表盘** — 平均安全评分半圆仪表、最近检查列表、近7日检查柱状图、总检查次数、风险分布。
-- **检查** — 输入包名，查看安全等级、分数和发现项。
-- **搜索** — 关键词搜索 npm 注册表；点击结果直接跳转检查。
-- **监控** — 管理监控列表，刷新单个或全部监控包。
-- **评价体系** — 列出所有注册规则，启用/禁用每个规则，覆盖其严重级别；可重新加载 `~/.npm-safe/rules/` 下的插件规则。
-- **LLM** — 配置可选 LLM 扫描：启用开关、提供者、API 密钥、模型和基础 URL，并提供测试连接按钮。
-- **设置** — 读取/写入任意引擎设置（如 `proxy`、`lang`）。
-- **浅色/深色主题** — 自定义标题栏一键切换两套独立的 Material You 配色；主题与上次打开的标签页会在会话间记住（localStorage + 引擎设置表）。
-- **自定义窗口边框** — 无边框窗口，支持标题栏拖动、最小化和关闭按钮（Windows 需设置 WebView2 回环豁免，见下文）。
-
-检查历史由 Node.js 扩展进程持久化到共享的 SQLite 数据库
-（`~/.npm-safe/npm-safe.db` 的 `check_history` 表）——详见
-[共享检查历史](#共享检查历史)。
-
-全局选项：
-
-- `-d, --db <path>` — 自定义 SQLite 数据库路径（默认 `~/.npm-safe/npm-safe.db`）
-- `-p, --proxy <url>` — 注册表请求的 HTTP 代理
-- `-j, --json` — JSON 输出
-- `-v, --version` — 版本号
-
-示例：
+示例输出：
 
 ```bash
 npm-safe check lodash
@@ -134,7 +106,51 @@ npm-safe check lodash
 # ...
 ```
 
-### 代理配置
+> **Windows PATH 说明：** 全局安装会把 `npm-safe` 放入 npm 全局 bin 目录（`%APPDATA%\npm`），外部终端需要该目录在 `PATH` 中才能找到它。官方 Node.js MSI 安装器会自动添加；自定义安装（如 Node 解压到自定义目录）需手动添加：`setx PATH "%APPDATA%\npm;%PATH%"`，然后重新打开终端。如有异常可运行 `npm-safe doctor` 诊断。
+
+更深层的功能（代理细节、自定义规则插件、LLM 扫描、CI/CD、批量操作、报告导出、遥测、共享检查历史、命令日志和安装时安全门禁）见下方[功能特性](#功能特性)一节。
+
+---
+
+## 桌面图形界面
+
+基于 Neutralinojs 的桌面应用（Material You 仪表盘，含检查、搜索、监控、规则、LLM 和设置标签页）以便携 ZIP 资产的形式随每个 GitHub Release 分发，而非作为 npm 包。下载方式：
+
+1. 打开[发布页面](https://github.com/nisconder/npm-safe/releases)。
+2. 选择最新版本，下载便携 ZIP（`npm-safe-release.zip`）。
+3. 解压并运行 `npm-safe` 可执行文件（Windows）或 `npm-safe` 二进制（macOS/Linux）。应用内置 `@npm-safe/core` 引擎，数据存储在 `~/.npm-safe/`。
+
+应用启动时会自动检查更新：当发布页面存在更新版本时，会提示并就地安装更新，然后自动重启。只有首次安装需要手动下载 ZIP；之后的更新全自动进行。
+
+界面功能：
+
+- **总览仪表盘**：平均安全评分半圆仪表、最近检查列表、近 7 日检查柱状图、总检查次数、风险分布。
+- **检查**：输入包名，查看安全等级、分数和发现项。
+- **搜索**：关键词搜索 npm 注册表；点击结果直接跳转检查。
+- **监控**：管理监控列表，刷新单个或全部监控包。
+- **评价体系**：列出所有注册规则，启用/禁用每个规则，覆盖其严重级别；可重新加载 `~/.npm-safe/rules/` 下的插件规则。
+- **LLM**：配置可选 LLM 扫描，含测试连接按钮。
+- **设置**：读取/写入任意引擎设置（如 `proxy`、`lang`），包括安装门禁。
+- **浅色/深色主题**与**自定义窗口边框**：自定义标题栏一键切换两套独立的 Material You 配色；主题与上次打开的标签页会在会话间记住。
+
+检查历史由 Node.js 扩展进程持久化到共享的 SQLite 数据库（`~/.npm-safe/npm-safe.db` 的 `check_history` 表）；详见[共享检查历史](#共享检查历史)。
+
+> **Windows 首次运行：** 如果 WebView2 窗口因回环隔离错误无法加载，请以管理员身份运行一次 PowerShell：
+> `CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"`。
+
+运行和构建桌面应用的开发说明见 [CONTRIBUTING.md](CONTRIBUTING.md)；应用本身的文档见[桌面端 README](packages/desktop/README.md)。
+
+---
+
+## AI 技能
+
+名为 `npm-safe-scan` 的代理技能随本包一同分发，并在**安装时自动安装**：安装 `@npm-safe/core` 时，`postinstall` 钩子会将 `skill/npm-safe-scan/SKILL.md` 复制到 `~/.agents/skills/npm-safe-scan/SKILL.md`。任何能够从用户的 `~/.agents/skills/` 目录自动加载技能的 AI 代理随后即可自动调用 `npm-safe` 命令。技能的触发场景偏向安装意图：编码代理在**安装任何 npm 包之前**应自动运行 `npm-safe check <name>`。该技能文档记录了完整的命令集（check、批量 check、ci、report、rules、llm、watch、settings、telemetry）、常见工作流和 JSON 输出解读。
+
+---
+
+## 功能特性
+
+### 代理
 
 在受限网络中，注册表可能只能通过代理访问。代理解析优先级：`--proxy` 参数 > 持久化的 `proxy` 设置 > `HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` 环境变量。`NO_PROXY` 变量（精确匹配、`.后缀` 匹配或 `*`）可绕过代理。
 
@@ -146,17 +162,9 @@ npm-safe settings set proxy http://127.0.0.1:7897
 npm-safe --proxy http://127.0.0.1:7897 check react
 ```
 
-### 语言切换
-
-```bash
-npm-safe lang          # 查看当前语言
-npm-safe lang zh       # 切换为中文（持久化）
-npm-safe lang en       # 切换为英文（持久化）
-```
-
 ### 规则与插件
 
-扫描规则可在运行时管理，配置持久化在 `~/.npm-safe/rules.json`：
+十条内置规则可检测安装脚本、代码混淆、仿冒包名、密钥泄露、同形字符攻击等。扫描规则可在运行时管理，配置持久化在 `~/.npm-safe/rules.json`：
 
 ```bash
 npm-safe rules list                          # 查看所有规则及状态
@@ -165,9 +173,7 @@ npm-safe rules enable install-script         # 重新启用
 npm-safe rules severity typosquatting critical  # 覆盖规则严重级别
 ```
 
-第三方规则插件可放入 `~/.npm-safe/rules/` 目录（`*.mjs` / `*.js` ES 模块文件）。
-每个文件可导出 `rule`、`rules` 或 `default`，内容为一个或多个符合
-`ScanRule` 接口的规则：
+第三方规则插件可放入 `~/.npm-safe/rules/` 目录（`*.mjs` / `*.js` ES 模块文件）。每个文件可导出 `rule`、`rules` 或 `default`，内容为一个或多个符合 `ScanRule` 接口的规则：
 
 ```js
 // ~/.npm-safe/rules/my-rule.mjs
@@ -187,15 +193,11 @@ export const rule = {
 };
 ```
 
-插件文件在引擎启动时自动加载，损坏的文件会被跳过。`ScanRule` 接口及完整
-的引擎规则 API（`registerRule`、`unregisterRule`、`listRules`、
-`setRuleEnabled`、`setRuleSeverity`）均从 `@npm-safe/core` 导出，供编程使用。
+插件文件在引擎启动时自动加载，损坏的文件会被跳过。`ScanRule` 接口及完整的引擎规则 API（`registerRule`、`unregisterRule`、`listRules`、`setRuleEnabled`、`setRuleSeverity`）均从 `@npm-safe/core` 导出，供编程使用。内置规则参考见 [SCANNER_RULES.md](packages/core/SCANNER_RULES.md)。
 
 ### LLM 扫描
 
-基于 LLM 的语义扫描是可选功能，默认禁用。当未配置 API 密钥时，静态分析
-照常运行。配置持久化在 `~/.npm-safe/llm.json`，也可通过环境变量提供
-（`OPENAI_API_KEY`、`GEMINI_API_KEY` 或 `ANTHROPIC_API_KEY`）。
+基于 LLM 的语义扫描是可选功能，默认禁用。当未配置 API 密钥时，静态分析照常运行。支持 OpenAI、Gemini、Anthropic 三家提供者。配置持久化在 `~/.npm-safe/llm.json`，也可通过环境变量提供（`OPENAI_API_KEY`、`GEMINI_API_KEY` 或 `ANTHROPIC_API_KEY`）。
 
 ```bash
 npm-safe llm status                 # 查看当前状态
@@ -219,14 +221,11 @@ npm-safe ci --json                         # 输出机器可读报告
 npm-safe ci --rate-limit 50                # 每秒注册表请求数
 ```
 
-退出码：`0` 通过，`1` 用法/配置错误，`2` 有依赖达到失败级别（或扫描出错）。
-仓库自带可直接使用的 GitHub Actions 工作流（`.github/workflows/ci.yml`）——
-每次 push/PR 自动运行测试套件、类型检查与依赖安全扫描。
+退出码：`0` 通过，`1` 用法/配置错误，`2` 有依赖达到失败级别（或扫描出错）。仓库自带可直接使用的 GitHub Actions 工作流（`.github/workflows/ci.yml`）；每次 push/PR 自动运行测试套件、类型检查与依赖安全扫描。
 
 ### 批量操作
 
-`check` 接受任意数量的包名，并支持从文件读取列表；批量扫描默认并发 5，
-同时仍遵守限速器：
+`check` 接受任意数量的包名，并支持从文件读取列表；批量扫描默认并发 5，同时仍遵守限速器：
 
 ```bash
 npm-safe check lodash express axios       # 批量检查
@@ -235,10 +234,7 @@ npm-safe check lodash express --json      # 机器可读批量报告
 npm-safe check detail 2                   # 查看上次批量第 2 个包的完整详情
 ```
 
-编程使用可用 `NpmSafeEngine.checkPackages(names, options)`，支持
-`concurrency` 上限与 `onProgress` 进度回调。最近一次批量结果保存在
-`~/.npm-safe/last-batch.json`；`check detail <n>` 可从其中重新渲染单个包
-的完整报告（发现项、建议、代码片段），无需重新拉取。
+编程使用可用 `NpmSafeEngine.checkPackages(names, options)`，支持 `concurrency` 上限与 `onProgress` 进度回调。最近一次批量结果保存在 `~/.npm-safe/last-batch.json`；`check detail <n>` 可从其中重新渲染单个包的完整报告（发现项、建议、代码片段），无需重新拉取。
 
 ### 报告导出
 
@@ -251,8 +247,7 @@ npm-safe report --file deps.txt --format csv --output report.csv
 npm-safe report --batch                           # 导出上次批量检查
 ```
 
-JSON 输出包含完整的逐包结果（`BatchPackageResult[]`）；CSV 行格式为
-`name,version,level,score,findingCount`。
+JSON 输出包含完整的逐包结果（`BatchPackageResult[]`）；CSV 行格式为 `name,version,level,score,findingCount`。
 
 ### 遥测与分析
 
@@ -266,34 +261,21 @@ npm-safe telemetry export         # 以 JSON 导出已采集数据
 npm-safe telemetry reset          # 清空全部采集数据
 ```
 
-启用后，`check` 与 `ci` 运行会记录到 `~/.npm-safe/telemetry.json`：按事件
-计数的计数器、已扫描包总数、安全级别分布、错误计数，以及最近 200 条事件
-的滚动窗口。
+启用后，`check` 与 `ci` 运行会记录到 `~/.npm-safe/telemetry.json`：按事件计数的计数器、已扫描包总数、安全级别分布、错误计数，以及最近 200 条事件的滚动窗口。
 
 ### 共享检查历史
 
-通过 CLI（`check` / `ci`）检测的每个包，以及桌面 GUI 内的每次检查，都会
-写入共享的 SQLite 数据库（`~/.npm-safe/npm-safe.db` 的 `check_history` 表，
-新的在前，上限 1000 条）。桌面 GUI 的总览仪表盘直接从数据库加载这段历史
-——命令行扫描过的包会出现在应用中，反之亦然。旧的
-`~/.npm-safe/history.json` 数据会在首次启动时一次性迁移入库。编程接口：
-`engine.recordCheckHistory(result)`、`engine.getCheckHistory()`、
-`engine.clearCheckHistory()`。
+通过 CLI（`check` / `ci`）检测的每个包，以及桌面 GUI 内的每次检查，都会写入共享的 SQLite 数据库（`~/.npm-safe/npm-safe.db` 的 `check_history` 表，新的在前，上限 1000 条）。桌面 GUI 的总览仪表盘直接从数据库加载这段历史；命令行扫描过的包会出现在应用中，反之亦然。旧的 `~/.npm-safe/history.json` 数据会在首次启动时一次性迁移入库。编程接口：`engine.recordCheckHistory(result)`、`engine.getCheckHistory()`、`engine.clearCheckHistory()`。
 
-桌面扩展在启动时也会读取持久化的 `proxy` 设置并配置引擎——在 GUI 或通过
-`npm-safe settings set proxy ...` 配置的代理同样作用于桌面端扫描。
+桌面扩展在启动时也会读取持久化的 `proxy` 设置并配置引擎；在 GUI 或通过 `npm-safe settings set proxy ...` 配置的代理同样作用于桌面端扫描。
 
 ### 命令日志
 
-每次 CLI 调用都会在进程退出时向 `~/.npm-safe/commands.jsonl` 追加一行
-JSONL，字段为 `{ timestamp, command, argv, exitCode, durationMs }`。可通过
-`NPM_SAFE_COMMAND_LOG` 环境变量重定向日志位置。
+每次 CLI 调用都会在进程退出时向 `~/.npm-safe/commands.jsonl` 追加一行 JSONL，字段为 `{ timestamp, command, argv, exitCode, durationMs }`。可通过 `NPM_SAFE_COMMAND_LOG` 环境变量重定向日志位置。
 
 ### 安装时安全检查（可选）
 
-`npm-safe install` 包装了 `npm install` 并带可选安全门禁：先检查每个目标包，
-任何**分数低于阈值（默认 85）**的包都需要用户手动确认后才能继续安装。
-门禁**默认关闭**，可通过 CLI 或桌面 GUI（设置 → 安装安全检查）开启：
+`npm-safe install` 包装了 `npm install` 并带可选安全门禁：先检查每个目标包，任何**分数低于阈值（默认 85）**的包都需要用户手动确认后才能继续安装。门禁**默认关闭**，可通过 CLI 或桌面 GUI（设置 → 安装安全检查）开启：
 
 ```bash
 npm-safe gate status               # 查看启用状态与阈值
@@ -305,174 +287,22 @@ npm-safe install axios --yes       # 自动确认
 npm-safe install axios --dry-run   # 只检查+确认，不实际安装
 ```
 
-`gate enable` 一步完成：开启检查、安装 **PATH shim**（`~/.npm-safe/bin`
-下的 npm.cmd / pnpm.cmd / yarn.cmd——对所有 shell 生效），并把 `npm`、
-`pnpm`、`yarn` 的包装函数写入 shell 配置（Windows 上为 PowerShell
-`$PROFILE`，其他平台为 `~/.zshrc`/`~/.bashrc`）。激活方式：
+`gate enable` 一步完成：开启检查、安装 **PATH shim**（`~/.npm-safe/bin` 下的 npm.cmd / pnpm.cmd / yarn.cmd，对所有 shell 生效），并把 `npm`、`pnpm`、`yarn` 的包装函数写入 shell 配置（Windows 上为 PowerShell `$PROFILE`，其他平台为 `~/.zshrc`/`~/.bashrc`）。激活方式：
 
 | 你的 shell | 激活方式 |
 |---|---|
 | PowerShell / bash / zsh | 直接重启 shell 即可（profile 包装自动加载） |
-| **Windows cmd**（或 shim 目录不在 PATH 最前的任何 shell） | **以管理员身份运行一次**：`npm-safe gate shell --machine`——该命令把 shim 目录加到**系统** PATH 最前，之后所有新终端（含 cmd）都被拦截。完成后重新打开终端。 |
+| **Windows cmd**（或 shim 目录不在 PATH 最前的任何 shell） | **以管理员身份运行一次**：`npm-safe gate shell --machine`；该命令把 shim 目录加到**系统** PATH 最前，之后所有新终端（含 cmd）都被拦截。完成后重新打开终端。 |
 
-在 Windows 上，只有系统 PATH 能可靠地排在 Node 安装目录之前；当某些工具把
-机器 PATH 放在前面时，仅修改用户 PATH 不够。`npm-safe doctor` 会验证
-`where npm.cmd` 是否优先解析到 shim，并给出确切修复命令。
+在 Windows 上，只有系统 PATH 能可靠地排在 Node 安装目录之前；当某些工具把机器 PATH 放在前面时，仅修改用户 PATH 不够。`npm-safe doctor` 会验证 `where npm.cmd` 是否优先解析到 shim，并给出确切修复命令。
 
-可用 `--shell-file <path>` 指定配置文件，`--no-shell` 跳过。激活后，任何
-`pnpm add <pkg>` 或 `npm install <pkg>` 都会先执行 `npm-safe install ...`——
-门禁检查包，低于阈值时确认通过后才会运行真正的包管理器。移除：
+可用 `--shell-file <path>` 指定配置文件，`--no-shell` 跳过。激活后，任何 `pnpm add <pkg>` 或 `npm install <pkg>` 都会先执行 `npm-safe install ...`；门禁检查包，低于阈值时确认通过后才会运行真正的包管理器。移除：
 
 ```bash
 npm-safe gate shell --remove
 ```
 
 门禁与 GUI 共用同一张设置表，CLI 开关与 GUI 开关保持同步。
-
-### 桌面应用首次运行（Windows）
-
-如果 WebView2 窗口因回环隔离错误无法加载，请以管理员身份运行一次 PowerShell：
-
-```powershell
-CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"
-```
-
-### 测试
-
-```bash
-pnpm -F @npm-safe/core test
-```
-
-307 个测试覆盖每个模块：校验器、静态规则、限流器、存储层、注册表客户端（mock fetch）、刷新调度器、引擎集成层、LLM 提供者、LLM 配置管理器、规则插件系统、CI 命令、批量操作、报告导出、遥测管理器、共享检查历史、安装门禁、doctor 诊断、结构化命令日志以及 CLI 本身。
-
----
-
-## 文档
-
-引擎的详细文档位于 `packages/core/` 目录下：
-
-- **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- 分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
-- **[API.md](packages/core/API.md)** -- 完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 29 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
-- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- 所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
-- **[README_zh.md](README_zh.md)** -- 本项目的简体中文版 README。
-
-桌面 GUI 位于 `packages/desktop/`，详见
-[桌面端 README](packages/desktop/README.md)。
-
----
-
-## AI 技能
-
-名为 `npm-safe-scan` 的代理技能随本包一同分发，并在**安装时自动安装**：
-安装 `@npm-safe/core` 时，`postinstall` 钩子会将
-`skill/npm-safe-scan/SKILL.md` 复制到
-`~/.agents/skills/npm-safe-scan/SKILL.md`。任何能够从用户的
-`~/.agents/skills/` 目录自动加载技能的 AI 代理随后即可自动调用
-`npm-safe` 命令。技能的触发场景偏向安装意图：编码代理在**安装任何 npm 包
-之前**应自动运行 `npm-safe check <name>`。该技能文档记录了完整的命令集
-（check、批量 check、ci、report、rules、llm、watch、settings、telemetry）、
-常见工作流和 JSON 输出解读。
-
----
-
-## 目录结构
-
-```
-npm-safe/
-  .gitignore
-  LICENSE                  # Apache-2.0
-  README.md                # 项目说明（英文）
-  README_zh.md             # 项目说明（中文）
-  pnpm-lock.yaml           # 锁文件
-  pnpm-workspace.yaml      # workspace = packages/*
-  tsconfig.base.json       # 共享 TypeScript 配置（ESNext, strict）
-  .github/
-    workflows/
-      ci.yml               # CI：类型检查 + 测试 + 依赖安全扫描
-  packages/
-    core/
-      package.json         # @npm-safe/core v0.2.0, ESM, publishConfig（public、provenance）
-      .npmignore           # 发布排除规则
-      tsconfig.json        # extends ../../tsconfig.base.json
-      API.md               # 公共 API 参考文档
-      ARCHITECTURE.md      # 分层架构图、数据流、数据库模式
-      SCANNER_RULES.md     # 10 条静态规则参考
-      skill/
-        npm-safe-scan/
-          SKILL.md         # AI 技能，postinstall 自动安装
-      scripts/
-        install-skill.mjs  # postinstall 钩子
-      src/
-        index.ts           # NpmSafeEngine 门面 — 统一公共 API
-        cli/
-          cli.ts           # CLI 入口 — commander 程序 + check 简写
-          command-log.ts   # 结构化 JSONL 命令日志（~/.npm-safe/commands.jsonl）
-          check.ts         # check 命令（与简写共用）
-          search.ts        # search 命令
-          watch.ts         # 监控列表命令（list/add/remove）
-          refresh.ts       # refresh 命令
-          settings.ts      # settings get/set 命令
-          lang.ts          # lang 命令（en/zh，持久化）
-          rules.ts         # 规则管理命令
-          llm.ts           # LLM 配置命令
-          i18n.ts          # 中英文双语模块
-          shared.ts        # 引擎工厂 + 默认数据库路径
-        llm/
-          provider.ts      # createLlmProvider 工厂（OpenAI / Gemini / Anthropic）
-          llm-config.ts    # LlmConfigManager 持久化与环境变量回退
-          gemini.ts        # Gemini LLM 提供者
-          anthropic.ts     # Anthropic LLM 提供者
-          parse.ts         # LLM 响应解析辅助函数
-        registry/
-          types.ts         # PackageMetadata, AbbreviatedVersion, SearchResult, NpmRegistryError
-          validator.ts     # validatePackageName, validateVersion, validateDomain, isKnownRegistryDomain
-          client.ts        # NpmRegistryClient — HTTP 请求，含重试、退避与代理支持
-        scanner/
-          types.ts         # SecurityLevel, Severity, ScanFinding, ScanRule, StaticScanReport
-          static-rules.ts  # StaticAnalyzer — 10 条内置分析规则 + 规则注册
-          rule-config.ts   # RuleConfigManager 持久化
-          rule-loader.ts   # 从 ~/.npm-safe/rules/ 发现插件规则
-        scheduler/
-          rate-limiter.ts      # TokenBucket — 5 tokens/s, 10 burst
-          refresh-scheduler.ts # RefreshScheduler — 通过 EventEmitter 实现定时刷新监控列表
-        store/
-          schema.ts        # SCHEMA_SQL (DDL), getMigrationList, getInitialMigration
-          database.ts      # DatabaseManager — better-sqlite3, WAL 模式, 迁移系统
-          cache-manager.ts # CacheManager — 基于 TTL 的缓存读写，用于包、报告、监控列表、设置
-        translator/
-          types.ts         # TranslationProvider 接口, 目标语言配置
-          provider.ts      # 内置翻译提供者实现
-      test/
-        validator.test.ts      # 包名/版本/域名校验测试
-        static-rules.test.ts   # 10 条规则 + 评分/等级测试
-        rate-limiter.test.ts   # 令牌桶测试
-        store.test.ts          # 数据库 + 缓存管理器测试
-        client.test.ts         # 注册表客户端测试（mock fetch、代理）
-        refresh-scheduler.test.ts # 调度器事件测试
-        engine.test.ts         # NpmSafeEngine 集成测试
-        cli.test.ts            # CLI 测试（命令、语言、简写）
-        llm-provider.test.ts   # createLlmProvider 工厂 + 共享行为测试
-        llm-gemini.test.ts     # Gemini LLM 提供者测试
-        llm-anthropic.test.ts  # Anthropic LLM 提供者测试
-        llm-config.test.ts     # LLM 配置持久化与引擎集成测试
-        rule-config.test.ts    # RuleConfigManager 持久化测试
-        rule-loader.test.ts    # 插件规则发现测试
-        rule-plugin.test.ts    # 规则注册与引擎集成测试
-    desktop/                         # @npm-safe/desktop（Neutralinojs 桌面 GUI）
-      package.json                   # 桌面工作区包
-      neutralino.config.json         # Neutralino 应用配置（无边框、扩展）
-      resources/
-        index.html                   # Material You 界面（Navigation Drawer）
-        styles.css                   # M3 浅色/深色主题、自定义标题栏
-        js/main.js                   # 前端 IPC 桥接 + 仪表盘逻辑
-        js/neutralino.js             # Neutralinojs 客户端库
-        js/neutralino.d.ts           # Neutralinojs 类型定义
-        icons/
-          appIcon.png                # 应用图标
-          trayIcon.png               # 托盘图标
-          logo.gif                   # 标志动画
-        extensions/core/main.mjs     # 承载 NpmSafeEngine 的 Node.js 扩展
-```
 
 ---
 
@@ -521,6 +351,66 @@ npm-safe/
 
 ---
 
+## 文档
+
+详细文档位于 `packages/core/` 目录下：
+
+- **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)**：分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
+- **[API.md](packages/core/API.md)**：完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 29 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
+- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)**：所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**：开发者指南，涵盖开发环境配置、代码规范、测试、发布流程与桌面 GUI 构建。
+- **[README.md](README.md)**：本项目的英文版 README。
+
+桌面 GUI 位于 `packages/desktop/`，详见[桌面端 README](packages/desktop/README.md)。
+
+---
+
+## 目录结构
+
+```
+npm-safe/
+  LICENSE                  # Apache-2.0
+  README.md                # 项目说明（英文）
+  README_zh.md             # 项目说明（中文）
+  CONTRIBUTING.md          # 开发者指南（配置、规范、发布）
+  pnpm-workspace.yaml      # workspace = packages/*
+  tsconfig.base.json       # 共享 TypeScript 配置（ESNext, strict）
+  .github/
+    workflows/
+      ci.yml               # CI：类型检查 + 测试 + 依赖安全扫描
+      publish.yml          # npm 发布（SLSA 来源证明，标签触发）
+      desktop-release.yml  # GitHub Releases 的桌面端 ZIP 资产
+  packages/
+    core/
+      package.json         # @npm-safe/core v0.2.0, ESM, publishConfig（public、provenance）
+      .npmignore           # 发布排除规则
+      tsconfig.json        # extends ../../tsconfig.base.json
+      API.md               # 公共 API 参考文档
+      ARCHITECTURE.md      # 分层架构图、数据流、数据库模式
+      SCANNER_RULES.md     # 10 条静态规则参考
+      skill/
+        npm-safe-scan/
+          SKILL.md         # AI 技能，postinstall 自动安装
+      scripts/
+        install-skill.mjs  # postinstall 钩子
+      src/
+        index.ts           # NpmSafeEngine 门面，统一公共 API
+        cli/               # 命令实现、命令日志、i18n
+        llm/               # LLM 提供者（OpenAI / Gemini / Anthropic）
+        registry/          # 注册表客户端、校验器、类型
+        scanner/           # StaticAnalyzer、规则配置、插件加载器
+        scheduler/         # 限速器 + 刷新调度器
+        store/             # SQLite 数据库、迁移、缓存管理器
+        translator/        # 可插拔翻译接口
+      test/                # 模块测试（见 CONTRIBUTING.md）
+    desktop/               # @npm-safe/desktop（Neutralinojs 桌面 GUI）
+      package.json         # 桌面工作区包
+      neutralino.config.json  # Neutralino 应用配置（无边框、扩展）
+      resources/           # index.html, styles.css, js/, icons/, extensions/core/main.mjs
+```
+
+---
+
 ## 关键设计决策
 
 | 决策 | 理由 |
@@ -538,24 +428,6 @@ npm-safe/
 
 ---
 
-## 发布
+## 许可证
 
-`@npm-safe/core` 通过 GitHub Actions 发布到 npm 注册表，并附带 SLSA 来源证明。发布版本的步骤：
-
-1. 创建 npm automation token，并将其作为 `NPM_TOKEN` GitHub secret 存储在仓库中。
-2. 打标签：`git tag vX.Y.Z && git push origin vX.Y.Z`。
-3. `Publish` 工作流（`.github/workflows/publish.yml`）会先运行测试和构建，然后执行 `npm publish --provenance --access public`。
-
-发布依赖 GitHub Actions OIDC，因此在本地运行 `npm publish` 不会附带来源证明，也不属于受支持的发布路径。
-
----
-
-## 桌面图形界面
-
-Neutralinojs 桌面图形界面（Material You 仪表盘，含检查、搜索、监控、规则、LLM 和设置标签页）以便携 ZIP 资产的形式随每个 GitHub Release 分发——而非作为 npm 包。下载方式：
-
-1. 打开[发布页面](https://github.com/nisconder/npm-safe/releases)。
-2. 选择最新版本，下载便携 ZIP（`npm-safe-release.zip`）。
-3. 解压并运行 `npm-safe` 可执行文件（Windows）或 `npm-safe` 二进制（macOS/Linux）。应用内置 `@npm-safe/core` 引擎，数据存储在 `~/.npm-safe/`。
-
-应用启动时会自动检查更新：当发布页面存在更新版本时，会提示并就地安装更新，然后自动重启。只有首次安装需要手动下载 ZIP——之后的更新全自动进行。
+Apache-2.0。详见 [LICENSE](LICENSE)。

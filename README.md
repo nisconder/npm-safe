@@ -1,4 +1,4 @@
-# @npm-safe — Local npm Package Security Engine
+# @npm-safe: Local npm Package Security Engine
 
 [中文版](README_zh.md)
 
@@ -16,51 +16,42 @@ caches results in a local SQLite database, and exposes a typed API for
 querying, watching, and refreshing security assessments. The engine is
 designed to operate as a library rather than a standalone service.
 
-**Status: v0.2.0.**
+## Quick Start
 
----
+Requires Node.js 18 or later.
 
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) 18 or later (global `fetch` required)
-- [pnpm](https://pnpm.io/) 9 or later
-
----
-
-## Setup
+**Install as a CLI (global):**
 
 ```bash
-pnpm install
-pnpm -F @npm-safe/core exec tsc --noEmit
+npm install -g @npm-safe/core
+npm-safe check lodash
 ```
 
-The TypeScript compiler (`tsc`) is installed as a per-package devDependency
-under pnpm's isolated store and is **not hoisted** to the workspace root.
-Running `npx tsc` or `tsc` at the top level will therefore fail. The
-`pnpm -F @npm-safe/core exec tsc --noEmit` workaround invokes the correct
-binary via pnpm's filtered execution. The same pattern applies to any other
-per-package CLI tool.
+**Install as a library:**
+
+```bash
+npm install @npm-safe/core
+```
+
+```ts
+import { NpmSafeEngine } from "@npm-safe/core";
+
+const engine = new NpmSafeEngine();
+const result = await engine.checkPackage("lodash");
+console.log(result.security.overallLevel, result.security.overallScore);
+engine.close();
+```
 
 ---
 
-## Command Line Interface
+## CLI Usage
 
-Build the CLI and link it globally (or run `node packages/core/dist/cli/cli.js`
-directly):
+The `npm-safe` binary ships with the `@npm-safe/core` package. Global options:
 
-```bash
-pnpm -F @npm-safe/core run build
-cd packages/core && npm link
-```
-
-> **Windows PATH note:** `npm link` installs `npm-safe` into the npm global
-> bin directory (`%APPDATA%\npm`), which must be on your `PATH` for external
-> terminals to find it. The official Node.js MSI adds it automatically; for
-> custom installs (e.g. Node unpacked to a custom folder) add it yourself:
-> `setx PATH "%APPDATA%\npm;%PATH%"`, then reopen the terminal. If anything
-> looks off, run `npm-safe doctor` for a diagnosis.
-
-### Commands
+- `-d, --db <path>`: custom SQLite database path (default `~/.npm-safe/npm-safe.db`)
+- `-p, --proxy <url>`: HTTP proxy for registry requests
+- `-j, --json`: JSON output
+- `-v, --version`: print version
 
 ```bash
 npm-safe <package>                 # Shorthand for check
@@ -98,53 +89,17 @@ npm-safe install axios             # Install with the security gate (if enabled)
 npm-safe doctor                    # Diagnose PATH / gate / shim setup
 ```
 
-### Desktop Application
-
-A Neutralinojs desktop GUI is provided under `packages/desktop/`:
+A few everyday examples:
 
 ```bash
-# Build the core engine and run the desktop app in development mode
-cd packages/desktop
-pnpm run run
-
-# Build a release bundle
-pnpm run build
+npm-safe check react                # check a single package
+npm-safe search "web framework"     # search the npm registry
+npm-safe watch add lodash           # watch a package for changes
+npm-safe refresh                    # refresh all watched packages
+npm-safe settings set lang zh       # persist a setting
 ```
 
-Features:
-
-- **Overview dashboard** — average security score with a half-circle gauge,
-  recent checks list, 7-day check histogram, total count, and risk breakdown.
-- **Check** — enter a package name and view the security level, score, and
-  findings.
-- **Search** — keyword search against the npm registry; click a result to jump
-  straight to Check.
-- **Watch** — manage the watchlist and refresh individual packages or all
-  watched packages.
-- **Rules** — list all registered rules, toggle each rule, and
-  override its severity. Reload custom rule plugins from `~/.npm-safe/rules/`.
-- **LLM** — configure optional LLM scanning: enable/disable switch, provider,
-  API key, model, and base URL, with a test-connection button.
-- **Settings** — read/write arbitrary engine settings (e.g. `proxy`, `lang`).
-- **Light/Dark themes** — toggle between two independent Material You palettes
-  from the custom title bar; the choice and the last active tab are remembered
-  across sessions (localStorage + engine settings table).
-- **Custom window chrome** — borderless window with draggable title bar, minimize
-  and close buttons (Windows loopback exemption is required for WebView2; see
-  setup notes below).
-
-Check history is persisted by the Node.js extension process to the shared
-SQLite database (`~/.npm-safe/npm-safe.db`, `check_history` table) — see
-[Shared check history](#shared-check-history).
-
-Global options:
-
-- `-d, --db <path>` — custom SQLite database path (default `~/.npm-safe/npm-safe.db`)
-- `-p, --proxy <url>` — HTTP proxy for registry requests
-- `-j, --json` — JSON output
-- `-v, --version` — print version
-
-Example:
+Example output:
 
 ```bash
 npm-safe check lodash
@@ -156,7 +111,89 @@ npm-safe check lodash
 # ...
 ```
 
-### Proxy configuration
+> **Windows PATH note:** a global install places `npm-safe` in the npm global
+> bin directory (`%APPDATA%\npm`), which must be on your `PATH` for external
+> terminals to find it. The official Node.js MSI adds it automatically; for
+> custom installs (e.g. Node unpacked to a custom folder) add it yourself:
+> `setx PATH "%APPDATA%\npm;%PATH%"`, then reopen the terminal. If anything
+> looks off, run `npm-safe doctor` for a diagnosis.
+
+The deeper features (proxy details, custom rule plugins, LLM scanning, CI/CD,
+batch operations, report export, telemetry, the shared check history, the
+command log, and the install-time security gate) are covered in the
+[Features](#features) section below.
+
+---
+
+## Desktop GUI
+
+A Neutralinojs desktop app (Material You dashboard with check, search, watch,
+rules, LLM, and settings tabs) is distributed as a portable ZIP asset on each
+GitHub Release, not as an npm package. To download:
+
+1. Open the [Releases page](https://github.com/nisconder/npm-safe/releases).
+2. Pick the latest release and download the portable ZIP
+   (`npm-safe-release.zip`).
+3. Unzip and run the `npm-safe` executable (Windows) or `npm-safe` binary
+   (macOS/Linux). The app bundles the `@npm-safe/core` engine and stores data
+   in `~/.npm-safe/`.
+
+The app checks for updates automatically on startup: when a newer version is
+available on the Releases page, it prompts and installs the update in place,
+then restarts. Only the first installation requires a manual ZIP download;
+subsequent updates are automatic.
+
+What the GUI offers:
+
+- **Overview dashboard**: average security score with a half-circle gauge,
+  recent checks list, 7-day check histogram, total count, and risk breakdown.
+- **Check**: enter a package name and view the security level, score, and
+  findings.
+- **Search**: keyword search against the npm registry; click a result to jump
+  straight to Check.
+- **Watch**: manage the watchlist and refresh individual packages or all
+  watched packages.
+- **Rules**: list all registered rules, toggle each rule, and override its
+  severity; reload custom rule plugins from `~/.npm-safe/rules/`.
+- **LLM**: configure optional LLM scanning with a test-connection button.
+- **Settings**: read/write arbitrary engine settings (e.g. `proxy`, `lang`),
+  including the install gate.
+- **Light/Dark themes** and **custom window chrome**: two independent Material
+  You palettes from the custom title bar, with the theme and last active tab
+  remembered across sessions.
+
+Check history is persisted by the Node.js extension process to the shared
+SQLite database (`~/.npm-safe/npm-safe.db`, `check_history` table); see
+[Shared check history](#shared-check-history).
+
+> **Windows first run:** if the WebView2 window fails to load with a loopback
+> error, run once in an administrator PowerShell:
+> `CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"`.
+
+Developer instructions for running and building the desktop app live in
+[CONTRIBUTING.md](CONTRIBUTING.md); the app itself is documented in the
+[Desktop README](packages/desktop/README.md).
+
+---
+
+## AI Skill
+
+An agent skill named `npm-safe-scan` is bundled with this package and
+**auto-installed on install** via a `postinstall` hook: installing
+`@npm-safe/core` copies `skill/npm-safe-scan/SKILL.md` to
+`~/.agents/skills/npm-safe-scan/SKILL.md`. Any AI agent that auto-loads skills
+from the user's `~/.agents/skills/` directory can then automatically invoke
+`npm-safe` commands. The skill's trigger is biased towards install intent: a
+coding agent is expected to run `npm-safe check <name>` **before installing
+any npm package**, and it documents the full command surface (check, batch
+check, ci, report, rules, llm, watch, settings, telemetry), common workflows,
+and JSON output interpretation.
+
+---
+
+## Features
+
+### Proxy
 
 On restricted networks the registry may only be reachable through a proxy.
 Proxy resolution order: `--proxy` flag > persisted `proxy` setting >
@@ -171,18 +208,11 @@ npm-safe settings set proxy http://127.0.0.1:7897
 npm-safe --proxy http://127.0.0.1:7897 check react
 ```
 
-### Language
-
-```bash
-npm-safe lang          # Show the current language
-npm-safe lang zh       # Switch to Chinese (persisted)
-npm-safe lang en       # Switch to English (persisted)
-```
-
 ### Rules and plugins
 
-Rules can be managed at runtime. Configuration is persisted in
-`~/.npm-safe/rules.json`:
+Ten built-in rules detect install scripts, obfuscation, typosquatting, secret
+exposure, homograph attacks, and more. Rules can be managed at runtime;
+configuration is persisted in `~/.npm-safe/rules.json`:
 
 ```bash
 npm-safe rules list                          # Show every rule and its status
@@ -216,14 +246,17 @@ export const rule = {
 Plugin files are loaded at engine startup and bad files are skipped. The
 `ScanRule` interface and the full engine rule API (`registerRule`,
 `unregisterRule`, `listRules`, `setRuleEnabled`, `setRuleSeverity`) are
-exported from `@npm-safe/core` for programmatic use.
+exported from `@npm-safe/core` for programmatic use. See
+[SCANNER_RULES.md](packages/core/SCANNER_RULES.md) for the built-in rule
+reference.
 
 ### LLM scanning
 
 LLM-based semantic scanning is optional and disabled by default. When no API
-key is configured, static analysis continues normally. Configuration is
-persisted in `~/.npm-safe/llm.json` and can also be supplied via environment
-variables (`OPENAI_API_KEY`, `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`).
+key is configured, static analysis continues normally. Providers: OpenAI,
+Gemini, Anthropic. Configuration is persisted in `~/.npm-safe/llm.json` and
+can also be supplied via environment variables (`OPENAI_API_KEY`,
+`GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`).
 
 ```bash
 npm-safe llm status                 # Show the current provider and status
@@ -250,7 +283,7 @@ npm-safe ci --rate-limit 50                # registry requests per second
 
 Exit codes: `0` pass, `1` usage/config error, `2` one or more dependencies
 reached the fail level (or the scan errored). A ready-to-use GitHub Actions
-workflow lives at `.github/workflows/ci.yml` — it runs the test suite, type
+workflow lives at `.github/workflows/ci.yml`; it runs the test suite, type
 checks, and a dependency security scan on every push/PR.
 
 ### Batch operations
@@ -305,8 +338,8 @@ security-level distribution, error counts, and a rolling window of the last
 
 ### Shared check history
 
-Every package checked via the CLI (`check` / `ci`) — and every check run
-inside the desktop GUI — is written to the shared SQLite database
+Every package checked via the CLI (`check` / `ci`), and every check run
+inside the desktop GUI, is written to the shared SQLite database
 (`~/.npm-safe/npm-safe.db`, `check_history` table, newest-first, capped at
 1000). The desktop GUI's overview dashboard loads this history directly, so
 packages scanned on the command line appear in the app, and vice versa.
@@ -316,8 +349,8 @@ first launch. Programmatic access: `engine.recordCheckHistory(result)`,
 
 The desktop extension also honours the persisted `proxy` setting: on startup
 it reads the settings table and configures the engine, so a proxy configured
-in the GUI or via `npm-safe settings set proxy ...` applies to desktop
-scans too.
+in the GUI or via `npm-safe settings set proxy ...` applies to desktop scans
+too.
 
 ### Command log
 
@@ -345,15 +378,15 @@ npm-safe install axios --dry-run   # check + prompt without installing
 ```
 
 `gate enable` does everything in one step: it enables the check, installs
-**PATH shims** into `~/.npm-safe/bin` (npm.cmd / pnpm.cmd / yarn.cmd — they
+**PATH shims** into `~/.npm-safe/bin` (npm.cmd / pnpm.cmd / yarn.cmd; they
 work in every shell), and appends wrapper functions for `npm`, `pnpm`, and
 `yarn` to your shell config (PowerShell `$PROFILE` on Windows,
 `~/.zshrc`/`~/.bashrc` otherwise). How to activate:
 
 | Your shell | Activation |
 |---|---|
-| PowerShell / bash / zsh | Just restart the shell — the profile wrappers load automatically |
-| **Windows cmd** (or any shell where the shim dir isn't first in PATH) | Run **once as administrator**: `npm-safe gate shell --machine` — this prepends the shim directory to the **system** PATH, so every new terminal (incl. cmd) is intercepted. Reopen terminals afterwards. |
+| PowerShell / bash / zsh | Just restart the shell; the profile wrappers load automatically |
+| **Windows cmd** (or any shell where the shim dir isn't first in PATH) | Run **once as administrator**: `npm-safe gate shell --machine`; this prepends the shim directory to the **system** PATH, so every new terminal (incl. cmd) is intercepted. Reopen terminals afterwards. |
 
 On Windows, only the system PATH reliably precedes the Node.js installation
 directory; user-PATH edits are not enough when a tool puts the machine PATH
@@ -362,7 +395,7 @@ first and prints the exact fix.
 
 Pass `--shell-file <path>` to target a specific config file, `--no-shell` to
 skip. After activation, any `pnpm add <pkg>` or `npm install <pkg>` first
-runs `npm-safe install ...` — the gate checks the package and asks for
+runs `npm-safe install ...`; the gate checks the package and asks for
 confirmation below the threshold before the real package manager runs.
 Remove everything with:
 
@@ -372,158 +405,6 @@ npm-safe gate shell --remove
 
 The gate shares the same settings table as the GUI, so the CLI switch and the
 GUI toggle stay in sync.
-
-### Desktop first-run (Windows)
-
-If the WebView2 window fails to load with a loopback error, run once in an
-administrator PowerShell:
-
-```powershell
-CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"
-```
-
-### Tests
-
-```bash
-pnpm -F @npm-safe/core test
-```
-
-307 tests cover every module: validators, static rules, rate limiter, store
-layer, registry client (with mocked fetch), refresh scheduler, the engine
-integration surface, the LLM providers, the LLM configuration manager, the
-rule plugin system, the CI command, batch operations, report export, the
-telemetry manager, the shared check history, the install gate, the doctor
-diagnostics, the structured command log, and the CLI itself.
-
----
-
-## Documentation
-
-Detailed documentation for the engine is available under `packages/core/`:
-
-- **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- Layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.
-- **[API.md](packages/core/API.md)** -- Complete public API reference covering the `NpmSafeEngine` class (all 29 public methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
-- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- Comprehensive reference for all 10 built-in static analysis rules. Each rule documents its category, severity, detection logic (regex patterns), and mitigation recommendations.
-- **[README_zh.md](README_zh.md)** -- Chinese translation of the project README.
-
-The desktop GUI lives under `packages/desktop/` and is documented in the
-[Desktop README](packages/desktop/README.md).
-
----
-
-## AI Skill
-
-An agent skill named `npm-safe-scan` is bundled with this package and
-**auto-installed on install** via a `postinstall` hook: installing
-`@npm-safe/core` copies `skill/npm-safe-scan/SKILL.md` to
-`~/.agents/skills/npm-safe-scan/SKILL.md`. Any AI agent that auto-loads skills
-from the user's `~/.agents/skills/` directory can then automatically invoke
-`npm-safe` commands. The skill's trigger is biased towards install intent: a
-coding agent is expected to run `npm-safe check <name>` **before installing
-any npm package**, and it documents the full command surface (check, batch
-check, ci, report, rules, llm, watch, settings, telemetry), common workflows,
-and JSON output interpretation.
-
----
-
-## Directory Structure
-
-```
-npm-safe/
-  .gitignore
-  LICENSE                  # Apache-2.0
-  README.md                # project README (English)
-  README_zh.md             # project README (Chinese)
-  pnpm-lock.yaml           # lockfile
-  pnpm-workspace.yaml      # workspace = packages/*
-  tsconfig.base.json       # shared TypeScript config (ESNext, strict)
-  .github/
-    workflows/
-      ci.yml               # CI: typecheck + tests + dependency security scan
-  packages/
-    core/
-      package.json         # @npm-safe/core v0.2.0, ESM, publishConfig (public, provenance)
-      .npmignore           # publish exclude rules
-      tsconfig.json        # extends ../../tsconfig.base.json
-      API.md               # public API reference
-      ARCHITECTURE.md      # layer map, data flows, DB schema
-      SCANNER_RULES.md     # 10 static rule reference
-      skill/
-        npm-safe-scan/
-          SKILL.md         # AI skill, auto-installed via postinstall
-      scripts/
-        install-skill.mjs  # postinstall hook
-      src/
-        index.ts           # NpmSafeEngine facade — unified public API
-        cli/
-          cli.ts           # CLI entry — commander program + shorthand check
-          command-log.ts   # structured JSONL command log (~/.npm-safe/commands.jsonl)
-          check.ts         # check command (shared with shorthand)
-          search.ts        # search command
-          watch.ts         # watchlist commands (list/add/remove)
-          refresh.ts       # refresh command
-          settings.ts      # settings get/set commands
-          lang.ts          # lang command (en/zh, persisted)
-          rules.ts         # rules management commands
-          llm.ts           # LLM configuration commands
-          i18n.ts          # en/zh localization module
-          shared.ts        # engine factory + default DB path
-        llm/
-          provider.ts      # createLlmProvider factory (OpenAI / Gemini / Anthropic)
-          llm-config.ts    # LlmConfigManager persistence and env fallback
-          gemini.ts        # Gemini LLM provider
-          anthropic.ts     # Anthropic LLM provider
-          parse.ts         # LLM response parsing helpers
-        registry/
-          types.ts         # PackageMetadata, AbbreviatedVersion, SearchResult, NpmRegistryError
-          validator.ts     # validatePackageName, validateVersion, validateDomain, isKnownRegistryDomain
-          client.ts        # NpmRegistryClient — HTTP fetch with retry, backoff & proxy support
-        scanner/
-          types.ts         # SecurityLevel, Severity, ScanFinding, ScanRule, StaticScanReport
-          static-rules.ts  # StaticAnalyzer — 10 built-in analysis rules + rule registration
-          rule-config.ts   # RuleConfigManager persistence
-          rule-loader.ts   # Plugin rule discovery from ~/.npm-safe/rules/
-        scheduler/
-          rate-limiter.ts      # TokenBucket — 5 tokens/s, 10 burst
-          refresh-scheduler.ts # RefreshScheduler — periodic watchlist refresh via EventEmitter
-        store/
-          schema.ts        # SCHEMA_SQL (DDL), getMigrationList, getInitialMigration
-          database.ts      # DatabaseManager — better-sqlite3 with WAL, migrations
-          cache-manager.ts # CacheManager — TTL-based get/set for packages, reports, watchlist, settings
-        translator/
-          types.ts         # TranslationProvider interface, target-language config
-          provider.ts      # Built-in translation provider implementation
-      test/
-        validator.test.ts      # package name/version/domain validation tests
-        static-rules.test.ts   # 10 rules + scoring/level tests
-        rate-limiter.test.ts   # token bucket tests
-        store.test.ts          # database + cache manager tests
-        client.test.ts         # registry client tests (mock fetch, proxy)
-        refresh-scheduler.test.ts # scheduler event tests
-        engine.test.ts         # NpmSafeEngine integration tests
-        cli.test.ts            # CLI tests (commands, lang, shorthand)
-        llm-provider.test.ts   # createLlmProvider factory + shared behaviour
-        llm-gemini.test.ts     # Gemini LLM provider tests
-        llm-anthropic.test.ts  # Anthropic LLM provider tests
-        llm-config.test.ts     # LLM configuration persistence and engine integration
-        rule-config.test.ts    # RuleConfigManager persistence tests
-        rule-loader.test.ts    # Plugin rule discovery tests
-        rule-plugin.test.ts    # Rule registration and engine integration tests
-    desktop/                         # @npm-safe/desktop (Neutralinojs GUI)
-      package.json                   # desktop workspace package
-      neutralino.config.json         # Neutralino app config (borderless, extensions)
-      resources/
-        index.html                   # Material You UI with Navigation Drawer
-        styles.css                   # M3 light/dark themes, custom title bar
-        js/main.js                   # frontend IPC bridge + dashboard logic
-        js/neutralino.js             # Neutralinojs client library
-        js/neutralino.d.ts           # Neutralinojs type definitions
-        icons/
-          appIcon.png                # app icon
-          trayIcon.png               # tray icon
-          logo.gif                   # logo animation
-        extensions/core/main.mjs     # Node.js extension hosting NpmSafeEngine
-```
 
 ---
 
@@ -577,6 +458,67 @@ into the core scan pipeline but is fully typed and importable.
 
 ---
 
+## Documentation
+
+Detailed documentation is available under `packages/core/`:
+
+- **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)**: layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.
+- **[API.md](packages/core/API.md)**: complete public API reference covering the `NpmSafeEngine` class (all 29 public methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
+- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)**: comprehensive reference for all 10 built-in static analysis rules. Each rule documents its category, severity, detection logic (regex patterns), and mitigation recommendations.
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**: developer guide covering development setup, code conventions, testing, the publishing workflow, and the desktop GUI build.
+- **[README_zh.md](README_zh.md)**: Chinese translation of the project README.
+
+The desktop GUI lives under `packages/desktop/` and is documented in the
+[Desktop README](packages/desktop/README.md).
+
+---
+
+## Directory Structure
+
+```
+npm-safe/
+  LICENSE                  # Apache-2.0
+  README.md                # project README (English)
+  README_zh.md             # project README (Chinese)
+  CONTRIBUTING.md          # developer guide (setup, conventions, publishing)
+  pnpm-workspace.yaml      # workspace = packages/*
+  tsconfig.base.json       # shared TypeScript config (ESNext, strict)
+  .github/
+    workflows/
+      ci.yml               # CI: typecheck + tests + dependency security scan
+      publish.yml          # npm publish (SLSA provenance, tag-triggered)
+      desktop-release.yml  # desktop ZIP assets on GitHub Releases
+  packages/
+    core/
+      package.json         # @npm-safe/core v0.2.0, ESM, publishConfig (public, provenance)
+      .npmignore           # publish exclude rules
+      tsconfig.json        # extends ../../tsconfig.base.json
+      API.md               # public API reference
+      ARCHITECTURE.md      # layer map, data flows, DB schema
+      SCANNER_RULES.md     # 10 static rule reference
+      skill/
+        npm-safe-scan/
+          SKILL.md         # AI skill, auto-installed via postinstall
+      scripts/
+        install-skill.mjs  # postinstall hook
+      src/
+        index.ts           # NpmSafeEngine facade, unified public API
+        cli/               # command implementations, command log, i18n
+        llm/               # LLM providers (OpenAI / Gemini / Anthropic)
+        registry/          # registry client, validator, types
+        scanner/           # StaticAnalyzer, rule config, plugin loader
+        scheduler/         # rate limiter + refresh scheduler
+        store/             # SQLite database, migrations, cache manager
+        translator/        # pluggable translation interface
+      test/                # module tests (see CONTRIBUTING.md)
+    desktop/               # @npm-safe/desktop (Neutralinojs GUI)
+      package.json         # desktop workspace package
+      neutralino.config.json  # Neutralino app config (borderless, extensions)
+      resources/           # index.html, styles.css, js/, icons/, extensions/core/main.mjs
+```
+
+---
+
 ## Key Design Decisions
 
 | Decision | Rationale |
@@ -594,36 +536,6 @@ into the core scan pipeline but is fully typed and importable.
 
 ---
 
-## Publishing
+## License
 
-`@npm-safe/core` is published to the npm registry from GitHub Actions with
-SLSA provenance attestation. To release a version:
-
-1. Create an npm automation token and store it as the `NPM_TOKEN` GitHub
-   secret on the repository.
-2. Tag the release: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-3. The `Publish` workflow (`.github/workflows/publish.yml`) runs tests and
-   the build, then runs `npm publish --provenance --access public`.
-
-Publishing requires GitHub Actions OIDC, so `npm publish` run locally will
-not attach provenance and is not the supported path.
-
----
-
-## Desktop GUI
-
-The Neutralinojs desktop GUI (Material You dashboard with check, search,
-watch, rules, LLM, and settings tabs) is distributed as portable ZIP assets on
-each GitHub Release — not as an npm package. To download:
-
-1. Open the [Releases page](https://github.com/nisconder/npm-safe/releases).
-2. Pick the latest release and download the portable ZIP
-   (`npm-safe-release.zip`).
-3. Unzip and run the `npm-safe` executable (Windows) or `npm-safe` binary
-   (macOS/Linux). The app bundles the `@npm-safe/core` engine and stores data
-   in `~/.npm-safe/`.
-
-The app checks for updates automatically on startup: when a newer version is
-available on the Releases page, it prompts and installs the update in place,
-then restarts. Only the first installation requires a manual ZIP download —
-subsequent updates are automatic.
+Apache-2.0. See [LICENSE](LICENSE).
