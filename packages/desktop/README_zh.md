@@ -2,6 +2,11 @@
 
 [English](README.md)
 
+![版本](https://img.shields.io/badge/版本-v0.1.0-2196F3)
+![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
+![语言](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
+![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
+
 基于 [Neutralinojs](https://neutralino.js.org/) 的 `@npm-safe/core` 引擎桌面 GUI。提供 Material You 风格的仪表盘，用于检查、搜索、监控和刷新 npm 包的安全评估，支持持久化检查历史与自定义无边框窗口。界面语言为中文（zh-CN）。
 
 ## 功能特性
@@ -110,9 +115,8 @@ pnpm run build
 ```
 
 `build` 脚本执行 `pnpm run build:core && neu build --release`，在
-`packages/desktop/dist/` 下生成所有平台的便携 ZIP 文件（例如
-`npm-safe-win_x64.zip`、`npm-safe-linux_x64.zip`、`npm-safe-mac_x64.zip`）。
-这些 ZIP 即分发产物——由 `desktop-release.yml` 工作流在每个 `v*` 标签上附加到
+`packages/desktop/dist/` 下生成便携 ZIP（`npm-safe-release.zip`）。
+该 ZIP 即分发产物——由 `desktop-release.yml` 工作流在每个 `v*` 标签上附加到
 GitHub Release，用户无需自行构建即可下载 GUI。
 
 应用内置自动更新机制：启动时会检查 GitHub 发布页面上的 `update_manifest.json`，
@@ -228,4 +232,8 @@ packages/desktop/
 - **引擎请求 30 秒超时** — 状态栏会显示超时错误；请检查网络连接（受限网络可能需要设置 `proxy`）。
 - **扩展无响应** — 检查扩展日志（`%TEMP%/npmsafe-extension.log`）中的错误，并确认启动前核心引擎已成功构建。
 
+---
 
+## 下一步计划？
+
+我们的下一个惊喜是什么？**敬请期待！**
