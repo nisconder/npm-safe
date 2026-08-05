@@ -390,7 +390,7 @@ npm-safe/
       desktop-release.yml  # GitHub Releases 的桌面端 ZIP 资产
   packages/
     core/
-      package.json         # @npm-safe/core v0.2.0, ESM, publishConfig（public、provenance）
+      package.json         # @npm-safe/core v1.0.1, ESM, publishConfig（public、provenance）
       .npmignore           # 发布排除规则
       tsconfig.json        # extends ../../tsconfig.base.json
       API.md               # 公共 API 参考文档
