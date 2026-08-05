@@ -145,8 +145,9 @@ Features:
   and close buttons (Windows loopback exemption is required for WebView2; see
   setup notes below).
 
-Check history is persisted in `~/.npm-safe/history.json` by the Node.js
-extension process.
+Check history is persisted by the Node.js extension process to the shared
+SQLite database (`~/.npm-safe/npm-safe.db`, `check_history` table) — see
+[Shared check history](#shared-check-history).
 
 Global options:
 
@@ -628,9 +629,8 @@ watch, rules, LLM, and settings tabs) is distributed as portable ZIP assets on
 each GitHub Release — not as an npm package. To download:
 
 1. Open the [Releases page](https://github.com/nisconder/npm-safe/releases).
-2. Pick the latest release and download the ZIP for your platform
-   (`npm-safe-win_x64.zip`, `npm-safe-linux_x64.zip`, or
-   `npm-safe-mac_x64.zip`).
+2. Pick the latest release and download the portable ZIP
+   (`npm-safe-release.zip`).
 3. Unzip and run the `npm-safe` executable (Windows) or `npm-safe` binary
    (macOS/Linux). The app bundles the `@npm-safe/core` engine and stores data
    in `~/.npm-safe/`.
@@ -663,5 +663,3 @@ on 2026-08-04:
   requires OIDC.
 
 The project is feature-complete: all planned work items are done.
-
-
