@@ -2,12 +2,14 @@
 
 [English](README.md)
 
-![版本](https://img.shields.io/badge/版本-v0.2.0-2196F3)
+![版本](https://img.shields.io/github/v/release/nisconder/npm-safe?label=版本&color=2196F3)
 ![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
 ![语言](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 ![测试](https://img.shields.io/badge/测试-307%20通过-brightgreen)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
+![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?label=构建)
+![npm](https://img.shields.io/npm/v/@npm-safe/core?label=npm&color=CB3837&logo=npm)
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
