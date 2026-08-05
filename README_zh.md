@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-![版本](https://img.shields.io/badge/版本-v0.1.0-2196F3)
+![版本](https://img.shields.io/badge/版本-v0.2.0-2196F3)
 ![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
 ![语言](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 ![测试](https://img.shields.io/badge/测试-307%20通过-brightgreen)

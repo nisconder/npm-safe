@@ -2,7 +2,7 @@
 
 [中文版](README_zh.md)
 
-![Version](https://img.shields.io/badge/version-v0.1.0-2196F3)
+![Version](https://img.shields.io/badge/version-v0.2.0-2196F3)
 ![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
 ![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-307%20passing-brightgreen)
@@ -454,7 +454,7 @@ npm-safe/
       ci.yml               # CI: typecheck + tests + dependency security scan
   packages/
     core/
-      package.json         # @npm-safe/core v0.1.0, ESM, publishConfig (public, provenance)
+      package.json         # @npm-safe/core v0.2.0, ESM, publishConfig (public, provenance)
       .npmignore           # publish exclude rules
       tsconfig.json        # extends ../../tsconfig.base.json
       API.md               # public API reference
