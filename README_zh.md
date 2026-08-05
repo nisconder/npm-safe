@@ -111,7 +111,9 @@ pnpm run build
 - **浅色/深色主题** — 自定义标题栏一键切换两套独立的 Material You 配色；主题与上次打开的标签页会在会话间记住（localStorage + 引擎设置表）。
 - **自定义窗口边框** — 无边框窗口，支持标题栏拖动、最小化和关闭按钮（Windows 需设置 WebView2 回环豁免，见下文）。
 
-检查历史由 Node.js 扩展进程持久化到 `~/.npm-safe/history.json`。
+检查历史由 Node.js 扩展进程持久化到共享的 SQLite 数据库
+（`~/.npm-safe/npm-safe.db` 的 `check_history` 表）——详见
+[共享检查历史](#共享检查历史)。
 
 全局选项：
 
@@ -352,7 +354,7 @@ pnpm -F @npm-safe/core test
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)** -- 分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
 - **[API.md](packages/core/API.md)** -- 完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 29 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)** -- 所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
-  - **[README_zh.md](README_zh.md)** -- 本项目的简体中文版 README。
+- **[README_zh.md](README_zh.md)** -- 本项目的简体中文版 README。
 
 桌面 GUI 位于 `packages/desktop/`，详见
 [桌面端 README](packages/desktop/README.md)。
@@ -553,7 +555,7 @@ npm-safe/
 Neutralinojs 桌面图形界面（Material You 仪表盘，含检查、搜索、监控、规则、LLM 和设置标签页）以便携 ZIP 资产的形式随每个 GitHub Release 分发——而非作为 npm 包。下载方式：
 
 1. 打开[发布页面](https://github.com/nisconder/npm-safe/releases)。
-2. 选择最新版本，下载对应平台的 ZIP（`npm-safe-win_x64.zip`、`npm-safe-linux_x64.zip` 或 `npm-safe-mac_x64.zip`）。
+2. 选择最新版本，下载便携 ZIP（`npm-safe-release.zip`）。
 3. 解压并运行 `npm-safe` 可执行文件（Windows）或 `npm-safe` 二进制（macOS/Linux）。应用内置 `@npm-safe/core` 引擎，数据存储在 `~/.npm-safe/`。
 
 应用启动时会自动检查更新：当发布页面存在更新版本时，会提示并就地安装更新，然后自动重启。只有首次安装需要手动下载 ZIP——之后的更新全自动进行。
@@ -572,5 +574,3 @@ Neutralinojs 桌面图形界面（Material You 仪表盘，含检查、搜索、
   OIDC，实际发布必须通过 GitHub Actions 工作流进行。
 
 项目已功能完备：所有计划工作项均已完成。
-
-
