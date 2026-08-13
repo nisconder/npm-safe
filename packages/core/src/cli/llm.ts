@@ -35,6 +35,12 @@ export function registerLlmCommand(program: Command): void {
         if (status.baseUrl) {
           lines.push(`${t("llm.status.baseUrl")}: ${status.baseUrl}`);
         }
+        if (status.maxTokens) {
+          lines.push(`${t("llm.status.maxTokens")}: ${status.maxTokens}`);
+        }
+        if (status.maxInputChars) {
+          lines.push(`${t("llm.status.maxInputChars")}: ${status.maxInputChars}`);
+        }
         if (status.apiKey) {
           lines.push(`${t("llm.status.apiKey")}: ${status.apiKey}`);
         }
@@ -128,6 +134,46 @@ export function registerLlmCommand(program: Command): void {
       try {
         engine.setLlmConfig({ baseUrl });
         console.log(t("llm.baseUrlSet", { baseUrl }));
+      } finally {
+        engine.close();
+      }
+    });
+
+  llm
+    .command("set-max-tokens <n>")
+    .description("Set the maximum response tokens (default 4096)")
+    .action(async (n: string) => {
+      const value = Number(n);
+      if (!Number.isFinite(value) || value < 1) {
+        console.error(t("llm.invalidNumber", { n }));
+        process.exitCode = 1;
+        return;
+      }
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
+      try {
+        engine.setLlmConfig({ maxTokens: Math.floor(value) });
+        console.log(t("llm.maxTokensSet", { n: String(Math.floor(value)) }));
+      } finally {
+        engine.close();
+      }
+    });
+
+  llm
+    .command("set-max-input-chars <n>")
+    .description("Set the maximum README/manifest characters sent to the model (default 12000)")
+    .action(async (n: string) => {
+      const value = Number(n);
+      if (!Number.isFinite(value) || value < 1) {
+        console.error(t("llm.invalidNumber", { n }));
+        process.exitCode = 1;
+        return;
+      }
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
+      try {
+        engine.setLlmConfig({ maxInputChars: Math.floor(value) });
+        console.log(t("llm.maxInputCharsSet", { n: String(Math.floor(value)) }));
       } finally {
         engine.close();
       }
