@@ -6,14 +6,14 @@
 ![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
 ![语言](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 ![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI)
-![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
+![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)
 ![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
 
 @npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
 
 ## 快速开始
 
-需要 Node.js 18 或更高版本。
+需要 Node.js 20 或更高版本。
 
 **作为 CLI 安装（全局）：**
 
@@ -53,7 +53,9 @@ npm-safe <package>                 # check 的简写
 npm-safe check <package>           # 检查包的安全性
 npm-safe check <pkg1> <pkg2> ...   # 批量检查多个包
 npm-safe check --file deps.txt     # 从文件读取包名
+npm-safe check -r <package>        # 强制从注册表重新获取（忽略缓存）
 npm-safe search <query>            # 搜索 npm 注册表
+npm-safe search <query> -s 10      # 限制搜索结果数量
 npm-safe watch list                # 查看监控列表
 npm-safe watch add <package>       # 添加监控
 npm-safe watch remove <package>    # 移除监控
@@ -71,6 +73,7 @@ npm-safe llm disable               # 禁用 LLM 扫描
 npm-safe llm set-provider <openai|gemini|anthropic>
 npm-safe llm set-key <api-key>     # 设置 LLM API 密钥
 npm-safe llm set-model <model>     # 设置 LLM 模型
+npm-safe llm set-base-url <url>    # 设置 LLM API 基础 URL
 npm-safe llm test-connection       # 测试 LLM 连接
 npm-safe ci                        # 扫描依赖，严重问题时使构建失败
 npm-safe ci --lockfile             # 扫描 package-lock.json 中全部依赖（含间接）
@@ -144,15 +147,30 @@ npm-safe check lodash
 
 ## AI 技能
 
-`npm-safe-scan` 代理技能（供自动加载 `~/.agents/skills/` 的 AI 代理使用）随包分发，但**不会自动安装**。在交互式终端中安装 `@npm-safe/core` 时，系统会询问您是否安装；在 CI 或其他非交互环境中则静默跳过。
+`npm-safe-scan` 代理技能（供自动加载 `~/.agents/skills/` 的 AI 代理使用）随包分发，但**不会自动安装**。在交互式终端中安装 `@npm-safe/core` 时，系统会询问您是否安装；在 CI 或其他非交互环境中则静默跳过。在本仓库内开发（workspace 安装）时 postinstall 钩子同样会跳过，因此需要手动执行下面的命令。
 
 手动管理技能：
 
-- `npm-safe skill install` — 安装到 `~/.agents/skills/npm-safe-scan/`
-- `npm-safe skill status` — 查看是否已安装
-- `npm-safe skill uninstall` — 卸载
+- `npm-safe skill install` — 安装到通用目录 `~/.agents/skills/npm-safe-scan/`
+- `npm-safe skill install --agent <ids>` — 安装到指定的一个或多个 AI 代理（逗号分隔：`codex,claude-code,opencode,trae,qoder,zcode,gemini-cli`）
+- `npm-safe skill status` — 查看是否已安装（含各代理状态）
+- `npm-safe skill uninstall` — 卸载（支持 `--agent` 按代理卸载）
+- `npm-safe skill` — 在交互式终端中打开安装向导 TUI
 
-该技能让 AI 代理可调用 `npm-safe` 命令（check、search、watch、refresh、settings、lang）扫描 npm 包。
+各代理的安装位置：
+
+| 代理 | 安装位置 | 类型 |
+|---|---|---|
+| 通用（`~/.agents/skills/`） | `~/.agents/skills/npm-safe-scan/SKILL.md` | skill |
+| OpenCode | `~/.config/opencode/AGENTS.md` | 指令 |
+| Claude Code | `~/.claude/skills/npm-safe-scan/SKILL.md` | skill |
+| Qoder | `~/.qoder/skills/npm-safe-scan/SKILL.md` | skill |
+| Zcode | `~/.zcode/skills/npm-safe-scan/SKILL.md` | skill |
+| Codex | `~/.codex/AGENTS.md` | 指令 |
+| Gemini CLI | `~/.gemini/GEMINI.md` | 指令 |
+| Trae | `~/.trae/skills/npm-safe-scan/SKILL.md` | skill |
+
+该技能让 AI 代理在安装 npm 包之前先调用 `npm-safe` 命令（check、search、watch、refresh、settings、lang 等）扫描包的安全性，作为「先检查、后安装」的安全闸门。
 
 ---
 
@@ -213,6 +231,7 @@ npm-safe llm enable                 # 开启 LLM 扫描
 npm-safe llm set-provider openai    # 选择提供者
 npm-safe llm set-key $OPENAI_API_KEY
 npm-safe llm set-model gpt-4o-mini
+npm-safe llm set-base-url <url>     # 自定义 API 基础 URL（可选）
 npm-safe llm test-connection        # 验证连接
 ```
 
@@ -390,7 +409,7 @@ npm-safe/
       desktop-release.yml  # GitHub Releases 的桌面端 ZIP 资产
   packages/
     core/
-      package.json         # @npm-safe/core v1.0.1, ESM, publishConfig（public、provenance）
+      package.json         # @npm-safe/core v1.0.2, ESM, publishConfig（public、provenance）
       .npmignore           # 发布排除规则
       tsconfig.json        # extends ../../tsconfig.base.json
       API.md               # 公共 API 参考文档
