@@ -2,12 +2,25 @@
   "name": "@npm-safe/core",
   "version": "1.0.2",
   "description": "Local npm package security engine: static and LLM-based supply-chain analysis, SQLite cache, CLI and desktop GUI.",
-  "keywords": ["npm", "security", "supply-chain", "scanner", "static-analysis", "llm", "cli"],
+  "keywords": [
+    "npm",
+    "security",
+    "supply-chain",
+    "scanner",
+    "static-analysis",
+    "llm",
+    "cli"
+  ],
   "license": "Apache-2.0",
   "author": "Nisconder",
   "homepage": "https://github.com/nisconder/npm-safe",
-  "repository": { "type": "git", "url": "git+https://github.com/nisconder/npm-safe.git" },
-  "bugs": { "url": "https://github.com/nisconder/npm-safe/issues" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nisconder/npm-safe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nisconder/npm-safe/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -30,7 +43,8 @@
     "provenance": true
   },
   "dependencies": {
-    "better-sqlite3": "^11.0.0",
+    "@clack/prompts": "^1.7.0",
+    "better-sqlite3": "^12.11.1",
     "commander": "^15.0.0",
     "type-fest": "^4.0.0",
     "undici": "^8.10.0"
