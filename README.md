@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
 ![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 ![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI)
-![Node](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
+![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)
 ![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
 
 @npm-safe is a local-first engine for analyzing npm packages against known
@@ -18,7 +18,7 @@ designed to operate as a library rather than a standalone service.
 
 ## Quick Start
 
-Requires Node.js 18 or later.
+Requires Node.js 20 or later.
 
 **Install as a CLI (global):**
 
@@ -58,7 +58,9 @@ npm-safe <package>                 # Shorthand for check
 npm-safe check <package>            # Check a package's security posture
 npm-safe check <pkg1> <pkg2> ...    # Check multiple packages (batch)
 npm-safe check --file deps.txt      # Read package names from a file
+npm-safe check -r <package>         # Force re-fetch from registry (ignore cache)
 npm-safe search <query>            # Search the npm registry
+npm-safe search <query> -s 10      # Limit the number of results
 npm-safe watch list                # List watched packages
 npm-safe watch add <package>       # Add a package to the watchlist
 npm-safe watch remove <package>    # Remove a package from the watchlist
@@ -76,6 +78,7 @@ npm-safe llm disable               # Disable LLM scanning
 npm-safe llm set-provider <openai|gemini|anthropic>
 npm-safe llm set-key <api-key>     # Set the LLM API key
 npm-safe llm set-model <model>     # Set the LLM model identifier
+npm-safe llm set-base-url <url>    # Set a custom LLM API base URL
 npm-safe llm test-connection       # Test the LLM connection
 npm-safe ci                        # Scan dependencies, fail the build on severe findings
 npm-safe ci --lockfile             # Scan every dependency (incl. transitive) in package-lock.json
@@ -182,16 +185,34 @@ The `npm-safe-scan` agent skill (for AI agents that auto-load
 `~/.agents/skills/`) is bundled with the package but is NOT installed
 automatically. When you install `@npm-safe/core` in an interactive terminal,
 you are asked whether to install it; in CI or other non-interactive
-environments it is skipped silently.
+environments it is skipped silently. During in-repo development (workspace
+install) the postinstall hook also skips it, so run the commands below
+manually.
 
 To manage the skill manually:
 
-- `npm-safe skill install` — install to `~/.agents/skills/npm-safe-scan/`
-- `npm-safe skill status` — check whether it is installed
-- `npm-safe skill uninstall` — remove it
+- `npm-safe skill install` — install to the generic `~/.agents/skills/npm-safe-scan/` directory
+- `npm-safe skill install --agent <ids>` — install into one or more specific AI agents (comma-separated: `codex,claude-code,opencode,trae,qoder,zcode,gemini-cli`)
+- `npm-safe skill status` — check whether it is installed (including per-agent status)
+- `npm-safe skill uninstall` — remove it (supports `--agent` to remove per agent)
+- `npm-safe skill` — open the interactive installation-wizard TUI in a terminal
+
+Installation targets per agent:
+
+| Agent | Install target | Kind |
+|---|---|---|
+| Generic (`~/.agents/skills/`) | `~/.agents/skills/npm-safe-scan/SKILL.md` | skill |
+| OpenCode | `~/.config/opencode/AGENTS.md` | instructions |
+| Claude Code | `~/.claude/skills/npm-safe-scan/SKILL.md` | skill |
+| Qoder | `~/.qoder/skills/npm-safe-scan/SKILL.md` | skill |
+| Zcode | `~/.zcode/skills/npm-safe-scan/SKILL.md` | skill |
+| Codex | `~/.codex/AGENTS.md` | instructions |
+| Gemini CLI | `~/.gemini/GEMINI.md` | instructions |
+| Trae | `~/.trae/skills/npm-safe-scan/SKILL.md` | skill |
 
 The skill lets AI agents invoke `npm-safe` commands (check, search, watch,
-refresh, settings, lang) to scan npm packages.
+refresh, settings, lang, and more) to scan npm packages before installing
+them, acting as a "check before you install" safety gate.
 
 ---
 
@@ -268,6 +289,7 @@ npm-safe llm enable                 # Turn LLM scanning on
 npm-safe llm set-provider openai    # Select provider
 npm-safe llm set-key $OPENAI_API_KEY
 npm-safe llm set-model gpt-4o-mini
+npm-safe llm set-base-url <url>     # Custom API base URL (optional)
 npm-safe llm test-connection        # Verify the provider works
 ```
 
@@ -494,7 +516,7 @@ npm-safe/
       desktop-release.yml  # desktop ZIP assets on GitHub Releases
   packages/
     core/
-      package.json         # @npm-safe/core v1.0.1, ESM, publishConfig (public, provenance)
+      package.json         # @npm-safe/core v1.0.2, ESM, publishConfig (public, provenance)
       .npmignore           # publish exclude rules
       tsconfig.json        # extends ../../tsconfig.base.json
       API.md               # public API reference
