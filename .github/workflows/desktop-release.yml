@@ -32,7 +32,7 @@ jobs:
 
       - name: Update Neutralinojs binaries
         working-directory: packages/desktop
-        run: npx -y @neutralinojs/neu@11.0.0 update
+        run: npx -y @neutralinojs/neu@11.7.2 update
 
       - name: Build desktop app
         working-directory: packages/desktop
