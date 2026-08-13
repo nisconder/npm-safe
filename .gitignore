@@ -1,6 +1,12 @@
 # Dependencies
 node_modules/
 
+# Local pnpm cache/store (created when global pnpm dirs are not writable)
+.pnpm-cache/
+.pnpm-store/
+.pnpm-state/
+.node-gyp/
+
 # Build output
 dist/
 
