@@ -19,7 +19,7 @@ import type { LlmProviderOptions, LlmScanProvider } from './provider.js';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_INPUT_CHARS = 12_000;
-const DEFAULT_MAX_TOKENS = 2000;
+const DEFAULT_MAX_TOKENS = 4096;
 
 const ENV_KEY_MAP: Readonly<Record<LlmProviderType, string>> = {
   [LlmProviderType.OpenAi]: 'OPENAI_API_KEY',
@@ -73,6 +73,10 @@ export interface LlmStatus {
   readonly baseUrl?: string;
   /** Masked API key (e.g. `"sk-****1234"`), or `undefined`. */
   readonly apiKey?: string;
+  /** Maximum response tokens, if set. */
+  readonly maxTokens?: number;
+  /** Maximum input characters, if set. */
+  readonly maxInputChars?: number;
 }
 
 /** Returns the default path for the LLM configuration file. */
@@ -161,6 +165,8 @@ export class LlmConfigManager {
       model: this.resolveModel(),
       baseUrl: this.resolveBaseUrl(),
       apiKey: maskApiKey(resolved),
+      maxTokens: this.config.maxTokens,
+      maxInputChars: this.config.maxInputChars,
     };
   }
 

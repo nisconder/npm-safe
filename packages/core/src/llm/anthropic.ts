@@ -20,7 +20,7 @@ import {
 
 const DEFAULT_BASE_URL = "https://api.anthropic.com";
 const DEFAULT_MODEL = "claude-3-5-sonnet-latest";
-const DEFAULT_MAX_TOKENS = 2000;
+const DEFAULT_MAX_TOKENS = 4096;
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_INPUT_CHARS = 12_000;
 

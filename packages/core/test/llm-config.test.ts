@@ -49,6 +49,7 @@ describe('LlmConfigManager', () => {
     assert.strictEqual(config.enabled, false);
     assert.strictEqual(config.provider, LlmProviderType.OpenAi);
     assert.strictEqual(config.apiKey, undefined);
+    assert.strictEqual(config.maxTokens, 4096);
     assert.strictEqual(manager.createProvider(), undefined);
   });
 
@@ -161,6 +162,7 @@ describe('NpmSafeEngine LLM config', () => {
 
   it('exposes getLlmConfig, getLlmStatus, setLlmConfig, testLlmConnection', () => {
     assert.strictEqual(engine.getLlmConfig().enabled, false);
+    assert.strictEqual(engine.getLlmConfig().maxTokens, 4096);
     assert.strictEqual(engine.getLlmStatus().configured, false);
     assert.strictEqual(typeof engine.testLlmConnection, 'function');
   });

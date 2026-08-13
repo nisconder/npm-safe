@@ -66,7 +66,7 @@ describe("AnthropicLlmProvider", () => {
 
     assert.strictEqual(requestBody?.model, "claude-3-5-sonnet-latest");
     assert.strictEqual(typeof requestBody?.max_tokens, "number");
-    assert.strictEqual(requestBody?.max_tokens, 2000);
+    assert.strictEqual(requestBody?.max_tokens, 4096);
     assert.strictEqual(requestBody?.temperature, 0);
     assert.strictEqual(typeof requestBody?.system, "string");
     assert.ok(

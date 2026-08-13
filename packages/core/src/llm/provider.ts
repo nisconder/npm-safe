@@ -78,7 +78,7 @@ export interface LlmProviderOptions {
   readonly timeoutMs?: number;
   /** Maximum README characters to send to the model. @default 12000 */
   readonly maxInputChars?: number;
-  /** Maximum response tokens. @default 2000 */
+  /** Maximum response tokens. @default 4096 */
   readonly maxTokens?: number;
 }
 
@@ -92,7 +92,7 @@ const DEFAULT_BASE_URL = "https://api.openai.com/v1";
 const DEFAULT_MODEL = "gpt-4o-mini";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_INPUT_CHARS = 12_000;
-const DEFAULT_MAX_TOKENS = 2000;
+const DEFAULT_MAX_TOKENS = 4096;
 
 /**
  * Construct an {@link LlmScanProvider} for the backend selected via
