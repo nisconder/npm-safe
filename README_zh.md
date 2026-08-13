@@ -145,32 +145,32 @@ npm-safe check lodash
 
 ---
 
-## AI 技能
+## AI Skill
 
-`npm-safe-scan` 代理技能（供自动加载 `~/.agents/skills/` 的 AI 代理使用）随包分发，但**不会自动安装**。在交互式终端中安装 `@npm-safe/core` 时，系统会询问您是否安装；在 CI 或其他非交互环境中则静默跳过。在本仓库内开发（workspace 安装）时 postinstall 钩子同样会跳过，因此需要手动执行下面的命令。
+`npm-safe-scan` agent skill（供自动加载 `~/.agents/skills/` 的 AI agent 使用）随包分发，但**不会自动安装**。在交互式终端中安装 `@npm-safe/core` 时，系统会询问您是否安装；在 CI 或其他非交互环境中则静默跳过。在本仓库内开发（workspace 安装）时 postinstall 钩子同样会跳过，因此需要手动执行下面的命令。
 
-手动管理技能：
+手动管理 skill：
 
 - `npm-safe skill install` — 安装到通用目录 `~/.agents/skills/npm-safe-scan/`
-- `npm-safe skill install --agent <ids>` — 安装到指定的一个或多个 AI 代理（逗号分隔：`codex,claude-code,opencode,trae,qoder,zcode,gemini-cli`）
-- `npm-safe skill status` — 查看是否已安装（含各代理状态）
-- `npm-safe skill uninstall` — 卸载（支持 `--agent` 按代理卸载）
+- `npm-safe skill install --agent <ids>` — 安装到指定的一个或多个 AI agent（逗号分隔：`codex,claude-code,opencode,trae,qoder,zcode,gemini-cli`）
+- `npm-safe skill status` — 查看是否已安装（含各 agent 状态）
+- `npm-safe skill uninstall` — 卸载（支持 `--agent` 按 agent 卸载）
 - `npm-safe skill` — 在交互式终端中打开安装向导 TUI
 
-各代理的安装位置：
+各 agent 的安装位置：
 
-| 代理 | 安装位置 | 类型 |
+| Agent | 安装位置 | 类型 |
 |---|---|---|
 | 通用（`~/.agents/skills/`） | `~/.agents/skills/npm-safe-scan/SKILL.md` | skill |
-| OpenCode | `~/.config/opencode/AGENTS.md` | 指令 |
+| OpenCode | `~/.config/opencode/AGENTS.md` | instructions |
 | Claude Code | `~/.claude/skills/npm-safe-scan/SKILL.md` | skill |
 | Qoder | `~/.qoder/skills/npm-safe-scan/SKILL.md` | skill |
 | Zcode | `~/.zcode/skills/npm-safe-scan/SKILL.md` | skill |
-| Codex | `~/.codex/AGENTS.md` | 指令 |
-| Gemini CLI | `~/.gemini/GEMINI.md` | 指令 |
+| Codex | `~/.codex/AGENTS.md` | instructions |
+| Gemini CLI | `~/.gemini/GEMINI.md` | instructions |
 | Trae | `~/.trae/skills/npm-safe-scan/SKILL.md` | skill |
 
-该技能让 AI 代理在安装 npm 包之前先调用 `npm-safe` 命令（check、search、watch、refresh、settings、lang 等）扫描包的安全性，作为「先检查、后安装」的安全闸门。
+该 skill 让 AI agent 在安装 npm 包之前先调用 `npm-safe` 命令（check、search、watch、refresh、settings、lang 等）扫描包的安全性，作为「先检查、后安装」的安全闸门。
 
 ---
 
@@ -417,7 +417,7 @@ npm-safe/
       SCANNER_RULES.md     # 10 条静态规则参考
       skill/
         npm-safe-scan/
-          SKILL.md         # AI 技能，postinstall 询问安装 / `skill install`
+          SKILL.md         # AI skill，postinstall 询问安装 / `skill install`
       scripts/
         install-skill.mjs  # postinstall 钩子
       src/
