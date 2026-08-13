@@ -44,3 +44,5 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+.next/
