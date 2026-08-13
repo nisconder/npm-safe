@@ -781,6 +781,19 @@ async function handleLlmTest() {
   setStatus("正在测试 LLM 连接...");
   const resultArea = document.getElementById("llm-result");
   try {
+    // First apply the current form values to the engine so the test uses
+    // what the user just typed (the test button must not require a prior
+    // explicit Save click).
+    const update = {
+      enabled: document.getElementById("llm-enabled").checked,
+      provider: document.getElementById("llm-provider").value,
+      model: document.getElementById("llm-model").value.trim() || undefined,
+      baseUrl: document.getElementById("llm-base-url").value.trim() || undefined,
+    };
+    const apiKey = document.getElementById("llm-api-key").value.trim();
+    if (apiKey) update.apiKey = apiKey;
+    await callEngine("setLlmConfig", update);
+
     const ok = await callEngine("testLlmConnection", {});
     if (ok) {
       resultArea.innerHTML = `<div class="card"><div class="card-title" style="color:var(--md-safe)">连接成功</div>LLM 连接测试通过。</div>`;
