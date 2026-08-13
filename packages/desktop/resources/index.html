@@ -231,6 +231,14 @@
                   <input id="llm-base-url" type="text" placeholder=" " />
                   <label for="llm-base-url">基础 URL（可选）</label>
                 </div>
+                <div class="text-field outlined">
+                  <input id="llm-max-tokens" type="number" min="1" placeholder=" " />
+                  <label for="llm-max-tokens">最大响应 Token 数（默认 4096）</label>
+                </div>
+                <div class="text-field outlined">
+                  <input id="llm-max-input-chars" type="number" min="1" placeholder=" " />
+                  <label for="llm-max-input-chars">最大输入字符数（默认 12000）</label>
+                </div>
               </div>
               <div class="form-actions">
                 <button id="llm-save-btn" class="btn filled" data-original-text="保存">保存</button>

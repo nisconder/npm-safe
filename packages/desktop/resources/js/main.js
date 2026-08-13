@@ -731,6 +731,8 @@ async function renderLlmConfig() {
   const apiKeyInput = document.getElementById("llm-api-key");
   const modelInput = document.getElementById("llm-model");
   const baseUrlInput = document.getElementById("llm-base-url");
+  const maxTokensInput = document.getElementById("llm-max-tokens");
+  const maxInputCharsInput = document.getElementById("llm-max-input-chars");
   const resultArea = document.getElementById("llm-result");
 
   try {
@@ -743,6 +745,8 @@ async function renderLlmConfig() {
     if (hint) hint.textContent = status.apiKey ? `已配置 (${status.apiKey})` : "未配置";
     modelInput.value = status.model ?? "";
     baseUrlInput.value = status.baseUrl ?? "";
+    maxTokensInput.value = status.maxTokens ?? 4096;
+    maxInputCharsInput.value = status.maxInputChars ?? 12000;
 
     const configured = status.configured ? "已配置" : "未配置";
     statusText.innerHTML = `<span class="badge ${escapeAttr(status.enabled && status.configured ? "safe" : "unknown")}">${escapeHtml(status.enabled ? "已启用" : "已禁用")}</span> ${escapeHtml(status.provider)} · ${escapeHtml(configured)}`;
@@ -762,6 +766,8 @@ async function handleLlmSave() {
       provider: document.getElementById("llm-provider").value,
       model: document.getElementById("llm-model").value.trim() || undefined,
       baseUrl: document.getElementById("llm-base-url").value.trim() || undefined,
+      maxTokens: Number(document.getElementById("llm-max-tokens").value) || undefined,
+      maxInputChars: Number(document.getElementById("llm-max-input-chars").value) || undefined,
     };
     const apiKey = document.getElementById("llm-api-key").value.trim();
     if (apiKey) update.apiKey = apiKey;
@@ -789,6 +795,8 @@ async function handleLlmTest() {
       provider: document.getElementById("llm-provider").value,
       model: document.getElementById("llm-model").value.trim() || undefined,
       baseUrl: document.getElementById("llm-base-url").value.trim() || undefined,
+      maxTokens: Number(document.getElementById("llm-max-tokens").value) || undefined,
+      maxInputChars: Number(document.getElementById("llm-max-input-chars").value) || undefined,
     };
     const apiKey = document.getElementById("llm-api-key").value.trim();
     if (apiKey) update.apiKey = apiKey;
