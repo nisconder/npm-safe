@@ -59,12 +59,16 @@ export class AnthropicLlmProvider implements LlmScanProvider {
       };
     }
 
+    const packageJsonBudget = Math.floor(this.maxInputChars / 3);
+    const packageJsonStr = input.packageJson
+      ? JSON.stringify(input.packageJson).slice(0, packageJsonBudget)
+      : undefined;
     const content = JSON.stringify({
       packageName: input.packageName,
       version: input.version,
       description: input.description,
       readme: input.readme.slice(0, this.maxInputChars),
-      packageJson: input.packageJson,
+      packageJson: packageJsonStr,
     });
     const payload = await this.request({
       model: this.model,

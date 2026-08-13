@@ -78,7 +78,7 @@ export interface LlmProviderOptions {
   readonly timeoutMs?: number;
   /** Maximum README characters to send to the model. @default 12000 */
   readonly maxInputChars?: number;
-  /** Anthropic-only maximum response tokens. @default 2000 */
+  /** Maximum response tokens. @default 2000 */
   readonly maxTokens?: number;
 }
 
@@ -92,6 +92,7 @@ const DEFAULT_BASE_URL = "https://api.openai.com/v1";
 const DEFAULT_MODEL = "gpt-4o-mini";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_INPUT_CHARS = 12_000;
+const DEFAULT_MAX_TOKENS = 2000;
 
 /**
  * Construct an {@link LlmScanProvider} for the backend selected via
@@ -125,6 +126,7 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
   private readonly model: string;
   private readonly timeoutMs: number;
   private readonly maxInputChars: number;
+  private readonly maxTokens: number;
 
   /**
    * @param options - Provider configuration. Env-var fallbacks:
@@ -136,6 +138,7 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
     this.model = options.model ?? DEFAULT_MODEL;
     this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxInputChars = options.maxInputChars ?? DEFAULT_MAX_INPUT_CHARS;
+    this.maxTokens = options.maxTokens ?? DEFAULT_MAX_TOKENS;
   }
 
   /** @inheritdoc */
@@ -147,16 +150,21 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
       };
     }
 
+    const packageJsonBudget = Math.floor(this.maxInputChars / 3);
+    const packageJsonStr = input.packageJson
+      ? JSON.stringify(input.packageJson).slice(0, packageJsonBudget)
+      : undefined;
     const content = JSON.stringify({
       packageName: input.packageName,
       version: input.version,
       description: input.description,
       readme: input.readme.slice(0, this.maxInputChars),
-      packageJson: input.packageJson,
+      packageJson: packageJsonStr,
     });
     const payload = await this.request({
       model: this.model,
       temperature: 0,
+      max_tokens: this.maxTokens,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
@@ -173,7 +181,7 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
     await this.request({
       model: this.model,
       messages: [{ role: "user", content: "Reply with OK." }],
-      max_tokens: 3,
+      max_tokens: this.maxTokens,
     });
     return true;
   }
