@@ -1,11 +1,19 @@
+<div align="center">
+
 # @npm-safe/desktop
 
-[English](README.md)
+**npm 包安全桌面仪表盘（Material You）**
 
-![版本](https://img.shields.io/github/v/release/nisconder/npm-safe?label=版本&color=2196F3)
-![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)
+[![版本](https://img.shields.io/github/v/release/nisconder/npm-safe?label=版本&color=2196F3)](https://github.com/nisconder/npm-safe/releases)
+[![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)](https://github.com/nisconder/npm-safe/blob/main/LICENSE)
 ![语言](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
-![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)
+[![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)](https://neutralino.js.org)
+
+**中文** · [English](README.md)
+
+</div>
+
+---
 
 基于 [Neutralinojs](https://neutralino.js.org/) 的 `@npm-safe/core` 引擎桌面 GUI。提供 Material You 风格的仪表盘，用于检查、搜索、监控和刷新 npm 包的安全评估，支持持久化检查历史与自定义无边框窗口。界面语言为中文（zh-CN）。
 
