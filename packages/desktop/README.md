@@ -1,11 +1,19 @@
+<div align="center">
+
 # @npm-safe/desktop
 
-[中文版](README_zh.md)
+**Material You Desktop GUI for npm package security**
 
-![Version](https://img.shields.io/github/v/release/nisconder/npm-safe?label=Version&color=2196F3)
-![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
+[![Version](https://img.shields.io/github/v/release/nisconder/npm-safe?label=Version&color=2196F3)](https://github.com/nisconder/npm-safe/releases)
+[![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)](https://github.com/nisconder/npm-safe/blob/main/LICENSE)
 ![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
-![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
+[![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)](https://neutralino.js.org)
+
+[中文版](README_zh.md) · **English**
+
+</div>
+
+---
 
 A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core` engine. It provides a Material You dashboard for checking, searching, watching, and refreshing npm package security assessments, with persistent check history and a custom borderless window. The UI language is Chinese (zh-CN).
 
