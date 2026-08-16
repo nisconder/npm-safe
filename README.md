@@ -1,13 +1,21 @@
-# @npm-safe: Local npm Package Security Engine
+<div align="center">
 
-[中文版](README_zh.md)
+# @npm-safe
 
-![Version](https://img.shields.io/github/v/release/nisconder/npm-safe?label=Version&color=2196F3)
-![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)
+**Local npm Package Security Engine**
+
+[![Version](https://img.shields.io/github/v/release/nisconder/npm-safe?label=Version&color=2196F3)](https://github.com/nisconder/npm-safe/releases)
+[![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)](./LICENSE)
 ![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
-![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI)
-![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)
-![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)
+[![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI)](https://github.com/nisconder/npm-safe/actions)
+[![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)](packages/desktop/README.md)
+
+[中文版](README_zh.md) · **English**
+
+</div>
+
+---
 
 @npm-safe is a local-first engine for analyzing npm packages against known
 supply-chain attack patterns. It fetches package metadata from the public npm
