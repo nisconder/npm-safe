@@ -11,6 +11,8 @@
 [![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)](packages/desktop/README.md)
 
+项目邮箱：1031402408@qq.com。
+如您在使用过程中遭遇任何问题或者与本项目有合作意向，欢迎联系本邮箱。
 **中文** · [English](README.md)
 
 </div>
@@ -443,6 +445,9 @@ npm-safe/
       neutralino.config.json  # Neutralino 应用配置（无边框、扩展）
       resources/           # index.html, styles.css, js/, icons/, extensions/core/main.mjs
 ```
+
+## 致谢
+潍坊雷鸣云网络科技有限公司为本项目提供了AI自动推广工具Bizbot(http://bizbot.zvo.cn).
 
 ---
 
