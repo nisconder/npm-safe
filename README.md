@@ -11,7 +11,9 @@
 [![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)](packages/desktop/README.md)
 
-Project Email:1031402408@qq.com.If you run into any issues while using this or are interested in collaborating on this project, feel free to reach out to this email.
+Project Email:1031402408@qq.com.
+If you run into any issues while using this or are interested in collaborating on this project, feel free to reach out to this email.
+
 [中文版](README_zh.md) · **English**
 
 </div>
