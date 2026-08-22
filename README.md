@@ -11,6 +11,7 @@
 [![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)](packages/desktop/README.md)
 
+Project Email:1031402408@qq.com.If you run into any issues while using this or are interested in collaborating on this project, feel free to reach out to this email.
 [中文版](README_zh.md) · **English**
 
 </div>
@@ -569,6 +570,9 @@ npm-safe/
 | **Level thresholds** | `>=80` Safe, `>=50` Suspicious, `>=20` Dangerous, else Unknown. These thresholds are shared between `StaticAnalyzer` and `CacheManager` for consistency. |
 
 ---
+
+## Acknowledgements
+Weifang Leimingyun Network Technology Co., Ltd. provided the AI automatic promotion tool Bizbot (http://bizbot.zvo.cn) for this project.
 
 ## License
 
