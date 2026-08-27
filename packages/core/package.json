@@ -13,6 +13,9 @@
   ],
   "license": "Apache-2.0",
   "author": "Nisconder",
+  "engines": {
+    "node": ">=20"
+  },
   "homepage": "https://github.com/nisconder/npm-safe",
   "repository": {
     "type": "git",
@@ -29,8 +32,7 @@
   },
   "files": [
     "dist",
-    "skill",
-    "scripts/install-skill.mjs"
+    "skill"
   ],
   "exports": {
     ".": {
@@ -58,7 +60,6 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "build:cli": "tsc -p tsconfig.json",
-    "postinstall": "node scripts/install-skill.mjs",
     "test": "node --import tsx --test --test-reporter spec \"test/**/*.test.ts\""
   }
 }

@@ -44,7 +44,7 @@ package.
 
 | # | Rule ID | Category | Severity | Triggers On | Detection Logic |
 |---|---------|----------|----------|-------------|-----------------|
-| 1 | `install-script` | `install-script` | Critical | `scripts.install`, `scripts.preinstall`, `scripts.postinstall` in package.json | Lifecycle script command matching both `CURL_WGET_PATTERN` (curl/wget) and `IPV4_PATTERN` (raw IP address) |
+| 1 | `install-script` | `install-script` | Medium–Critical | `scripts.install`, `scripts.preinstall`, `scripts.postinstall` in package.json | Reports every install-time script; escalates remote downloads, process execution, encoded payloads, shell pipelines, and raw-IP fetches |
 | 2 | `eval-obfuscation` | `code-obfuscation` | High | README content | `EVAL_FUNCTION_PATTERN` (eval/Function) and `ENCODED_STRING_PATTERN` (hex/unicode escapes) both present |
 | 3 | `base64-shell` | `code-obfuscation` | High | README content | `BASE64_BLOB_PATTERN` (40+ base64 chars) and `SHELL_KEYWORD_PATTERN` (sh, bash, curl, wget, nc, ncat, python, perl, ruby, powershell) both present |
 | 4 | `binary-links` | `binary-download` | Medium | README content | `BINARY_LINK_PATTERN` -- markdown URLs ending in `.exe`, `.sh`, `.bat`, `.ps1`, `.cmd`, `.com`, `.scr`, `.msi` |
@@ -84,27 +84,31 @@ Registration order matches the numbered list above.
 
 ### 1. `install-script` -- Suspicious Install Script
 
-**Severity:** Critical
+**Severity:** Medium by default; escalates to High or Critical
 **Category:** `install-script`
 
 **Description**
 
-Detects lifecycle scripts (postinstall, preinstall, install) that fetch remote
-content via curl or wget targeting a raw IPv4 address. This is a common
-supply-chain attack pattern where a seemingly harmless package downloads and
-executes a malicious payload at install time.
+Reports every install-time lifecycle script (`postinstall`, `preinstall`, and
+`install`) because it runs automatically with the installing user's
+privileges. The rule escalates scripts that download remote content, spawn
+processes, contain encoded payloads, pipe downloads into a shell, or fetch
+from a raw IPv4 address.
 
 **Detection Logic**
 
 The rule inspects every entry in the `scripts` object of `package.json`. For
 each script whose key is exactly `install`, `preinstall`, or `postinstall`, it
-tests whether the command string matches both:
+emits one finding and assigns severity as follows:
 
-- `CURL_WGET_PATTERN` = `/\b(?:curl|wget)\b/`
-- `IPV4_PATTERN` = `/\b(?:\d{1,3}\.){3}\d{1,3}\b/`
+- **Critical:** `curl`/`wget` downloads from a raw IPv4 address, or downloaded
+  content is piped directly to a shell.
+- **High:** the command uses `curl`/`wget`, process-spawning primitives such as
+  `child_process`/`execSync`, or a long base64-looking payload.
+- **Medium:** any other install-time lifecycle script.
 
-If both patterns match the same script command, a finding is emitted. Each
-finding includes the full script command as the code snippet.
+Each finding includes the full script command as the code snippet so the user
+can review exactly what will execute.
 
 **Example Scenario**
 
@@ -120,8 +124,10 @@ A package.json with:
 
 **Recommendation**
 
-Remove network fetch operations from lifecycle scripts. Vendor all required
-assets as part of the package rather than downloading them at install time.
+Inspect every lifecycle script before installation. Do not install packages
+that pipe remote content into a shell or execute an unverified payload. Package
+authors should vendor required assets and avoid install-time execution where
+possible.
 
 ---
 

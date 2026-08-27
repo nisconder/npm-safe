@@ -12,7 +12,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI)](https://github.com/nisconder/npm-safe/actions)
 [![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 
-[快速开始](#快速开始) · [为什么选择-npm-safe](#为什么选择-npm-safe) · [桌面端](#桌面图形界面) · [文档](#文档) · [English](README.md)
+[快速开始](#快速开始) · [为什么选择-npm-safe](#为什么选择-npm-safe) · [安全模型](#安全模型) · [路线图](ROADMAP.md) · [English](README.md)
 
 <br>
 
@@ -21,9 +21,9 @@
 </div>
 
 `npm-safe` 是一款本地优先的 npm 供应链安全扫描器，覆盖命令行、CI、
-桌面端和 AI 编程智能体。它能识别可疑安装脚本、代码混淆、仿冒包名、
-同形字符攻击、密钥泄露、二进制下载和注册表异常，并给出可解释的 0–100
-安全评分。
+桌面端和 AI 编程智能体。它能从已发布的元数据和 README 中识别可疑安装
+脚本、代码混淆、仿冒包名、同形字符攻击、密钥泄露、二进制下载和注册表
+异常，并给出可解释的 0–100 安全评分。
 
 静态分析和缓存均在本地运行，无需账号或托管后端。可选的 LLM 分析默认
 关闭，只有在你主动配置提供商后才会运行。
@@ -187,7 +187,7 @@ npm-safe check lodash
 
 ## AI Skill
 
-`npm-safe-scan` agent skill（供自动加载 `~/.agents/skills/` 的 AI agent 使用）随包分发，但**不会自动安装**。在交互式终端中安装 `@npm-safe/core` 时，系统会询问您是否安装；在 CI 或其他非交互环境中则静默跳过。在本仓库内开发（workspace 安装）时 postinstall 钩子同样会跳过，因此需要手动执行下面的命令。
+`npm-safe-scan` agent skill（供自动加载 `~/.agents/skills/` 的 AI agent 使用）随包分发，但**绝不会自动安装**。安装 `@npm-safe/core` 不会运行 postinstall 钩子，也不会写入任何 agent 配置目录。需要该 skill 时，请显式运行下面的命令。
 
 手动管理 skill：
 
@@ -290,6 +290,9 @@ npm-safe ci --rate-limit 50                # 每秒注册表请求数
 
 退出码：`0` 通过，`1` 用法/配置错误，`2` 有依赖达到失败级别（或扫描出错）。仓库自带可直接使用的 GitHub Actions 工作流（`.github/workflows/ci.yml`）；每次 push/PR 自动运行测试套件、类型检查与依赖安全扫描。
 
+要在其他仓库中使用，可直接复制精简工作流
+[`examples/github-actions/npm-safe.yml`](examples/github-actions/npm-safe.yml)。
+
 ### 批量操作
 
 `check` 接受任意数量的包名，并支持从文件读取列表；批量扫描默认并发 5，同时仍遵守限速器：
@@ -373,6 +376,19 @@ npm-safe gate shell --remove
 
 ---
 
+## 安全模型
+
+npm-safe 是用于提前预警的启发式工具，不是安全认证。当前静态引擎检查 npm
+注册表元数据、指定版本的 manifest 和 README；尚不会检查发布包 tarball
+中的源代码，也不会执行包代码。`safe` 只表示在这一检查边界内没有命中已
+配置的信号。
+
+请将它与漏洞数据库、锁文件、代码审查和最小权限构建环境配合使用。详见
+[威胁模型](docs/THREAT_MODEL.md)、[安全策略](SECURITY.md)和
+[包内容分析路线图](ROADMAP.md)。
+
+---
+
 ## 架构
 
 引擎由五层组成。每层仅依赖其下方的层。`index.ts` 门面层组合所有依赖并将结果暴露为单一的 `NpmSafeEngine` 类。
@@ -422,6 +438,10 @@ npm-safe gate shell --remove
 
 详细文档位于 `packages/core/` 目录下：
 
+- **[SECURITY.md](SECURITY.md)**：私密漏洞报告流程与版本支持策略。
+- **[THREAT_MODEL.md](docs/THREAT_MODEL.md)**：检查边界、信任假设、范围外威胁与评分解释。
+- **[ROADMAP.md](ROADMAP.md)**：包内容分析、SARIF、策略、基准集和集成计划。
+- **[CHANGELOG.md](CHANGELOG.md)**：按版本整理的用户可见变更。
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)**：分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
 - **[API.md](packages/core/API.md)**：完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 29 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)**：所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
@@ -440,6 +460,11 @@ npm-safe/
   README.md                # 项目说明（英文）
   README_zh.md             # 项目说明（中文）
   CONTRIBUTING.md          # 开发者指南（配置、规范、发布）
+  CHANGELOG.md             # 用户可见的版本变更记录
+  SECURITY.md              # 私密漏洞报告与安全支持策略
+  ROADMAP.md               # 产品与扫描器路线图
+  CODE_OF_CONDUCT.md       # 项目参与规范
+  docs/THREAT_MODEL.md     # 检查边界与信任假设
   pnpm-workspace.yaml      # workspace = packages/*
   tsconfig.base.json       # 共享 TypeScript 配置（ESNext, strict）
   .github/
@@ -457,9 +482,7 @@ npm-safe/
       SCANNER_RULES.md     # 10 条静态规则参考
       skill/
         npm-safe-scan/
-          SKILL.md         # AI skill，postinstall 询问安装 / `skill install`
-      scripts/
-        install-skill.mjs  # postinstall 钩子
+          SKILL.md         # AI skill，仅通过显式 `skill install` 安装
       src/
         index.ts           # NpmSafeEngine 门面，统一公共 API
         cli/               # 命令实现、命令日志、i18n

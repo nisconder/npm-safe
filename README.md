@@ -12,7 +12,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI)](https://github.com/nisconder/npm-safe/actions)
 [![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 
-[Quick start](#quick-start) · [Why npm-safe?](#why-npm-safe) · [Desktop app](#desktop-gui) · [Docs](#documentation) · [中文版](README_zh.md)
+[Quick start](#quick-start) · [Why npm-safe?](#why-npm-safe) · [Security](#security-model) · [Roadmap](ROADMAP.md) · [中文版](README_zh.md)
 
 <br>
 
@@ -21,10 +21,10 @@
 </div>
 
 `npm-safe` is a local-first npm supply-chain scanner for the command line,
-CI, desktop, and AI coding agents. It flags suspicious install scripts,
-obfuscation, typosquatting, homograph lookalikes, exposed secrets, binary
-downloads, and registry inconsistencies, then returns an explainable 0–100
-security score.
+CI, desktop, and AI coding agents. It flags published metadata and README
+signals including suspicious install scripts, obfuscation, typosquatting,
+homograph lookalikes, exposed secrets, binary downloads, and registry
+inconsistencies, then returns an explainable 0–100 security score.
 
 Static analysis and caching run locally with no account or hosted backend.
 Optional LLM analysis is disabled by default and only runs when you configure
@@ -222,12 +222,10 @@ Developer instructions for running and building the desktop app live in
 ## AI Skill
 
 The `npm-safe-scan` agent skill (for AI agents that auto-load
-`~/.agents/skills/`) is bundled with the package but is NOT installed
-automatically. When you install `@npm-safe/core` in an interactive terminal,
-you are asked whether to install it; in CI or other non-interactive
-environments it is skipped silently. During in-repo development (workspace
-install) the postinstall hook also skips it, so run the commands below
-manually.
+`~/.agents/skills/`) is bundled with the package but is never installed
+automatically. Installing `@npm-safe/core` does not run a postinstall hook or
+write to any agent configuration directory. Use the explicit commands below
+when you want to install the skill.
 
 To manage the skill manually:
 
@@ -352,6 +350,9 @@ reached the fail level (or the scan errored). A ready-to-use GitHub Actions
 workflow lives at `.github/workflows/ci.yml`; it runs the test suite, type
 checks, and a dependency security scan on every push/PR.
 
+For another repository, copy the minimal workflow from
+[`examples/github-actions/npm-safe.yml`](examples/github-actions/npm-safe.yml).
+
 ### Batch operations
 
 `check` accepts any number of package names and reads lists from files,
@@ -474,6 +475,20 @@ GUI toggle stay in sync.
 
 ---
 
+## Security Model
+
+npm-safe is an early-warning heuristic, not a safety certification. The
+current static engine inspects npm registry metadata, the selected version's
+manifest, and its README; it does not yet inspect the shipped tarball or
+execute package code. A `safe` result means that no configured signal was
+detected in that inspection boundary.
+
+Use it alongside vulnerability databases, lockfiles, code review, and
+least-privilege build environments. See the full [threat model](docs/THREAT_MODEL.md),
+[security policy](SECURITY.md), and [package-content analysis roadmap](ROADMAP.md).
+
+---
+
 ## Architecture
 
 The engine is composed of five layers. Each layer depends only on the layers
@@ -528,6 +543,10 @@ into the core scan pipeline but is fully typed and importable.
 
 Detailed documentation is available under `packages/core/`:
 
+- **[SECURITY.md](SECURITY.md)**: private vulnerability reporting process and supported-version policy.
+- **[THREAT_MODEL.md](docs/THREAT_MODEL.md)**: inspection boundary, trust assumptions, out-of-scope threats, and score interpretation.
+- **[ROADMAP.md](ROADMAP.md)**: package-content analysis, SARIF, policy, benchmark, and integration priorities.
+- **[CHANGELOG.md](CHANGELOG.md)**: user-facing changes by release.
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)**: layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.
 - **[API.md](packages/core/API.md)**: complete public API reference covering the `NpmSafeEngine` class (all 29 public methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
 - **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)**: comprehensive reference for all 10 built-in static analysis rules. Each rule documents its category, severity, detection logic (regex patterns), and mitigation recommendations.
@@ -547,6 +566,11 @@ npm-safe/
   README.md                # project README (English)
   README_zh.md             # project README (Chinese)
   CONTRIBUTING.md          # developer guide (setup, conventions, publishing)
+  CHANGELOG.md             # user-facing release history
+  SECURITY.md              # private reporting and security support policy
+  ROADMAP.md               # product and scanner priorities
+  CODE_OF_CONDUCT.md       # project participation standards
+  docs/THREAT_MODEL.md     # inspection boundary and trust assumptions
   pnpm-workspace.yaml      # workspace = packages/*
   tsconfig.base.json       # shared TypeScript config (ESNext, strict)
   .github/
@@ -564,9 +588,7 @@ npm-safe/
       SCANNER_RULES.md     # 10 static rule reference
       skill/
         npm-safe-scan/
-          SKILL.md         # AI skill, ask-on-install via postinstall / `skill install`
-      scripts/
-        install-skill.mjs  # postinstall hook
+          SKILL.md         # AI skill, installed only via an explicit `skill install`
       src/
         index.ts           # NpmSafeEngine facade, unified public API
         cli/               # command implementations, command log, i18n

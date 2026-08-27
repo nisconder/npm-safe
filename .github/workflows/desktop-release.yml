@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write   # needed to upload release assets
 
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   desktop-build:
     name: Build & attach desktop GUI
@@ -61,7 +65,9 @@ jobs:
       - name: Attach release assets
         working-directory: packages/desktop
         run: |
-          gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --generate-notes --notes "" || true
+          if ! gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --generate-notes
+          fi
           gh release upload "${GITHUB_REF_NAME}" dist/*.zip resources.neu update_manifest.json --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

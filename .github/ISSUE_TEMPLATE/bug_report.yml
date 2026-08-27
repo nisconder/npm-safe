@@ -1,0 +1,68 @@
+name: Bug report
+description: Report a reproducible problem in npm-safe
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve npm-safe. For vulnerabilities, use the private process in SECURITY.md instead of this form.
+  - type: input
+    id: version
+    attributes:
+      label: npm-safe version
+      placeholder: "1.0.5"
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - CLI
+        - Core library
+        - Install gate
+        - Desktop app
+        - AI-agent skill
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, Node.js version, and package manager
+      placeholder: "Windows 11, Node.js 20.19, pnpm 10"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include the smallest command or code sample that reproduces the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and logs
+      description: Remove API keys, tokens, home-directory paths, and other sensitive data.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues for duplicates.
+          required: true
+        - label: I removed secrets and private information from this report.
+          required: true

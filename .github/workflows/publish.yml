@@ -38,6 +38,10 @@ jobs:
       - name: Build
         run: pnpm -F @npm-safe/core run build
 
+      - name: Verify published files
+        working-directory: packages/core
+        run: npm pack --dry-run
+
       - name: Publish to npm
         working-directory: packages/core
         run: npm publish --provenance --access public

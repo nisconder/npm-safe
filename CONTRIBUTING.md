@@ -13,7 +13,7 @@ For deeper design material, see [ARCHITECTURE.md](packages/core/ARCHITECTURE.md)
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18 or later (global `fetch` required)
+- [Node.js](https://nodejs.org/) 20 or later
 - [pnpm](https://pnpm.io/) 9 or later
 
 ### Install dependencies
@@ -93,7 +93,7 @@ Run the core test suite:
 pnpm -F @npm-safe/core test
 ```
 
-The suite currently has **307 tests** covering every module: validators, the
+The test suite covers every module: validators, published package metadata, the
 static rules, the rate limiter, the store layer, the registry client (with
 mocked fetch), the refresh scheduler, the engine integration surface, the LLM
 providers, the LLM configuration manager, the rule plugin system, the CI

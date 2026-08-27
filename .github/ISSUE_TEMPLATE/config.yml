@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: https://github.com/nisconder/npm-safe/security/policy
+    about: Report suspected vulnerabilities privately; do not open a public issue.
+  - name: Documentation
+    url: https://github.com/nisconder/npm-safe#documentation
+    about: Review setup, command, API, and architecture documentation.

@@ -1,12 +1,15 @@
 # @npm-safe/core
 
-A local-first npm supply-chain security engine. It analyzes npm packages
-against known attack patterns — suspicious install scripts, obfuscation,
-typosquatting and homograph lookalikes, exposed secrets, binary downloads,
-and registry mismatches — then assigns a security score and severity level.
+A local-first npm supply-chain security engine. It analyzes published package
+metadata and README content against known attack patterns — suspicious install
+scripts, obfuscation, typosquatting and homograph lookalikes, exposed secrets,
+binary downloads, and registry mismatches — then assigns a security score and
+severity level.
 
 Everything runs locally: metadata and scan reports are cached in a SQLite
 database, requests are rate-limited, and no external service is required.
+The current inspection boundary does not include package tarball source; see
+the [threat model](https://github.com/nisconder/npm-safe/blob/main/docs/THREAT_MODEL.md).
 
 ## Features
 

@@ -5,7 +5,7 @@ description: Automatically scan any npm package for supply-chain security risks 
 
 # npm-safe-scan
 
-This skill invokes the `npm-safe` CLI to statically and semantically analyze npm packages for supply-chain security risks. The engine inspects a package for suspicious install and lifecycle scripts, obfuscation, typosquatting and homograph lookalikes, exposed secrets, malicious binary downloads, and registry mismatches, then assigns a security score and severity level. Results are cached in a local SQLite database (default `~/.npm-safe/npm-safe.db`), requests are rate-limited to respect the registry, and everything runs locally with no external server required.
+This skill invokes the `npm-safe` CLI to statically and semantically analyze published npm metadata and README content for supply-chain security risks. The engine inspects suspicious install and lifecycle scripts, obfuscation signals, typosquatting and homograph lookalikes, exposed secrets, malicious binary links, and registry mismatches, then assigns a security score and severity level. Results are cached in a local SQLite database (default `~/.npm-safe/npm-safe.db`), requests are rate-limited to respect the registry, and everything runs locally with no external server required. The current engine does not inspect package tarball source, so never describe a clean result as proof that a package is safe.
 
 ## Core rule: check before you install
 
@@ -14,7 +14,7 @@ Whenever the user wants to install, add, or upgrade an npm package (including tr
 1. Identify the package name and version.
 2. Run `npm-safe check <name>` (add `--refresh` if a cached result may be stale).
 3. Interpret the result:
-   - **safe** — proceed with the install normally.
+   - **safe** — no configured signal was detected in the current metadata/README inspection boundary. Proceed only if the user's normal dependency policy permits it.
    - **suspicious** — mention the findings and recommendations; install only with user consent.
    - **dangerous** or **unknown** — do not install silently. Report the findings (rule, message, recommendation) and ask the user whether to continue.
 4. After installing a package the user picked, you may record it: `npm-safe watch add <name>` if they want ongoing monitoring.
@@ -25,7 +25,8 @@ When the user runs the install themselves (or the gate is enabled), they can use
 
 ## Prerequisites
 
-- Node.js 18 or newer, and pnpm.
+- Node.js 20 or newer.
+- pnpm is required only when building the CLI from this repository.
 - Build the CLI first from the repository:
 
   ```
@@ -176,7 +177,7 @@ In JSON mode (`-j`), the relevant fields are:
   - `category` — the finding category (for example, suspicious script, obfuscation, typosquatting, or secret).
 - `security.llmScan` — optional semantic analysis when an LLM provider is configured.
 
-Present `safe` packages as low risk, flag `suspicious` and `dangerous` packages with their findings and recommendations, and treat `unknown` as an inconclusive result worth a closer look. Before installing a package, use the result as a go/no-go signal: only `safe` (or explicit user consent for others) should proceed.
+Present `safe` as "no configured signal detected," not as a guarantee. Flag `suspicious` and `dangerous` packages with their findings and recommendations, and treat `unknown` as an inconclusive result worth a closer look. Before installing a package, use the result as one input to the go/no-go decision: only `safe` (or explicit user consent for others) should proceed, and the user's existing security policy still applies.
 
 Every check is persisted to the shared `~/.npm-safe/npm-safe.db` (check history + metadata + reports), so the desktop GUI and later CLI runs pick it up without re-fetching.
 
