@@ -46,9 +46,9 @@
   },
   "dependencies": {
     "@clack/prompts": "^1.7.0",
-    "better-sqlite3": "^12.11.1",
+    "better-sqlite3": "^13.0.3",
     "commander": "^15.0.0",
-    "type-fest": "^4.0.0",
+    "type-fest": "^5.8.0",
     "undici": "^8.10.0"
   },
   "devDependencies": {
