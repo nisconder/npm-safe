@@ -1,37 +1,67 @@
 <div align="center">
 
-# @npm-safe
+# npm-safe
 
-**Local npm Package Security Engine**
+**Scan before you install.**
 
 [![Version](https://img.shields.io/github/v/release/nisconder/npm-safe?label=Version&color=2196F3)](https://github.com/nisconder/npm-safe/releases)
+[![npm](https://img.shields.io/npm/v/%40npm-safe%2Fcore?logo=npm&label=npm)](https://www.npmjs.com/package/@npm-safe/core)
+[![Downloads](https://img.shields.io/npm/dm/%40npm-safe%2Fcore?logo=npm&label=downloads)](https://www.npmjs.com/package/@npm-safe/core)
+[![Stars](https://img.shields.io/github/stars/nisconder/npm-safe?logo=github&label=stars)](https://github.com/nisconder/npm-safe/stargazers)
 [![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)](./LICENSE)
-![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 [![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI)](https://github.com/nisconder/npm-safe/actions)
 [![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
-[![Desktop](https://img.shields.io/badge/Desktop-Neutralinojs-purple)](packages/desktop/README.md)
 
-Project Email:1031402408@qq.com.
-If you run into any issues while using this or are interested in collaborating on this project, feel free to reach out to this email.
+[Quick start](#quick-start) · [Why npm-safe?](#why-npm-safe) · [Desktop app](#desktop-gui) · [Docs](#documentation) · [中文版](README_zh.md)
 
-[中文版](README_zh.md) · **English**
+<br>
+
+<img src="docs/assets/social-preview.jpg" alt="npm-safe — Scan before you install" width="100%">
 
 </div>
 
----
+`npm-safe` is a local-first npm supply-chain scanner for the command line,
+CI, desktop, and AI coding agents. It flags suspicious install scripts,
+obfuscation, typosquatting, homograph lookalikes, exposed secrets, binary
+downloads, and registry inconsistencies, then returns an explainable 0–100
+security score.
 
-@npm-safe is a local-first engine for analyzing npm packages against known
-supply-chain attack patterns. It fetches package metadata from the public npm
-registry, runs static analysis rules against the metadata and README content,
-caches results in a local SQLite database, and exposes a typed API for
-querying, watching, and refreshing security assessments. The engine is
-designed to operate as a library rather than a standalone service.
+Static analysis and caching run locally with no account or hosted backend.
+Optional LLM analysis is disabled by default and only runs when you configure
+a provider.
+
+> If npm-safe makes one dependency decision safer, please consider
+> [starring the repository](https://github.com/nisconder/npm-safe). It helps
+> other developers discover the project.
+
+## Why npm-safe?
+
+`npm audit` is excellent at finding published vulnerabilities in known
+dependency versions. npm-safe complements it by looking for suspicious package
+metadata and supply-chain attack signals before or during installation.
+
+| Use case | Command | What you get |
+|---|---|---|
+| Check a package before choosing it | `npm-safe check <package>` | Rule findings, explanations, and a security score |
+| Guard a package-manager install | `npm-safe install <package>` | An opt-in confirmation gate below your score threshold |
+| Protect an existing project | `npm-safe ci --lockfile` | Direct and transitive dependency scanning with CI exit codes |
+| Review packages visually | [Desktop app](#desktop-gui) | Dashboard, history, watchlist, rules, and LLM settings |
+| Give coding agents a safety check | `npm-safe skill install` | A skill for Codex, Claude Code, OpenCode, Gemini CLI, and more |
+
+The scanner is transparent by design: all 10 built-in rules are documented,
+configurable, and extensible with local rule plugins.
 
 ## Quick Start
 
 Requires Node.js 20 or later.
 
-**Install as a CLI (global):**
+**Try it without a global install:**
+
+```bash
+npx @npm-safe/core check lodash
+```
+
+**Or install the CLI globally:**
 
 ```bash
 npm install -g @npm-safe/core
@@ -119,10 +149,9 @@ Example output:
 npm-safe check lodash
 # Package: lodash
 # Latest version: 4.18.1
-# Security level: suspicious
-# Score: 65/100
-# Findings: 5
-# ...
+# Security level: safe
+# Score: 97/100
+# Findings: 1 low-severity informational signal
 ```
 
 > **Windows PATH note:** a global install places `npm-safe` in the npm global
@@ -527,7 +556,7 @@ npm-safe/
       desktop-release.yml  # desktop ZIP assets on GitHub Releases
   packages/
     core/
-      package.json         # @npm-safe/core v1.0.2, ESM, publishConfig (public, provenance)
+      package.json         # @npm-safe/core v1.0.5, ESM, publishConfig (public, provenance)
       .npmignore           # publish exclude rules
       tsconfig.json        # extends ../../tsconfig.base.json
       API.md               # public API reference
@@ -575,6 +604,8 @@ npm-safe/
 
 ## Acknowledgements
 Weifang Leimingyun Network Technology Co., Ltd. provided the AI automatic promotion tool Bizbot (http://bizbot.zvo.cn) for this project.
+
+Questions and collaboration: 1031402408@qq.com.
 
 ## License
 

@@ -35,7 +35,7 @@ database, requests are rate-limited, and no external service is required.
 npm install -g @npm-safe/core
 ```
 
-Requires Node.js 18+.
+Requires Node.js 20+.
 
 ## Quick start
 

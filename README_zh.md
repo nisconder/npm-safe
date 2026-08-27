@@ -1,31 +1,62 @@
 <div align="center">
 
-# @npm-safe
+# npm-safe
 
-**本地 npm 包安全引擎**
+**安装之前，先扫描。**
 
 [![版本](https://img.shields.io/github/v/release/nisconder/npm-safe?label=版本&color=2196F3)](https://github.com/nisconder/npm-safe/releases)
+[![npm](https://img.shields.io/npm/v/%40npm-safe%2Fcore?logo=npm&label=npm)](https://www.npmjs.com/package/@npm-safe/core)
+[![下载量](https://img.shields.io/npm/dm/%40npm-safe%2Fcore?logo=npm&label=downloads)](https://www.npmjs.com/package/@npm-safe/core)
+[![Stars](https://img.shields.io/github/stars/nisconder/npm-safe?logo=github&label=stars)](https://github.com/nisconder/npm-safe/stargazers)
 [![许可证](https://img.shields.io/badge/许可证-Apache--2.0-4CAF50)](./LICENSE)
-![语言](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
 [![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI)](https://github.com/nisconder/npm-safe/actions)
 [![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
-[![桌面端](https://img.shields.io/badge/桌面端-Neutralinojs-purple)](packages/desktop/README.md)
 
-项目邮箱：1031402408@qq.com。
-如您在使用过程中遭遇任何问题或者与本项目有合作意向，欢迎联系本邮箱。
-**中文** · [English](README.md)
+[快速开始](#快速开始) · [为什么选择-npm-safe](#为什么选择-npm-safe) · [桌面端](#桌面图形界面) · [文档](#文档) · [English](README.md)
+
+<br>
+
+<img src="docs/assets/social-preview.jpg" alt="npm-safe — 安装之前，先扫描" width="100%">
 
 </div>
 
----
+`npm-safe` 是一款本地优先的 npm 供应链安全扫描器，覆盖命令行、CI、
+桌面端和 AI 编程智能体。它能识别可疑安装脚本、代码混淆、仿冒包名、
+同形字符攻击、密钥泄露、二进制下载和注册表异常，并给出可解释的 0–100
+安全评分。
 
-@npm-safe 是一个本地优先的引擎，用于分析 npm 包是否符合已知的供应链攻击模式。它从公共 npm 注册表获取包元数据，对元数据和 README 内容执行静态分析规则，将结果缓存到本地 SQLite 数据库，并提供类型化的 API 用于查询、监控和刷新安全评估。该引擎设计为以库的形式运行，而非独立服务。
+静态分析和缓存均在本地运行，无需账号或托管后端。可选的 LLM 分析默认
+关闭，只有在你主动配置提供商后才会运行。
+
+> 如果 npm-safe 帮你更安全地做出了一次依赖选择，欢迎
+> [为仓库点亮 Star](https://github.com/nisconder/npm-safe)。这会帮助更多开发者发现项目。
+
+## 为什么选择 npm-safe？
+
+`npm audit` 擅长发现已公开的依赖漏洞；npm-safe 则从包元数据和供应链攻击
+信号入手，在安装前或安装过程中补上另一层检查。
+
+| 使用场景 | 命令 | 你会得到什么 |
+|---|---|---|
+| 选用依赖前先检查 | `npm-safe check <package>` | 规则命中、解释和安全评分 |
+| 为包管理器安装加门禁 | `npm-safe install <package>` | 低于评分阈值时触发的可选确认门禁 |
+| 保护现有项目 | `npm-safe ci --lockfile` | 直接与间接依赖扫描，以及适用于 CI 的退出码 |
+| 可视化审查依赖 | [桌面端](#桌面图形界面) | 仪表盘、历史、监控、规则与 LLM 设置 |
+| 给 AI 编程智能体增加安全检查 | `npm-safe skill install` | 支持 Codex、Claude Code、OpenCode、Gemini CLI 等 |
+
+扫描逻辑完全透明：10 条内置规则都有文档、可配置，并支持本地规则插件扩展。
 
 ## 快速开始
 
 需要 Node.js 20 或更高版本。
 
-**作为 CLI 安装（全局）：**
+**无需全局安装即可试用：**
+
+```bash
+npx @npm-safe/core check lodash
+```
+
+**或全局安装 CLI：**
 
 ```bash
 npm install -g @npm-safe/core
@@ -113,10 +144,9 @@ npm-safe settings set lang zh       # 写入设置
 npm-safe check lodash
 # 包名: lodash
 # 最新版本: 4.18.1
-# 安全等级: suspicious
-# 分数: 65/100
-# 发现项: 5
-# ...
+# 安全等级: safe
+# 分数: 97/100
+# 发现项: 1 个低严重性信息提示
 ```
 
 > **Windows PATH 说明：** 全局安装会把 `npm-safe` 放入 npm 全局 bin 目录（`%APPDATA%\npm`），外部终端需要该目录在 `PATH` 中才能找到它。官方 Node.js MSI 安装器会自动添加；自定义安装（如 Node 解压到自定义目录）需手动添加：`setx PATH "%APPDATA%\npm;%PATH%"`，然后重新打开终端。如有异常可运行 `npm-safe doctor` 诊断。
@@ -419,7 +449,7 @@ npm-safe/
       desktop-release.yml  # GitHub Releases 的桌面端 ZIP 资产
   packages/
     core/
-      package.json         # @npm-safe/core v1.0.2, ESM, publishConfig（public、provenance）
+      package.json         # @npm-safe/core v1.0.5, ESM, publishConfig（public、provenance）
       .npmignore           # 发布排除规则
       tsconfig.json        # extends ../../tsconfig.base.json
       API.md               # 公共 API 参考文档
@@ -448,6 +478,8 @@ npm-safe/
 
 ## 致谢
 潍坊雷鸣云网络科技有限公司为本项目提供了AI自动推广工具Bizbot(http://bizbot.zvo.cn).
+
+问题反馈与合作联系：1031402408@qq.com。
 
 ---
 
