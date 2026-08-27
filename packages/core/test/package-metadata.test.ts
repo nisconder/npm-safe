@@ -26,6 +26,14 @@ const manifest = JSON.parse(
 const desktopManifest = JSON.parse(
   fs.readFileSync(path.resolve(packageRoot, '..', 'desktop', 'package.json'), 'utf8'),
 ) as PackageManifest;
+const workspaceRoot = path.resolve(packageRoot, '..', '..');
+const workspaceManifest = JSON.parse(
+  fs.readFileSync(path.join(workspaceRoot, 'package.json'), 'utf8'),
+) as PackageManifest & { readonly packageManager?: string };
+const ciWorkflow = fs.readFileSync(
+  path.join(workspaceRoot, '.github', 'workflows', 'ci.yml'),
+  'utf8',
+);
 
 describe('published package metadata', () => {
   it('does not execute lifecycle hooks during installation', () => {
@@ -36,6 +44,19 @@ describe('published package metadata', () => {
 
   it('declares the minimum runtime required by direct dependencies', () => {
     assert.strictEqual(manifest.engines?.node, '>=20.12.0');
+  });
+
+  it('keeps the workspace package manager compatible with the Node 20 CI floor', () => {
+    const match = workspaceManifest.packageManager?.match(/^pnpm@(\d+)\./);
+    assert.ok(match, 'workspace packageManager must pin a pnpm major version');
+    assert.ok(
+      Number(match[1]) <= 10,
+      'pnpm 11 requires Node >=22.13 and cannot bootstrap the Node 20.12 CI job',
+    );
+    assert.ok(
+      !ciWorkflow.split(/\r?\n/).some((line) => /^\s+version:\s/.test(line)),
+      'CI should resolve pnpm from packageManager instead of duplicating its version',
+    );
   });
 
   it('keeps the core and desktop release versions aligned', () => {

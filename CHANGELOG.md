@@ -5,6 +5,11 @@ semantic versioning for `@npm-safe/core`.
 
 ## Unreleased
 
+### Fixed
+
+- Pin the workspace to pnpm 10 and let GitHub Actions resolve that single
+  version source, preserving the advertised Node.js 20.12 CI compatibility.
+
 ### Security
 
 - Add opt-in bounded tarball scanning with same-origin download enforcement,
