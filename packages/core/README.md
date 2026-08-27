@@ -38,7 +38,7 @@ the [threat model](https://github.com/nisconder/npm-safe/blob/main/docs/THREAT_M
 npm install -g @npm-safe/core
 ```
 
-Requires Node.js 20+.
+Requires Node.js 20.12+.
 
 ## Quick start
 

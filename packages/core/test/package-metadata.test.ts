@@ -5,6 +5,7 @@ import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 interface PackageManifest {
+  readonly version?: string;
   readonly engines?: Readonly<Record<string, string>>;
   readonly scripts?: Readonly<Record<string, string>>;
   readonly files?: readonly string[];
@@ -22,6 +23,9 @@ const packageRoot = path.resolve(
 const manifest = JSON.parse(
   fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8'),
 ) as PackageManifest;
+const desktopManifest = JSON.parse(
+  fs.readFileSync(path.resolve(packageRoot, '..', 'desktop', 'package.json'), 'utf8'),
+) as PackageManifest;
 
 describe('published package metadata', () => {
   it('does not execute lifecycle hooks during installation', () => {
@@ -30,8 +34,12 @@ describe('published package metadata', () => {
     assert.strictEqual(manifest.scripts?.postinstall, undefined);
   });
 
-  it('requires Node.js 20 or later', () => {
-    assert.strictEqual(manifest.engines?.node, '>=20');
+  it('declares the minimum runtime required by direct dependencies', () => {
+    assert.strictEqual(manifest.engines?.node, '>=20.12.0');
+  });
+
+  it('keeps the core and desktop release versions aligned', () => {
+    assert.strictEqual(desktopManifest.version, manifest.version);
   });
 
   it('publishes only runtime, type, and explicit skill assets', () => {

@@ -48,7 +48,7 @@
 
 ## 快速开始
 
-需要 Node.js 20 或更高版本。
+需要 Node.js 20.12 或更高版本。
 
 **无需全局安装即可试用：**
 
@@ -341,7 +341,7 @@ npm-safe telemetry reset          # 清空全部采集数据
 
 ### 命令日志
 
-每次 CLI 调用都会在进程退出时向 `~/.npm-safe/commands.jsonl` 追加一行 JSONL，字段为 `{ timestamp, command, argv, exitCode, durationMs }`。可通过 `NPM_SAFE_COMMAND_LOG` 环境变量重定向日志位置。
+每次 CLI 调用都会在进程退出时向 `~/.npm-safe/commands.jsonl` 追加一行 JSONL，字段为 `{ timestamp, command, argv, exitCode, durationMs }`。API 密钥、代理凭证、认证令牌和通用设置值会在写入前替换为 `[REDACTED]`；平台支持时，该文件权限会限制为当前用户可读写（`0600`）。可通过 `NPM_SAFE_COMMAND_LOG` 环境变量重定向日志位置。
 
 ### 安装时安全检查（可选）
 

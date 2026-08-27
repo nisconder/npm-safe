@@ -4,6 +4,13 @@
   "version": "0.1.0",
   "packageManager": "pnpm@11.18.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.12.0"
+  },
+  "scripts": {
+    "build": "pnpm --filter @npm-safe/core run build",
+    "typecheck": "pnpm --filter @npm-safe/core exec tsc --noEmit",
+    "test": "pnpm --filter @npm-safe/core test",
+    "verify": "pnpm typecheck && pnpm test && pnpm build",
+    "pack:check": "pnpm --filter @npm-safe/core exec npm pack --dry-run"
   }
 }

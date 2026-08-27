@@ -14,7 +14,7 @@
   "license": "Apache-2.0",
   "author": "Nisconder",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.12.0"
   },
   "homepage": "https://github.com/nisconder/npm-safe",
   "repository": {
@@ -60,6 +60,6 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "build:cli": "tsc -p tsconfig.json",
-    "test": "node --import tsx --test --test-reporter spec \"test/**/*.test.ts\""
+    "test": "node --import tsx --test --test-concurrency=4 --test-reporter spec \"test/**/*.test.ts\""
   }
 }

@@ -95,7 +95,7 @@ The dashboard is re-rendered every time you navigate back to the tab.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 20 or later
+- [Node.js](https://nodejs.org/) 20.12 or later
 - [pnpm](https://pnpm.io/) 9 or later
 - A webview runtime: WebView2 on Windows, WebKit on macOS, WebKitGTK on Linux
 - Neutralinojs binaries are fetched by the `@neutralinojs/neu` CLI (devDependency)

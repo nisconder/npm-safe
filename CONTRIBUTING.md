@@ -13,7 +13,7 @@ For deeper design material, see [ARCHITECTURE.md](packages/core/ARCHITECTURE.md)
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 20 or later
+- [Node.js](https://nodejs.org/) 20.12 or later
 - [pnpm](https://pnpm.io/) 9 or later
 
 ### Install dependencies
@@ -40,6 +40,15 @@ per-package CLI tool.
 ```bash
 pnpm -F @npm-safe/core run build
 ```
+
+To run the complete local quality gate from the repository root:
+
+```bash
+pnpm verify
+```
+
+This runs the type check, the full test suite, and the production build in the
+same order expected by CI.
 
 ### Link the CLI locally
 

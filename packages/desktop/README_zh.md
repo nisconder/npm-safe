@@ -93,7 +93,7 @@
 
 ## 前置条件
 
-- [Node.js](https://nodejs.org/) 20 或更高版本
+- [Node.js](https://nodejs.org/) 20.12 或更高版本
 - [pnpm](https://pnpm.io/) 9 或更高版本
 - Webview 运行时：Windows 上的 WebView2、macOS 上的 WebKit、Linux 上的 WebKitGTK
 - Neutralinojs 二进制文件由 `@neutralinojs/neu` CLI（devDependency）获取

@@ -53,7 +53,7 @@ configurable, and extensible with local rule plugins.
 
 ## Quick Start
 
-Requires Node.js 20 or later.
+Requires Node.js 20.12 or later.
 
 **Try it without a global install:**
 
@@ -423,8 +423,11 @@ too.
 
 Every CLI invocation appends one JSONL line to
 `~/.npm-safe/commands.jsonl` with `{ timestamp, command, argv, exitCode,
-durationMs }`, written on process exit. The location can be redirected with
-the `NPM_SAFE_COMMAND_LOG` environment variable.
+durationMs }`, written on process exit. API keys, proxy credentials, auth
+tokens, and generic setting values are replaced with `[REDACTED]` before they
+are persisted. The file is restricted to the current user (`0600`) where the
+platform supports it. The location can be redirected with the
+`NPM_SAFE_COMMAND_LOG` environment variable.
 
 ### Install-time security gate (opt-in)
 

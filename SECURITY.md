@@ -46,4 +46,10 @@ CI, vulnerability scanning, or runtime isolation.
 Prefer provider-specific environment variables over persisted LLM keys. When a
 key is saved, npm-safe stores it locally in `~/.npm-safe/llm.json` and attempts
 to restrict the file to the current user (`0600` where supported). Never
-include that file in a bug report.
+include that file in a bug report. CLI diagnostic logs redact keys and other
+credential-bearing arguments before writing them to
+`~/.npm-safe/commands.jsonl`.
+
+If you used `npm-safe llm set-key` with version 1.0.5 or earlier, inspect and
+remove `~/.npm-safe/commands.jsonl`, then rotate that provider key. Those
+versions could persist the expanded key value in the local diagnostic log.

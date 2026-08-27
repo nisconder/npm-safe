@@ -1,12 +1,16 @@
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, unlinkSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, unlinkSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { logCommand, type CommandLogEntry } from "../src/cli/command-log.js";
+import {
+  logCommand,
+  sanitizeCommandArgv,
+  type CommandLogEntry,
+} from "../src/cli/command-log.js";
 
 const PACKAGE_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CLI_TS = path.resolve("src/cli/cli.ts");
@@ -35,6 +39,29 @@ function makeTempFile(): string {
 }
 
 describe("command-log", () => {
+  it("redacts credentials while preserving ordinary diagnostic arguments", () => {
+    assert.deepStrictEqual(
+      sanitizeCommandArgv(["--db", "cache.db", "llm", "set-key", "sk-live-secret"]),
+      ["--db", "cache.db", "llm", "set-key", "[REDACTED]"],
+    );
+    assert.deepStrictEqual(
+      sanitizeCommandArgv(["settings", "set", "proxy", "https://user:pass@example.test"]),
+      ["settings", "set", "proxy", "[REDACTED]"],
+    );
+    assert.deepStrictEqual(
+      sanitizeCommandArgv(["--proxy=https://user:pass@example.test", "check", "lodash"]),
+      ["--proxy=[REDACTED]", "check", "lodash"],
+    );
+    assert.deepStrictEqual(
+      sanitizeCommandArgv(["install", "lodash", "--//registry.npmjs.org/:_authToken=top-secret"]),
+      ["install", "lodash", "--//registry.npmjs.org/:_authToken=[REDACTED]"],
+    );
+    assert.deepStrictEqual(
+      sanitizeCommandArgv(["check", "lodash", "--json"]),
+      ["check", "lodash", "--json"],
+    );
+  });
+
   it("logCommand appends a valid JSONL line", () => {
     const tempPath = makeTempFile();
     const entry: CommandLogEntry = {
@@ -94,6 +121,25 @@ describe("command-log", () => {
     assert.strictEqual(b.durationMs, 25);
   });
 
+  it(
+    "restricts a new command log to the current user",
+    { skip: process.platform === "win32" },
+    () => {
+      const tempPath = makeTempFile();
+      logCommand(
+        {
+          timestamp: "2026-08-04T00:00:00.000Z",
+          command: "check",
+          argv: ["check", "lodash"],
+          exitCode: 0,
+          durationMs: 1,
+        },
+        tempPath,
+      );
+      assert.strictEqual(statSync(tempPath).mode & 0o777, 0o600);
+    },
+  );
+
   it("never throws when the target directory is unwritable", () => {
     // Create a temp file and use it as the "parent directory" — mkdirSync on a
     // path whose parent is a file fails with ENOTDIR, which logCommand catches.
@@ -145,5 +191,32 @@ describe("command-log", () => {
     assert.ok(Array.isArray(parsed.argv));
     assert.strictEqual(typeof parsed.exitCode, "number");
     assert.strictEqual(typeof parsed.durationMs, "number");
+  });
+
+  it("CLI never persists an LLM API key in the command log", () => {
+    const tempPath = makeTempFile();
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-cmdlog-home-"));
+    tempPaths.push(home);
+    const apiKey = "sk-test-command-log-secret";
+    const result = spawnSync(
+      "node",
+      ["--import", "tsx", CLI_TS, "llm", "set-key", apiKey],
+      {
+        encoding: "utf8",
+        cwd: PACKAGE_DIR,
+        env: {
+          ...process.env,
+          HOME: home,
+          USERPROFILE: home,
+          NPM_SAFE_COMMAND_LOG: tempPath,
+        },
+      },
+    );
+    assert.strictEqual(result.status, 0, `CLI should exit 0; stderr=${result.stderr}`);
+
+    const content = readFileSync(tempPath, "utf8");
+    assert.ok(!content.includes(apiKey), "the raw API key must never be logged");
+    const parsed = JSON.parse(content.trim()) as { argv: string[] };
+    assert.deepStrictEqual(parsed.argv, ["llm", "set-key", "[REDACTED]"]);
   });
 });
