@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import fs from "node:fs";
 
-import { NpmSafeEngine } from "../src/index.js";
+import { CONTENT_SCAN_RULES, NpmSafeEngine } from "../src/index.js";
 import { StaticAnalyzer } from "../src/scanner/static-rules.js";
 import { RuleConfigManager } from "../src/scanner/rule-config.js";
 import { FindingCategory, Severity } from "../src/scanner/types.js";
@@ -121,7 +121,7 @@ describe("NpmSafeEngine rule API", () => {
     });
 
     const builtin = engine.listRules().filter((r) => r.source === "builtin");
-    assert.strictEqual(builtin.length, 10);
+    assert.strictEqual(builtin.length, 10 + CONTENT_SCAN_RULES.length);
 
     engine.registerRule({
       id: "engine-custom",
@@ -150,6 +150,10 @@ describe("NpmSafeEngine rule API", () => {
     engine.setRuleEnabled("install-script", true);
     const after = engine.listRules().find((r) => r.id === "install-script");
     assert.strictEqual(after?.enabled, true);
+
+    engine.setRuleEnabled("content-process-exec", false);
+    const contentRule = engine.listRules().find((r) => r.id === "content-process-exec");
+    assert.strictEqual(contentRule?.enabled, false);
   });
 
   it("loads plugin rules from a directory", async () => {

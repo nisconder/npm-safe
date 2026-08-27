@@ -1,6 +1,6 @@
 # @npm-safe/core Architecture Document
 
-**Phase 1** | `@npm-safe/core` v0.1.0
+Current architecture | `@npm-safe/core`
 
 ---
 
@@ -11,8 +11,8 @@ layer lives in its own directory under `src/` and owns a single concern.
 
 | Layer | Directory | Responsibility | Entry Point |
 |-------|-----------|----------------|-------------|
-| Registry | `src/registry/` | NPM registry HTTP client. Fetches packuments, version manifests, and search results from the public npm registry API v2. Retries with exponential backoff, enforces request timeouts, and surfaces non-2xx responses as typed errors. | `client.ts` (class `NpmRegistryClient`) |
-| Scanner | `src/scanner/` | Static analysis engine. Runs a battery of regex-based rules against a package's README and package.json to detect supply-chain risks (install scripts, obfuscation, secret exposure, typosquatting, homograph attacks, etc.). Produces findings with severity weights and an aggregate score. | `static-rules.ts` (class `StaticAnalyzer`) |
+| Registry | `src/registry/` | NPM registry HTTP client. Fetches packuments, manifests, search results, and opt-in tarballs. Tarball downloads are same-origin, redirect-rejecting, and streamed through a compressed-size ceiling. | `client.ts` (class `NpmRegistryClient`) |
+| Scanner | `src/scanner/` | Static analysis engine. Runs metadata/README rules and can supplement them with a bounded, in-memory package-content scan that verifies integrity and parses TAR structure without extraction. Produces severity-weighted findings and an aggregate score. | `static-rules.ts` (`StaticAnalyzer`), `package-content.ts` (`analyzePackageTarball`) |
 | Scheduler | `src/scheduler/` | Refresh orchestration and rate limiting. A token-bucket rate limiter gates outbound registry calls; the refresh scheduler periodically re-fetches watched packages, re-runs the analyzer, and surfaces progress via three typed events (`refresh:start`, `refresh:complete`, `refresh:error`). | `refresh-scheduler.ts` (class `RefreshScheduler`), `rate-limiter.ts` (class `TokenBucket`) |
 | Store | `src/store/` | SQLite persistence. Owns the `better-sqlite3` connection, runs WAL-mode pragmas, applies ordered migrations from DDL defined in `schema.ts`, and provides typed cache accessors (package metadata, security reports, watchlist, settings). | `database.ts` (class `DatabaseManager`), `cache-manager.ts` (class `CacheManager`) |
 | Facade | `src/index.ts` | `NpmSafeEngine` — a single class that composes all four layers above. Exposes the full public API: `checkPackage`/`checkPackages`, `searchPackages`, watchlist CRUD, `refreshPackage`/`refreshAll`, `startAutoRefresh`/`stopAutoRefresh`, settings, rule management, LLM configuration, check history, and lifecycle (`close`). | `index.ts` |
@@ -52,6 +52,7 @@ graph TD
     %% Scanner layer
     ScannerTypes["src/scanner/types.ts<br/>SecurityLevel, Severity, ScanFinding,<br/>StaticScanReport, ScanRule, ..."]
     StaticRules["src/scanner/static-rules.ts<br/>StaticAnalyzer, BUILTIN_RULES"]
+    PackageContent["src/scanner/package-content.ts<br/>analyzePackageTarball, CONTENT_SCAN_RULES"]
 
     %% Translator layer
     TranslatorTypes["src/translator/types.ts<br/>TranslatorProviderType, TranslationResult,<br/>TranslationError, ProviderNotConfigured"]
@@ -63,6 +64,7 @@ graph TD
     Index -->|"NpmRegistryClient (runtime)"| RegistryClient
     Index -->|"TokenBucket (runtime)"| Limiter
     Index -->|"StaticAnalyzer (runtime)"| StaticRules
+    Index -->|"analyzePackageTarball (runtime)"| PackageContent
     Index -->|"RefreshScheduler (runtime)"| Scheduler
     Index -.->|"types: PackageMetadata,<br/>PackageRepository, SearchResult"| RegistryTypes
     Index -->|"NpmRegistryError<br/>(runtime class)"| RegistryTypes
@@ -95,6 +97,7 @@ graph TD
     %% Internal scanner dependencies
     StaticRules -->|"FindingCategory, SecurityLevel,<br/>Severity (runtime enums)"| ScannerTypes
     StaticRules -.->|"types: ScanFinding, ScanRule,<br/>StaticScanReport"| ScannerTypes
+    PackageContent -->|"Severity, FindingCategory"| ScannerTypes
 
     %% Translator dependencies
     Provider -->|"runtime + types"| TranslatorTypes
@@ -114,8 +117,9 @@ graph TD
 
 ## 3. Data Flow, Hot Path: `checkPackage(name)`
 
-`NpmSafeEngine.checkPackage(name: string): Promise<CheckResult>` is the primary
-read path. The flow branches on cache hit versus cache miss.
+`NpmSafeEngine.checkPackage(name, { deep?: boolean })` is the primary read
+path. The flow branches on cache hit versus cache miss, then optionally adds a
+bounded content scan.
 
 ### 3.1. Cache Hit
 
@@ -134,6 +138,10 @@ checkPackage("lodash")
     │      WHERE package_name = ? AND version = ? AND scan_type = 'static'
     │      ── row found, parse findings_json, reconstruct SecurityLevel via scoreToLevel()
     │      ──► StaticScanReport | null
+    │
+    ├─ when deep=true and the cached report has no contentScan
+    │      downloadTarball() ──► verify SRI/shasum ──► in-memory TAR scan
+    │      merge content findings, recompute score, and replace cached report
     │
     └─ buildCheckResult(...)
          return CheckResult {
@@ -174,6 +182,13 @@ checkPackage("lodash")   [cache miss or expired TTL]
     │      │  Computes score = 100 - sum(severity weights per finding).
     │      │  Clamps to [0, 100]. Maps score to SecurityLevel.
     │      ──► StaticScanReport
+    │
+    ├─ when deep=true
+    │      client.downloadTarball(manifest.dist.tarball)
+    │      ──► same-origin + 20 MiB compressed limit
+    │      analyzePackageTarball(archive, integrity/shasum)
+    │      ──► 50 MiB unpacked, 5,000 entries, 1 MiB/file, 8 MiB text
+    │      analyzer merges findings and ContentScanSummary before scoring
     │
     ├─ cache.setSecurityReport(report)
     │      INSERT INTO security_reports (...)

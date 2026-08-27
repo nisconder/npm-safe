@@ -50,6 +50,9 @@ const DEFAULT_USER_AGENT = '@npm-safe/core (https://npmjs.org)';
  */
 const REQUEST_TIMEOUT_MS = 10_000;
 
+/** Default compressed tarball limit for a deep package-content scan. */
+export const DEFAULT_MAX_TARBALL_BYTES = 20 * 1024 * 1024;
+
 /**
  * Number of attempts made before giving up. The first attempt plus
  * {@link RETRY_BACKOFF_MS}.length - 1 retries equals this value.
@@ -135,6 +138,54 @@ interface SearchResponse {
  */
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** A non-retryable download refusal caused by a local safety policy. */
+class RegistryPolicyError extends NpmRegistryError {}
+
+/** Read a response body without ever buffering more than `maxBytes`. */
+async function readLimitedBody(response: Response, maxBytes: number): Promise<Buffer> {
+  const rawLength = response.headers.get('content-length');
+  if (rawLength) {
+    const declared = Number(rawLength);
+    if (Number.isFinite(declared) && declared > maxBytes) {
+      throw new RegistryPolicyError(
+        `Tarball declares ${declared} bytes, above the ${maxBytes}-byte download limit.`,
+      );
+    }
+  }
+
+  if (!response.body) {
+    const body = Buffer.from(await response.arrayBuffer());
+    if (body.length > maxBytes) {
+      throw new RegistryPolicyError(
+        `Tarball exceeds the ${maxBytes}-byte download limit.`,
+      );
+    }
+    return body;
+  }
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new RegistryPolicyError(
+          `Tarball exceeds the ${maxBytes}-byte download limit.`,
+        );
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), total);
 }
 
 /**
@@ -285,6 +336,44 @@ export class NpmRegistryClient {
   }
 
   /**
+   * Download a package tarball for deep content inspection.
+   *
+   * The URL must share the configured registry origin. This prevents a
+   * malicious packument from turning a scan into an arbitrary cross-origin or
+   * localhost request. Redirects are rejected and the response is read through
+   * a hard compressed-byte limit.
+   */
+  async downloadTarball(
+    tarballUrl: string,
+    maxBytes = DEFAULT_MAX_TARBALL_BYTES,
+  ): Promise<Buffer> {
+    let target: URL;
+    let registry: URL;
+    try {
+      target = new URL(tarballUrl);
+      registry = new URL(this.baseUrl);
+    } catch {
+      throw new RegistryPolicyError('Tarball URL is invalid.');
+    }
+    if (target.origin !== registry.origin) {
+      throw new RegistryPolicyError(
+        `Tarball origin ${target.origin} does not match registry origin ${registry.origin}.`,
+      );
+    }
+    if (target.protocol !== 'https:' && registry.protocol !== 'http:') {
+      throw new RegistryPolicyError('Tarball download requires HTTPS.');
+    }
+
+    return this.request<Buffer>(
+      target.href,
+      (response) => readLimitedBody(response, maxBytes),
+      'application/octet-stream',
+      'identity',
+      'error',
+    );
+  }
+
+  /**
    * Perform a single HTTP GET against `url` with timeout and retry.
    *
    * The request is retried up to {@link MAX_ATTEMPTS} times with exponential
@@ -302,7 +391,14 @@ export class NpmRegistryClient {
    * @throws {NpmRegistryError} When all attempts are exhausted or the
    *   registry returns a non-2xx status on the final attempt.
    */
-  private async request<T>(url: string): Promise<T> {
+  private async request<T>(
+    url: string,
+    parse: (response: Response) => Promise<T> = async (response) =>
+      (await response.json()) as T,
+    accept = 'application/json',
+    acceptEncoding = 'gzip, deflate',
+    redirect: RequestRedirect = 'follow',
+  ): Promise<T> {
     let lastError: unknown = null;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -322,11 +418,12 @@ export class NpmRegistryClient {
         const init: RequestInit = {
           method: 'GET',
           headers: {
-            Accept: 'application/json',
-            'Accept-Encoding': 'gzip, deflate',
+            Accept: accept,
+            'Accept-Encoding': acceptEncoding,
             'User-Agent': this.userAgent,
           },
           signal: controller.signal,
+          redirect,
         };
         if (dispatcher) {
           // undici's fetch accepts a `dispatcher` option to route the request
@@ -349,8 +446,9 @@ export class NpmRegistryClient {
           continue;
         }
 
-        return (await response.json()) as T;
+        return await parse(response);
       } catch (error) {
+        if (error instanceof RegistryPolicyError) throw error;
         // An abort triggered by our own timeout is surfaced as an
         // NpmRegistryError so callers see a consistent error type.
         if (error instanceof Error && error.name === 'AbortError') {

@@ -21,9 +21,9 @@
 </div>
 
 `npm-safe` 是一款本地优先的 npm 供应链安全扫描器，覆盖命令行、CI、
-桌面端和 AI 编程智能体。它能从已发布的元数据和 README 中识别可疑安装
-脚本、代码混淆、仿冒包名、同形字符攻击、密钥泄露、二进制下载和注册表
-异常，并给出可解释的 0–100 安全评分。
+桌面端和 AI 编程智能体。默认快速扫描已发布的元数据与 README；可选的
+深度扫描还会校验并检查发布 tarball，识别危险归档结构、可执行内容、代码
+混淆、进程执行、联网行为和敏感环境变量访问，并给出可解释的 0–100 评分。
 
 静态分析和缓存均在本地运行，无需账号或托管后端。可选的 LLM 分析默认
 关闭，只有在你主动配置提供商后才会运行。
@@ -44,7 +44,8 @@
 | 可视化审查依赖 | [桌面端](#桌面图形界面) | 仪表盘、历史、监控、规则与 LLM 设置 |
 | 给 AI 编程智能体增加安全检查 | `npm-safe skill install` | 支持 Codex、Claude Code、OpenCode、Gemini CLI 等 |
 
-扫描逻辑完全透明：10 条内置规则都有文档、可配置，并支持本地规则插件扩展。
+扫描逻辑完全透明：10 条元数据规则与 12 条深度扫描规则都有文档且可配置，
+元数据分析还支持本地规则插件扩展。
 
 ## 快速开始
 
@@ -54,6 +55,7 @@
 
 ```bash
 npx @npm-safe/core check lodash
+npx @npm-safe/core check lodash --deep  # 校验并检查发布内容
 ```
 
 **或全局安装 CLI：**
@@ -95,6 +97,7 @@ npm-safe check <package>           # 检查包的安全性
 npm-safe check <pkg1> <pkg2> ...   # 批量检查多个包
 npm-safe check --file deps.txt     # 从文件读取包名
 npm-safe check -r <package>        # 强制从注册表重新获取（忽略缓存）
+npm-safe check --deep <package>    # 校验并检查发布 tarball
 npm-safe search <query>            # 搜索 npm 注册表
 npm-safe search <query> -s 10      # 限制搜索结果数量
 npm-safe watch list                # 查看监控列表
@@ -118,6 +121,7 @@ npm-safe llm set-base-url <url>    # 设置 LLM API 基础 URL
 npm-safe llm test-connection       # 测试 LLM 连接
 npm-safe ci                        # 扫描依赖，严重问题时使构建失败
 npm-safe ci --lockfile             # 扫描 package-lock.json 中全部依赖（含间接）
+npm-safe ci --lockfile --deep      # 同时检查 tarball；深度扫描不完整时失败
 npm-safe report lodash express     # 导出安全报告（JSON/CSV）
 npm-safe telemetry status          # 查看遥测状态（可选，仅本地）
 npm-safe gate status               # 查看安装门禁状态（可选）
@@ -216,6 +220,23 @@ npm-safe check lodash
 
 ## 功能特性
 
+### 受限的包内容深度扫描
+
+`--deep` 会从配置的注册表下载指定版本 tarball，在存在 npm SRI/`shasum`
+元数据时完成校验，并完全在内存中解析归档；高置信度发现会附带文件路径与
+行号。扫描器不会把包解压到磁盘，也不会执行包代码。
+
+解析前与解析中均有硬限制：压缩包 20 MiB、解压内容 50 MiB、5,000 个归档
+条目、单个文本文件 1 MiB、扫描文本总量 8 MiB。tarball URL 与重定向必须
+保持在配置的注册表同源。触及限制会明确返回 `partial`；`ci --deep` 在任一
+深度扫描不完整或不可用时按失败处理。
+
+```bash
+npm-safe check lodash --deep
+npm-safe ci --lockfile --deep
+npm-safe install axios --deep --dry-run
+```
+
 ### 代理
 
 在受限网络中，注册表可能只能通过代理访问。代理解析优先级：`--proxy` 参数 > 持久化的 `proxy` 设置 > `HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` 环境变量。`NO_PROXY` 变量（精确匹配、`.后缀` 匹配或 `*`）可绕过代理。
@@ -230,7 +251,9 @@ npm-safe --proxy http://127.0.0.1:7897 check react
 
 ### 规则与插件
 
-十条内置规则可检测安装脚本、代码混淆、仿冒包名、密钥泄露、同形字符攻击等。扫描规则可在运行时管理，配置持久化在 `~/.npm-safe/rules.json`：
+十条元数据规则与十二条可选内容规则可检测安装脚本、代码混淆、仿冒包名、
+密钥泄露、危险归档、可执行内容、进程与联网组合等。扫描规则可在运行时
+管理，配置持久化在 `~/.npm-safe/rules.json`：
 
 ```bash
 npm-safe rules list                          # 查看所有规则及状态
@@ -284,6 +307,7 @@ npm-safe ci --dir ./packages/core          # 默认失败级别：dangerous
 npm-safe ci --fail-level suspicious        # 更严格的阈值
 npm-safe ci --prod                         # 跳过 devDependencies
 npm-safe ci --lockfile                     # 扫描 lockfile 全部依赖（含间接）
+npm-safe ci --lockfile --deep              # 检查 tarball；任一深度扫描不完整即失败
 npm-safe ci --json                         # 输出机器可读报告
 npm-safe ci --rate-limit 50                # 每秒注册表请求数
 ```
@@ -378,14 +402,14 @@ npm-safe gate shell --remove
 
 ## 安全模型
 
-npm-safe 是用于提前预警的启发式工具，不是安全认证。当前静态引擎检查 npm
-注册表元数据、指定版本的 manifest 和 README；尚不会检查发布包 tarball
-中的源代码，也不会执行包代码。`safe` 只表示在这一检查边界内没有命中已
-配置的信号。
+npm-safe 是用于提前预警的启发式工具，不是安全认证。默认扫描检查注册表
+元数据、指定版本的 manifest 和 README；传入 `--deep` 后会在严格资源限制
+内额外校验并启发式检查 tarball，但仍不会解压到磁盘或执行包代码。`safe`
+只表示在所选检查边界内没有命中已配置信号，并不证明运行时安全。
 
 请将它与漏洞数据库、锁文件、代码审查和最小权限构建环境配合使用。详见
 [威胁模型](docs/THREAT_MODEL.md)、[安全策略](SECURITY.md)和
-[包内容分析路线图](ROADMAP.md)。
+[产品路线图](ROADMAP.md)。
 
 ---
 
@@ -440,11 +464,11 @@ npm-safe 是用于提前预警的启发式工具，不是安全认证。当前�
 
 - **[SECURITY.md](SECURITY.md)**：私密漏洞报告流程与版本支持策略。
 - **[THREAT_MODEL.md](docs/THREAT_MODEL.md)**：检查边界、信任假设、范围外威胁与评分解释。
-- **[ROADMAP.md](ROADMAP.md)**：包内容分析、SARIF、策略、基准集和集成计划。
+- **[ROADMAP.md](ROADMAP.md)**：AST 分析、SARIF、策略、基准集和集成计划。
 - **[CHANGELOG.md](CHANGELOG.md)**：按版本整理的用户可见变更。
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)**：分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
 - **[API.md](packages/core/API.md)**：完整的公共 API 参考文档，涵盖 `NpmSafeEngine` 类（全部 29 个方法）、导出的接口，以及所有类型定义（`SecurityLevel`、`Severity`、`FindingCategory`、`CheckResult`、`ScanFinding`、`StaticScanReport` 等）。
-- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)**：所有 10 条内置静态分析规则的完整参考。每条规则均文档化了其类别、严重级别、检测逻辑（正则表达式模式）和缓解建议。
+- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)**：元数据与深度包内容规则参考，包含类别、严重级别、资源限制与缓解建议。
 - **[CONTRIBUTING.md](CONTRIBUTING.md)**：开发者指南，涵盖开发环境配置、代码规范、测试、发布流程与桌面 GUI 构建。
 - **[README.md](README.md)**：本项目的英文版 README。
 

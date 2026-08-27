@@ -202,6 +202,61 @@ describe("NpmRegistryClient", () => {
     });
   });
 
+  describe("downloadTarball", () => {
+    it("downloads a same-origin tarball with binary-safe request options", async () => {
+      const payload = Buffer.from([0x1f, 0x8b, 0x08, 0x00]);
+      let capturedInit: RequestInit | undefined;
+      globalThis.fetch = ((_url: unknown, init?: RequestInit) => {
+        capturedInit = init;
+        return Promise.resolve(new Response(payload, { status: 200 }));
+      }) as typeof fetch;
+
+      const client = new NpmRegistryClient();
+      const result = await client.downloadTarball(
+        "https://registry.npmjs.org/test-pkg/-/test-pkg-1.0.0.tgz",
+      );
+
+      assert.deepStrictEqual(result, payload);
+      assert.strictEqual(capturedInit?.redirect, "error");
+      assert.deepStrictEqual(capturedInit?.headers, {
+        Accept: "application/octet-stream",
+        "Accept-Encoding": "identity",
+        "User-Agent": "@npm-safe/core (https://npmjs.org)",
+      });
+    });
+
+    it("refuses cross-origin tarball URLs before making a request", async () => {
+      let called = false;
+      globalThis.fetch = (() => {
+        called = true;
+        return Promise.resolve(new Response());
+      }) as typeof fetch;
+
+      const client = new NpmRegistryClient();
+      await assert.rejects(
+        () => client.downloadTarball("https://attacker.example/package.tgz"),
+        /does not match registry origin/,
+      );
+      assert.strictEqual(called, false);
+    });
+
+    it("enforces the compressed size limit before buffering the body", async () => {
+      globalThis.fetch = (() => Promise.resolve(new Response("small", {
+        status: 200,
+        headers: { "content-length": "1000" },
+      }))) as typeof fetch;
+
+      const client = new NpmRegistryClient();
+      await assert.rejects(
+        () => client.downloadTarball(
+          "https://registry.npmjs.org/test-pkg/-/test-pkg.tgz",
+          32,
+        ),
+        /download limit/,
+      );
+    });
+  });
+
   describe("proxy support", () => {
     it("passes a dispatcher when proxy env var is set", async () => {
       process.env.HTTPS_PROXY = "http://127.0.0.1:7897";

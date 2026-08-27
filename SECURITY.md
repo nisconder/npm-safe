@@ -41,6 +41,13 @@ result. npm-safe is a heuristic early-warning layer, not proof that a package
 is safe. A high score must not replace code review, lockfiles, least-privilege
 CI, vulnerability scanning, or runtime isolation.
 
+The opt-in deep scanner never extracts or executes package contents. It
+requires tarball URLs and redirects to remain on the configured registry
+origin, verifies published integrity metadata when available, streams with a
+compressed-size ceiling, and enforces decompressed, entry, file, and total-text
+limits. Report parser bypasses, unsafe archive handling, integrity-validation
+errors, or network-policy bypasses as security vulnerabilities.
+
 ## API Keys
 
 Prefer provider-specific environment variables over persisted LLM keys. When a

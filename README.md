@@ -21,10 +21,11 @@
 </div>
 
 `npm-safe` is a local-first npm supply-chain scanner for the command line,
-CI, desktop, and AI coding agents. It flags published metadata and README
-signals including suspicious install scripts, obfuscation, typosquatting,
-homograph lookalikes, exposed secrets, binary downloads, and registry
-inconsistencies, then returns an explainable 0–100 security score.
+CI, desktop, and AI coding agents. Its fast default scan checks published
+metadata and README signals; an opt-in deep scan also verifies and inspects
+the shipped tarball for dangerous archive structure, executable content,
+obfuscation, process execution, networking, and sensitive environment access.
+Every run returns an explainable 0–100 security score.
 
 Static analysis and caching run locally with no account or hosted backend.
 Optional LLM analysis is disabled by default and only runs when you configure
@@ -48,8 +49,9 @@ metadata and supply-chain attack signals before or during installation.
 | Review packages visually | [Desktop app](#desktop-gui) | Dashboard, history, watchlist, rules, and LLM settings |
 | Give coding agents a safety check | `npm-safe skill install` | A skill for Codex, Claude Code, OpenCode, Gemini CLI, and more |
 
-The scanner is transparent by design: all 10 built-in rules are documented,
-configurable, and extensible with local rule plugins.
+The scanner is transparent by design: the 10 metadata rules and 12 deep-scan
+rules are documented and configurable, and metadata analysis is extensible
+with local rule plugins.
 
 ## Quick Start
 
@@ -59,6 +61,7 @@ Requires Node.js 20.12 or later.
 
 ```bash
 npx @npm-safe/core check lodash
+npx @npm-safe/core check lodash --deep  # verify + inspect published contents
 ```
 
 **Or install the CLI globally:**
@@ -100,6 +103,7 @@ npm-safe check <package>            # Check a package's security posture
 npm-safe check <pkg1> <pkg2> ...    # Check multiple packages (batch)
 npm-safe check --file deps.txt      # Read package names from a file
 npm-safe check -r <package>         # Force re-fetch from registry (ignore cache)
+npm-safe check --deep <package>     # Verify and inspect the published tarball
 npm-safe search <query>            # Search the npm registry
 npm-safe search <query> -s 10      # Limit the number of results
 npm-safe watch list                # List watched packages
@@ -123,6 +127,7 @@ npm-safe llm set-base-url <url>    # Set a custom LLM API base URL
 npm-safe llm test-connection       # Test the LLM connection
 npm-safe ci                        # Scan dependencies, fail the build on severe findings
 npm-safe ci --lockfile             # Scan every dependency (incl. transitive) in package-lock.json
+npm-safe ci --lockfile --deep      # Also inspect each published tarball; fail closed if incomplete
 npm-safe report lodash express     # Export security reports (JSON/CSV)
 npm-safe telemetry status          # Show telemetry status (opt-in, local only)
 npm-safe gate status               # Show install gate status (opt-in)
@@ -256,6 +261,25 @@ them, acting as a "check before you install" safety gate.
 
 ## Features
 
+### Bounded package-content scanning
+
+`--deep` downloads the selected version's tarball from the configured registry,
+verifies npm SRI/`shasum` metadata when present, parses the archive entirely in
+memory, and reports file paths and line numbers for high-confidence findings.
+It never extracts package files or executes package code.
+
+Safety limits are enforced before and during parsing: 20 MiB compressed,
+50 MiB unpacked, 5,000 archive entries, 1 MiB per text file, and 8 MiB total
+text inspected. Tarball URLs and redirects must remain on the configured
+registry origin. Reaching a limit produces a visible partial result; `ci
+--deep` fails closed when any requested deep scan is partial or unavailable.
+
+```bash
+npm-safe check lodash --deep
+npm-safe ci --lockfile --deep
+npm-safe install axios --deep --dry-run
+```
+
 ### Proxy
 
 On restricted networks the registry may only be reachable through a proxy.
@@ -273,8 +297,9 @@ npm-safe --proxy http://127.0.0.1:7897 check react
 
 ### Rules and plugins
 
-Ten built-in rules detect install scripts, obfuscation, typosquatting, secret
-exposure, homograph attacks, and more. Rules can be managed at runtime;
+Ten metadata rules and twelve opt-in content rules detect install scripts,
+obfuscation, typosquatting, secret exposure, unsafe archives, executable
+content, process/network combinations, and more. Rules can be managed at runtime;
 configuration is persisted in `~/.npm-safe/rules.json`:
 
 ```bash
@@ -341,6 +366,7 @@ npm-safe ci --dir ./packages/core          # default fail level: dangerous
 npm-safe ci --fail-level suspicious        # stricter gate
 npm-safe ci --prod                         # skip devDependencies
 npm-safe ci --lockfile                     # scan all lockfile deps (incl. transitive)
+npm-safe ci --lockfile --deep              # inspect tarballs; fail if any deep scan is incomplete
 npm-safe ci --json                         # machine-readable report
 npm-safe ci --rate-limit 50                # registry requests per second
 ```
@@ -481,14 +507,15 @@ GUI toggle stay in sync.
 ## Security Model
 
 npm-safe is an early-warning heuristic, not a safety certification. The
-current static engine inspects npm registry metadata, the selected version's
-manifest, and its README; it does not yet inspect the shipped tarball or
-execute package code. A `safe` result means that no configured signal was
-detected in that inspection boundary.
+default scan inspects registry metadata, the selected manifest, and README.
+Passing `--deep` additionally verifies and heuristically inspects the shipped
+tarball within strict resource limits, without extracting or executing it. A
+`safe` result means that no configured signal was detected in the selected
+inspection boundary; it does not prove runtime safety.
 
 Use it alongside vulnerability databases, lockfiles, code review, and
 least-privilege build environments. See the full [threat model](docs/THREAT_MODEL.md),
-[security policy](SECURITY.md), and [package-content analysis roadmap](ROADMAP.md).
+[security policy](SECURITY.md), and [product roadmap](ROADMAP.md).
 
 ---
 
@@ -548,11 +575,11 @@ Detailed documentation is available under `packages/core/`:
 
 - **[SECURITY.md](SECURITY.md)**: private vulnerability reporting process and supported-version policy.
 - **[THREAT_MODEL.md](docs/THREAT_MODEL.md)**: inspection boundary, trust assumptions, out-of-scope threats, and score interpretation.
-- **[ROADMAP.md](ROADMAP.md)**: package-content analysis, SARIF, policy, benchmark, and integration priorities.
+- **[ROADMAP.md](ROADMAP.md)**: AST analysis, SARIF, policy, benchmark, and integration priorities.
 - **[CHANGELOG.md](CHANGELOG.md)**: user-facing changes by release.
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)**: layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.
 - **[API.md](packages/core/API.md)**: complete public API reference covering the `NpmSafeEngine` class (all 29 public methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
-- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)**: comprehensive reference for all 10 built-in static analysis rules. Each rule documents its category, severity, detection logic (regex patterns), and mitigation recommendations.
+- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)**: reference for all metadata and deep package-content rules, including categories, severities, limits, and mitigations.
 - **[CONTRIBUTING.md](CONTRIBUTING.md)**: developer guide covering development setup, code conventions, testing, the publishing workflow, and the desktop GUI build.
 - **[README_zh.md](README_zh.md)**: Chinese translation of the project README.
 

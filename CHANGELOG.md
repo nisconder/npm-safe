@@ -7,6 +7,14 @@ semantic versioning for `@npm-safe/core`.
 
 ### Security
 
+- Add opt-in bounded tarball scanning with same-origin download enforcement,
+  streamed compressed-size limits, SRI/shasum verification, safe in-memory TAR
+  parsing, path/link checks, and decompression/entry/file/text ceilings.
+- Detect remote shell pipelines, encoded dynamic execution, process/network
+  combinations, sensitive environment access with networking, and bundled
+  native/executable content in published package files. Deep CI scans fail
+  closed when inspection is partial or unavailable.
+
 - Redact LLM API keys, proxy credentials, auth tokens, and arbitrary setting
   values before writing CLI arguments to the local command log, and restrict
   the log to the current user (`0600`) where supported.
@@ -22,6 +30,9 @@ semantic versioning for `@npm-safe/core`.
 
 ### Added
 
+- Add `--deep` to package checks, batch checks, CI dependency scans, and the
+  install gate, with cached content-scan summaries and file/line findings.
+
 - Add root-level `build`, `typecheck`, `test`, `verify`, and package dry-run
   commands for a consistent contributor and CI workflow.
 - Cap test-file concurrency to avoid exhausting process and memory limits on
@@ -32,8 +43,8 @@ semantic versioning for `@npm-safe/core`.
 
 ### Documentation
 
-- Clarify that the current scanner inspects registry metadata, the package
-  manifest, and README content, but not tarball source code yet.
+- Document the default metadata boundary, opt-in deep content scan, safety
+  limits, rule catalogue, and CI failure behavior.
 - Align all documented runtime requirements with Node.js 20.12 or later.
 
 ## 1.0.5 - 2026-08-13

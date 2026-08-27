@@ -18,4 +18,6 @@ jobs:
         with:
           node-version: 20
       - name: Scan direct and transitive npm dependencies
+        # Add --deep to verify and inspect every published tarball. Deep mode
+        # fails closed when any package cannot be completely inspected.
         run: npx --yes @npm-safe/core@1.0.5 ci --lockfile --fail-level dangerous

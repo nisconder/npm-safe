@@ -1,5 +1,7 @@
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { gzipSync } from "node:zlib";
 import { NpmSafeEngine } from "../src/index.js";
 import { SecurityLevel } from "../src/scanner/types.js";
 import type { PackageMetadata } from "../src/registry/types.js";
@@ -60,6 +62,44 @@ describe("NpmSafeEngine", () => {
   });
 
   describe("checkPackage", () => {
+    it("upgrades a cached metadata scan to a verified deep tarball scan", async () => {
+      const archive = gzipSync(Buffer.alloc(1024));
+      const deepMeta: PackageMetadata = {
+        ...mockPackageMeta,
+        versions: {
+          "3.0.0": {
+            ...mockPackageMeta.versions["3.0.0"],
+            dist: {
+              tarball: "https://registry.npmjs.org/safe-lib/-/safe-lib-3.0.0.tgz",
+              integrity: `sha512-${createHash("sha512").update(archive).digest("base64")}`,
+            },
+          },
+        },
+      };
+      let metadataCalls = 0;
+      let tarballCalls = 0;
+      globalThis.fetch = ((url: unknown) => {
+        if (String(url).endsWith(".tgz")) {
+          tarballCalls++;
+          return Promise.resolve(new Response(archive, { status: 200 }));
+        }
+        metadataCalls++;
+        return Promise.resolve(new Response(JSON.stringify(deepMeta), { status: 200 }));
+      }) as typeof fetch;
+
+      engine = new NpmSafeEngine({ dbPath: ":memory:" });
+      const shallow = await engine.checkPackage("safe-lib");
+      const deep = await engine.checkPackage("safe-lib", { deep: true });
+      const cachedDeep = await engine.checkPackage("safe-lib", { deep: true });
+
+      assert.strictEqual(shallow.security.staticScan?.contentScan, undefined);
+      assert.strictEqual(deep.security.staticScan?.contentScan?.status, "complete");
+      assert.strictEqual(deep.security.staticScan?.contentScan?.integrityVerified, true);
+      assert.strictEqual(cachedDeep.security.staticScan?.contentScan?.status, "complete");
+      assert.strictEqual(metadataCalls, 1);
+      assert.strictEqual(tarballCalls, 1);
+    });
+
     it("runs and caches the optional LLM security scan", async () => {
       let llmCalls = 0;
       globalThis.fetch = ((url: unknown) => {

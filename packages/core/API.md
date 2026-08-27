@@ -20,6 +20,8 @@ This document describes every public export from `@npm-safe/core` in Phase 1. Si
   - [ScanFinding](#scanfinding)
   - [ScanRule](#scanrule)
   - [StaticScanReport](#staticscanreport)
+  - [ContentScanSummary](#contentscansummary)
+  - [PackageContentScan API](#packagecontentscan-api)
   - [LlmScanReport](#llmscanreport)
   - [ScanReport](#scanreport)
   - [SecuritySummary](#securitysummary)
@@ -110,10 +112,20 @@ Creates all internal collaborators (DatabaseManager, CacheManager, NpmRegistryCl
 #### checkPackage
 
 ```ts
-checkPackage(name: string): Promise<CheckResult>
+checkPackage(name: string, options?: PackageCheckOptions): Promise<CheckResult>
 ```
 
-Check a package by name. Cache-first: returns cached data if still fresh, otherwise fetches from the registry, runs static analysis, and caches the result.
+Check a package by name. Cache-first: returns cached data if still fresh,
+otherwise fetches from the registry, runs static analysis, and caches the
+result. Set `options.deep` to download, verify, and inspect the selected
+version's published tarball. A cached metadata-only result is upgraded on the
+first deep check, then the content summary is reused.
+
+```ts
+interface PackageCheckOptions {
+  readonly deep?: boolean; // default false
+}
+```
 
 When the package does not exist on the registry (HTTP 404), the returned `CheckResult` has `exists: false` and the `security` / `registryInfo` fields are empty. All other errors (network failure, timeout) are rethrown.
 
@@ -131,6 +143,7 @@ Check many packages in parallel with a shared concurrency cap. Every check consu
 ```ts
 interface BatchCheckOptions {
   readonly concurrency?: number; // default 5
+  readonly deep?: boolean; // inspect every selected package tarball
   readonly onProgress?: (done: number, total: number, entry: BatchPackageResult) => void;
 }
 
@@ -523,6 +536,7 @@ interface ScanFinding {
   readonly message: string;
   readonly codeSnippet?: string;
   readonly lineNumber?: number;
+  readonly filePath?: string;
   readonly recommendation?: string;
   readonly category: FindingCategory;
 }
@@ -536,6 +550,7 @@ interface ScanFinding {
 | `message` | Human-readable description of the issue. |
 | `codeSnippet` | Optional code snippet that triggered the finding. |
 | `lineNumber` | Optional 1-based line number where the issue was detected. |
+| `filePath` | Optional archive-relative path for a package-content finding. |
 | `recommendation` | Optional remediation guidance. |
 | `category` | Category classifying the nature of this finding. |
 
@@ -576,6 +591,7 @@ interface StaticScanReport {
   readonly overallLevel: SecurityLevel;
   readonly score: number;
   readonly findings: readonly ScanFinding[];
+  readonly contentScan?: ContentScanSummary;
   readonly scannedAt: string;
 }
 ```
@@ -587,7 +603,44 @@ interface StaticScanReport {
 | `overallLevel` | Overall security level derived from static findings. |
 | `score` | Numeric score from 0 to 100 (higher is safer). |
 | `findings` | Findings produced by the static scan. |
+| `contentScan` | Deep-scan status and resource counters when content inspection was requested. |
 | `scannedAt` | ISO 8601 timestamp of when the scan ran. |
+
+### ContentScanSummary
+
+```ts
+interface ContentScanSummary {
+  readonly status: 'complete' | 'partial' | 'failed';
+  readonly archiveBytes: number;
+  readonly unpackedBytes: number;
+  readonly filesScanned: number;
+  readonly filesSkipped: number;
+  readonly integrityVerified: boolean;
+  readonly truncated: boolean;
+  readonly reason?: string;
+}
+```
+
+`partial` means a configured archive, entry, file, or text-byte limit stopped
+complete inspection. `failed` means download, integrity validation,
+decompression, or archive parsing did not complete. `integrityVerified` is
+false when neither a supported SRI value nor a valid legacy shasum was present.
+
+### PackageContentScan API
+
+```ts
+analyzePackageTarball(
+  archive: Buffer,
+  options?: PackageContentScanOptions,
+): PackageContentScanResult
+```
+
+This low-level export verifies and scans an already-downloaded `.tgz` entirely
+in memory. Options include `integrity`, `shasum`, `maxUnpackedBytes`,
+`maxEntries`, `maxFileBytes`, and `maxScannedBytes`. Default-limit constants
+and `CONTENT_SCAN_RULES` are also exported. Registry origin checks and the
+20 MiB compressed download ceiling are enforced by
+`NpmRegistryClient.downloadTarball`, not by this buffer-only function.
 
 ### LlmScanReport
 
@@ -1135,7 +1188,12 @@ Accepts an optional custom rule array. Defaults to `BUILTIN_RULES`.
 #### Methods
 
 ```ts
-analyze(readme: string, packageJson?: Record<string, unknown>): StaticScanReport
+analyze(
+  readme: string,
+  packageJson?: Record<string, unknown>,
+  supplementalFindings?: readonly ScanFinding[],
+  contentScan?: ContentScanSummary,
+): StaticScanReport
 ```
 
 Runs all enabled rules against the given README and package.json. Scoring starts at 100 and subtracts per-finding weights (Critical -25, High -15, Medium -8, Low -3), clamped to [0, 100]. Overall level: `>= 80` Safe, `>= 50` Suspicious, `>= 20` Dangerous, else Unknown.

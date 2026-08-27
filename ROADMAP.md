@@ -3,18 +3,19 @@
 npm-safe aims to become a transparent, local-first package firewall for npm.
 This roadmap describes priorities, not promised release dates.
 
-## Now: Trustworthy Metadata Guard
+## Now: Metadata Guard + Bounded Content Scan
 
 - Detect risky install-time lifecycle scripts with severity escalation.
 - Keep scans local by default and make every rule inspectable and configurable.
 - Provide CLI, CI, desktop, and AI-agent workflows from one engine.
 - Document limitations and remove automatic setup behavior from package
   installation.
+- Offer an opt-in `--deep` path that downloads same-origin tarballs with strict
+  compressed/unpacked/file/count limits, verifies published integrity metadata,
+  parses without disk extraction, and reports high-confidence content signals.
 
-## Next: Package-Content Analysis
+## Next: Semantic Package-Content Analysis
 
-- Download tarballs with strict size, timeout, and integrity limits.
-- Inspect shipped JavaScript, shell scripts, native build files, and binaries.
 - Add AST-based rules for process execution, network access, credential access,
   dynamic evaluation, and obfuscation.
 - Compare security-relevant behavior between package versions.

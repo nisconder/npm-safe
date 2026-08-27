@@ -1,12 +1,14 @@
 # Scanner Rules Reference
 
 This document describes every built-in static analysis rule implemented in
-`@npm-safe/core`. The static analyzer runs pure regex and string analysis
-against a package's README and `package.json`. It makes no network calls and
-uses no LLM inference.
+`@npm-safe/core`. The default analyzer runs pure regex and string analysis
+against a package's README and `package.json`. Opt-in deep mode supplements
+that report with bounded inspection of the published package tarball. Neither
+mode uses LLM inference or executes package code.
 
-All 10 rules are defined in `src/scanner/static-rules.ts` and exported via the
-`BUILTIN_RULES` constant in registration order.
+The 10 metadata rules are defined in `src/scanner/static-rules.ts` and exported
+via `BUILTIN_RULES`. Twelve content rule descriptors are exported from
+`src/scanner/package-content.ts` via `CONTENT_SCAN_RULES`.
 
 ---
 
@@ -57,12 +59,51 @@ package.
 
 ---
 
+## Deep Package-Content Rules
+
+Run these rules with `npm-safe check <package> --deep`, `npm-safe ci --deep`,
+or `engine.checkPackage(name, { deep: true })`.
+
+| Rule ID | Severity | Signal |
+|---|---:|---|
+| `content-integrity-mismatch` | Critical | Downloaded bytes do not match the strongest published SRI digest or legacy shasum. |
+| `content-archive-invalid` | High | Gzip/TAR decompression, checksum, bounds, or trailing-block validation fails. |
+| `content-archive-path` | Critical | An absolute, drive-qualified, or `..` archive path can escape the package root. |
+| `content-archive-link` | High | A symbolic or hard link, including PAX/GNU long links, targets an escaping path. |
+| `content-native-binary` | Low | The archive contains `.node`, `.dll`, `.so`, `.dylib`, `.exe`, `.wasm`, or `.bin` content. |
+| `content-remote-shell` | Critical | Remote content is piped or passed directly to a shell/interpreter. |
+| `content-obfuscated-exec` | High | A long encoded payload appears with `eval`/`Function` dynamic execution. |
+| `content-network-exec` | High | One published file combines network access with child-process capability. |
+| `content-process-exec` | Medium | Non-test runtime source imports or invokes Node child-process functionality. |
+| `content-sensitive-network` | High | One file reads sensitive environment values and performs network access. |
+| `content-scan-incomplete` | Medium | A resource limit prevents complete content inspection. |
+| `content-scan-unavailable` | Medium | The tarball is missing, refused by origin policy, or cannot be downloaded. |
+
+To bound decompression bombs and parser abuse, default limits are 20 MiB
+compressed (download layer), 50 MiB unpacked, 5,000 TAR entries, 1 MiB per
+text file, and 8 MiB total inspected text. Archives stay in memory and are
+never extracted. Findings are deduplicated by rule ID per archive to keep one
+large package from overwhelming the score. A `ContentScanSummary` records
+`complete`, `partial`, or `failed`, sizes, file counts, integrity status, and
+the partial/failure reason.
+
+Deep rules honor the same enable/disable and severity overrides as metadata
+rules and appear in `npm-safe rules list`. The content scanner is deliberately
+high-confidence and regex-based; AST/data-flow analysis remains future work.
+
+---
+
 ## StaticAnalyzer Class
 
 ```typescript
 class StaticAnalyzer {
   constructor(rules?: ScanRule[]);
-  analyze(readme: string, packageJson?: Record<string, unknown>): StaticScanReport;
+  analyze(
+    readme: string,
+    packageJson?: Record<string, unknown>,
+    supplementalFindings?: readonly ScanFinding[],
+    contentScan?: ContentScanSummary,
+  ): StaticScanReport;
 }
 ```
 

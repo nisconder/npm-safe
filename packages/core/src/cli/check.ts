@@ -12,6 +12,7 @@ export interface RunCheckOptions {
   readonly db?: string;
   readonly proxy?: string;
   readonly concurrency?: number;
+  readonly deep?: boolean;
 }
 
 function formatFinding(result: CheckResult, idx: number): string {
@@ -32,6 +33,9 @@ function formatFinding(result: CheckResult, idx: number): string {
   }
   if (f.lineNumber !== undefined) {
     lines.push(`    ${t("check.finding.line")}: ${f.lineNumber}`);
+  }
+  if (f.filePath) {
+    lines.push(`    ${t("check.finding.file")}: ${f.filePath}`);
   }
   return lines.join("\n");
 }
@@ -70,6 +74,13 @@ function printSingleResult(result: CheckResult, packageName: string): boolean {
   if (result.cachedAt) {
     lines.push(`${t("check.label.cachedAt")}: ${result.cachedAt}`);
   }
+  if (report?.contentScan) {
+    lines.push(`${t("check.label.deepScan")}: ${t("check.deepSummary", {
+      status: report.contentScan.status,
+      files: String(report.contentScan.filesScanned),
+      integrity: report.contentScan.integrityVerified ? t("llm.yes") : t("llm.no"),
+    })}`);
+  }
 
   if (findingCount > 0) {
     lines.push("");
@@ -104,7 +115,7 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
 
     if (single) {
       const name = names[0];
-      const result = await engine.checkPackage(name);
+      const result = await engine.checkPackage(name, { deep: options.deep });
       await engine.recordCheckHistory(result);
       recordTelemetry("check", [{ name, ok: true, result }], startedAt);
       if (options.json) {
@@ -117,6 +128,7 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
 
     const results = await engine.checkPackages(names, {
       concurrency: options.concurrency,
+      deep: options.deep,
     });
     saveLastBatch(results);
     for (const entry of results) {
@@ -211,13 +223,15 @@ export function registerCheckCommand(program: Command): void {
     .option("-r, --refresh", "Force a fresh registry fetch")
     .option("-f, --file <path>", "Read package names from a file (one per line)")
     .option("--concurrency <n>", "Max concurrent checks for batch mode (default: 5)")
-    .action(async (packageName: string[] = [], options: { json?: boolean; refresh?: boolean; file?: string; concurrency?: string }) => {
+    .option("--deep", "Download and inspect published package contents")
+    .action(async (packageName: string[] = [], options: { json?: boolean; refresh?: boolean; file?: string; concurrency?: string; deep?: boolean }) => {
       const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
       const runOptions: RunCheckOptions = {
         db: opts.db,
         proxy: opts.proxy,
         json: options.json ?? opts.json,
         refresh: options.refresh,
+        deep: options.deep,
         concurrency: options.concurrency ? parseInt(options.concurrency, 10) : undefined,
       };
 
@@ -269,6 +283,7 @@ export function registerCheckCommand(program: Command): void {
         proxy: opts.proxy,
         json: options.json ?? opts.json,
         refresh: options.refresh,
+        deep: options.deep,
         concurrency: options.concurrency ? parseInt(options.concurrency, 10) : undefined,
       });
     });

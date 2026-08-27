@@ -24,6 +24,7 @@ import {
   type LlmScanReport,
   type StaticScanReport,
   type ScanFinding,
+  type ContentScanSummary,
 } from "../scanner/types.js";
 
 /**
@@ -228,12 +229,33 @@ export class CacheManager {
     } catch {
       findings = [];
     }
+    let contentScan: ContentScanSummary | undefined;
+    if (row.summary) {
+      try {
+        const parsed = JSON.parse(row.summary) as Partial<ContentScanSummary>;
+        if (
+          parsed &&
+          (parsed.status === "complete" || parsed.status === "partial" || parsed.status === "failed") &&
+          typeof parsed.archiveBytes === "number" &&
+          typeof parsed.unpackedBytes === "number" &&
+          typeof parsed.filesScanned === "number" &&
+          typeof parsed.filesSkipped === "number" &&
+          typeof parsed.integrityVerified === "boolean" &&
+          typeof parsed.truncated === "boolean"
+        ) {
+          contentScan = parsed as ContentScanSummary;
+        }
+      } catch {
+        contentScan = undefined;
+      }
+    }
     return {
       packageName: row.package_name,
       version: row.version,
       overallLevel: scoreToLevel(row.overall_score),
       score: row.overall_score,
       findings,
+      contentScan,
       scannedAt: row.scanned_at,
     };
   }
@@ -248,13 +270,15 @@ export class CacheManager {
    */
   async setSecurityReport(report: StaticScanReport): Promise<void> {
     const findingsJson = JSON.stringify(report.findings);
+    const summary = report.contentScan ? JSON.stringify(report.contentScan) : "";
     this.db
-      .prepare<[string, string, number, string, string]>(
+      .prepare<[string, string, number, string, string, string]>(
         `INSERT INTO security_reports (package_name, version, scan_type, overall_score, findings_json, summary, scanned_at)
-         VALUES (?, ?, 'static', ?, ?, '', ?)
+         VALUES (?, ?, 'static', ?, ?, ?, ?)
          ON CONFLICT(package_name, version, scan_type) DO UPDATE SET
            overall_score = excluded.overall_score,
            findings_json  = excluded.findings_json,
+           summary        = excluded.summary,
            scanned_at     = excluded.scanned_at`,
       )
       .run(
@@ -262,6 +286,7 @@ export class CacheManager {
         report.version,
         report.score,
         findingsJson,
+        summary,
         report.scannedAt,
       );
   }

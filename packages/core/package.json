@@ -1,13 +1,16 @@
 {
   "name": "@npm-safe/core",
   "version": "1.0.5",
-  "description": "Local npm package security engine: static and LLM-based supply-chain analysis, SQLite cache, CLI and desktop GUI.",
+  "description": "Local-first npm supply-chain scanner with metadata checks, bounded tarball inspection, CI gates, SQLite cache, and optional LLM analysis.",
   "keywords": [
     "npm",
     "security",
     "supply-chain",
     "scanner",
     "static-analysis",
+    "dependency-scanner",
+    "malware-detection",
+    "tarball",
     "llm",
     "cli"
   ],

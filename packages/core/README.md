@@ -1,15 +1,14 @@
 # @npm-safe/core
 
-A local-first npm supply-chain security engine. It analyzes published package
-metadata and README content against known attack patterns — suspicious install
-scripts, obfuscation, typosquatting and homograph lookalikes, exposed secrets,
-binary downloads, and registry mismatches — then assigns a security score and
-severity level.
+A local-first npm supply-chain security engine. Its default scan analyzes
+published metadata and README content. Opt-in deep mode also verifies and
+inspects the published tarball for unsafe archive structure, executable
+content, obfuscation, process/network combinations, and sensitive data access.
 
 Everything runs locally: metadata and scan reports are cached in a SQLite
 database, requests are rate-limited, and no external service is required.
-The current inspection boundary does not include package tarball source; see
-the [threat model](https://github.com/nisconder/npm-safe/blob/main/docs/THREAT_MODEL.md).
+Deep scanning is bounded, runs in memory, and never extracts or executes the
+package; see the [threat model](https://github.com/nisconder/npm-safe/blob/main/docs/THREAT_MODEL.md).
 
 ## Features
 
@@ -17,6 +16,8 @@ the [threat model](https://github.com/nisconder/npm-safe/blob/main/docs/THREAT_M
   obfuscation, base64 shells, binary links, typosquatting, secret exposure,
   child_process in browser targets, suspicious build metadata, homograph
   attacks, registry mismatch) with severity-weighted scoring (0–100).
+- **Deep package-content scan** — 12 configurable rules, npm integrity
+  verification, safe in-memory TAR parsing, and strict resource/origin limits.
 - **Optional LLM semantic scan** — OpenAI / Gemini / Anthropic backends,
   disabled by default; falls back to environment variables when no API key
   is configured.
@@ -45,7 +46,9 @@ Requires Node.js 20.12+.
 ```bash
 npm-safe check lodash          # check one package
 npm-safe check a b c           # check several at once
+npm-safe check lodash --deep   # verify + inspect the published tarball
 npm-safe ci --lockfile         # gate a project's dependencies
+npm-safe ci --lockfile --deep  # fail closed if a deep scan cannot complete
 npm-safe install axios         # install through the opt-in security gate
 npm-safe doctor                # diagnose the installation
 ```

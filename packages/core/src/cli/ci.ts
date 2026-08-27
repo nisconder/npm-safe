@@ -34,6 +34,7 @@ interface PackageResult {
   readonly level: string;
   readonly score: number;
   readonly findingCount: number;
+  readonly deepScanStatus?: "complete" | "partial" | "failed";
   readonly error?: string;
 }
 
@@ -42,6 +43,7 @@ interface CiReport {
   readonly scannedAt: string;
   readonly dependencyCount: number;
   readonly failLevel: string;
+  readonly deep: boolean;
   readonly failed: boolean;
   readonly summary: Readonly<Record<string, number>>;
   readonly packages: readonly PackageResult[];
@@ -143,9 +145,10 @@ export function registerCiCommand(program: Command): void {
     .option("-j, --json", "Output raw JSON report")
     .option("--prod", "Only scan `dependencies` (skip devDependencies)")
     .option("--lockfile", "Scan every dependency in package-lock.json (including transitive)")
+    .option("--deep", "Download and inspect each published package tarball")
     .option("--fail-level <level>", `Fail when any dependency reaches this level (${LEVEL_ORDER.join(" / ")}, default: dangerous)`)
     .option("--rate-limit <n>", "Registry requests per second (default: 20)")
-    .action(async (options: { dir?: string; json?: boolean; prod?: boolean; lockfile?: boolean; failLevel?: string; rateLimit?: string }) => {
+    .action(async (options: { dir?: string; json?: boolean; prod?: boolean; lockfile?: boolean; deep?: boolean; failLevel?: string; rateLimit?: string }) => {
       const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
       const dir = options.dir ?? process.cwd();
       const failLevel = options.failLevel ?? SecurityLevel.Dangerous;
@@ -178,8 +181,9 @@ export function registerCiCommand(program: Command): void {
           scannedAt: new Date().toISOString(),
           dependencyCount: 0,
           failLevel,
+          deep: options.deep ?? false,
           failed: false,
-          summary: { safe: 0, suspicious: 0, dangerous: 0, unknown: 0, errors: 0 },
+          summary: { safe: 0, suspicious: 0, dangerous: 0, unknown: 0, errors: 0, deepIncomplete: 0 },
           packages: [],
         };
         if (options.json ?? opts.json) {
@@ -198,12 +202,13 @@ export function registerCiCommand(program: Command): void {
         dangerous: 0,
         unknown: 0,
         errors: 0,
+        deepIncomplete: 0,
       };
 
       try {
         for (const dep of deps) {
           try {
-            const result = await engine.checkPackage(dep.name);
+            const result = await engine.checkPackage(dep.name, { deep: options.deep });
             if (!result.exists) {
               results.push({
                 name: dep.name,
@@ -218,6 +223,7 @@ export function registerCiCommand(program: Command): void {
               continue;
             }
             const level = result.security.overallLevel;
+            const deepScanStatus = result.security.staticScan?.contentScan?.status;
             results.push({
               name: dep.name,
               exists: true,
@@ -225,8 +231,10 @@ export function registerCiCommand(program: Command): void {
               level,
               score: result.security.overallScore,
               findingCount: result.security.staticScan?.findings.length ?? 0,
+              deepScanStatus,
             });
             summary[level] = (summary[level] ?? 0) + 1;
+            if (options.deep && deepScanStatus !== "complete") summary.deepIncomplete++;
             await engine.recordCheckHistory(result);
           } catch (err) {
             results.push({
@@ -248,6 +256,7 @@ export function registerCiCommand(program: Command): void {
       const failRank = LEVEL_RANK[failLevel];
       const failed =
         summary.errors > 0 ||
+        summary.deepIncomplete > 0 ||
         results.some(
           (r) => r.exists && LEVEL_RANK[r.level] !== undefined && LEVEL_RANK[r.level] <= failRank,
         );
@@ -276,6 +285,7 @@ export function registerCiCommand(program: Command): void {
         scannedAt: new Date().toISOString(),
         dependencyCount: deps.length,
         failLevel,
+        deep: options.deep ?? false,
         failed,
         summary,
         packages: results,
@@ -292,7 +302,7 @@ export function registerCiCommand(program: Command): void {
             console.log(`  [${r.level}] ${r.name} — ${t("ci.notFound")}`);
           } else {
             console.log(
-              `  [${r.level}] ${r.name}@${r.version} — ${r.score}/100 (${r.findingCount} ${t("ci.findings")})`,
+              `  [${r.level}] ${r.name}@${r.version} — ${r.score}/100 (${r.findingCount} ${t("ci.findings")})${r.deepScanStatus ? ` [${t("ci.deepStatus", { status: r.deepScanStatus })}]` : ""}`,
             );
           }
         }

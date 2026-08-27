@@ -241,11 +241,12 @@ export function registerInstallGateCommands(program: Command): void {
     .action(async (args: string[]) => {
       const opts = program.opts<{ db?: string; proxy?: string }>();
 
-      // --yes / --dry-run / --threshold / --dir / --json are consumed here;
+      // --yes / --dry-run / --threshold / --dir / --json / --deep are consumed here;
       // everything else is passed through to the package manager.
       let yes = false;
       let dryRun = false;
       let json = false;
+      let deep = false;
       let dir: string | undefined;
       let thresholdRaw: string | undefined;
       const passthrough: string[] = [];
@@ -257,6 +258,8 @@ export function registerInstallGateCommands(program: Command): void {
           dryRun = true;
         } else if (arg === "--json") {
           json = true;
+        } else if (arg === "--deep") {
+          deep = true;
         } else if (arg === "--dir") {
           dir = args[++i];
         } else if (arg.startsWith("--dir=")) {
@@ -290,12 +293,12 @@ export function registerInstallGateCommands(program: Command): void {
 
       const config = await readGateConfig(opts.db, opts.proxy);
       if (!config.enabled || packageNames.length === 0) {
-      if (dryRun) {
-        if (!json) {
-          console.log(t("install.dryRun", { command: `${installCommand} ${passthrough.join(" ")}`.trim() }));
+        if (dryRun) {
+          if (!json) {
+            console.log(t("install.dryRun", { command: `${installCommand} ${passthrough.join(" ")}`.trim() }));
+          }
+          return;
         }
-        return;
-      }
         process.exitCode = runPackageManager(pm, pmVerb(pm), passthrough, installDir);
         return;
       }
@@ -307,27 +310,33 @@ export function registerInstallGateCommands(program: Command): void {
         readonly level: string;
         readonly score: number;
         readonly findings: number;
+        readonly deepScanStatus?: "complete" | "partial" | "failed";
         readonly belowThreshold: boolean;
+        readonly requiresConfirmation: boolean;
       }
       const engine = await createEngine(opts.db, opts.proxy);
       const checked: CheckedPackage[] = [];
       try {
         for (const name of packageNames) {
           try {
-            const result = await engine.checkPackage(name);
+            const result = await engine.checkPackage(name, { deep });
             if (!result.exists) {
               console.error(t("install.notFound", { name }));
               process.exitCode = 1;
               return;
             }
             const score = result.security.overallScore;
+            const deepScanStatus = result.security.staticScan?.contentScan?.status;
+            const belowThreshold = score < threshold;
             const entry: CheckedPackage = {
               name,
               version: result.latestVersion,
               level: result.security.overallLevel,
               score,
               findings: result.security.staticScan?.findings.length ?? 0,
-              belowThreshold: score < threshold,
+              deepScanStatus,
+              belowThreshold,
+              requiresConfirmation: belowThreshold || (deep && deepScanStatus !== "complete"),
             };
             checked.push(entry);
             if (!json) {
@@ -361,13 +370,22 @@ export function registerInstallGateCommands(program: Command): void {
         for (const p of below) {
           console.error(`  [${p.level}] ${p.name} — ${p.score}/100`);
         }
-        if (!yes) {
-          const ok = await confirm(t("install.confirm"));
-          if (!ok) {
-            console.log(t("install.aborted"));
-            process.exitCode = 3;
-            return;
-          }
+      }
+      const incomplete = checked.filter(
+        (item) => deep && item.deepScanStatus !== "complete",
+      );
+      if (incomplete.length > 0) {
+        console.error(t("install.deepIncomplete"));
+        for (const item of incomplete) {
+          console.error(`  [${item.deepScanStatus ?? "missing"}] ${item.name}`);
+        }
+      }
+      if (checked.some((item) => item.requiresConfirmation) && !yes) {
+        const ok = await confirm(t("install.confirm"));
+        if (!ok) {
+          console.log(t("install.aborted"));
+          process.exitCode = 3;
+          return;
         }
       }
 
