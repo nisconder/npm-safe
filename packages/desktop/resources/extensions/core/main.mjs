@@ -90,6 +90,7 @@ ws.onerror = (err) => {
 // ---------------------------------------------------------------------------
 
 const SUPPORTED_METHODS = new Set([
+  "assessInstallRisk",
   "checkPackage",
   "searchPackages",
   "getWatchlist",
@@ -176,6 +177,8 @@ function log(message, type = "INFO") {
 
 async function invoke(method, data) {
   switch (method) {
+    case "assessInstallRisk":
+      return await engine.assessInstallRisk(data.input, data.profile ?? "web");
     case "checkPackage": {
       const result = await engine.checkPackage(data.name);
       if (result.exists && result.security) {

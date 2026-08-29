@@ -28,6 +28,14 @@ import { LlmConfigManager } from './llm/llm-config.js';
 import type { LlmConfig, LlmStatus } from './llm/llm-config.js';
 import { analyzePackageTarball, CONTENT_SCAN_RULES } from './scanner/package-content.js';
 import type { PackageContentScanResult } from './scanner/package-content.js';
+import {
+  analyzeDshPluginManifest,
+  getBundlePatchPath,
+  isJsonObject,
+  manifestToRecord,
+  parsePluginSource,
+} from './dsh/plugin-risk.js';
+import type { InstallRiskAssessment } from './dsh/plugin-risk.js';
 
 // ============================================================================
 // Exported types
@@ -357,6 +365,85 @@ export class NpmSafeEngine {
       }
       throw err;
     }
+  }
+
+  /**
+   * Resolve an npm package or public GitHub repository and build a DSH
+   * installation risk card. This never installs the plugin.
+   */
+  async assessInstallRisk(input: string, profile = 'web'): Promise<InstallRiskAssessment> {
+    const source = parsePluginSource(input);
+    const currentDshToolsVersion = await this.getCurrentDshToolsVersion();
+
+    if (source.kind === 'npm') {
+      const packageName = source.packageName!;
+      const meta = await this.client.getPackageMetadata(packageName);
+      const requested = source.requestedVersion ?? 'latest';
+      const version = meta['dist-tags'][requested] ?? requested;
+      const manifest = meta.versions[version];
+      if (!manifest) {
+        throw new Error(`npm 包 ${packageName} 没有版本或标签 ${requested}。`);
+      }
+
+      let content: PackageContentScanResult | undefined;
+      try {
+        const archive = await this.client.downloadTarball(manifest.dist.tarball);
+        content = analyzePackageTarball(archive, {
+          integrity: manifest.dist.integrity ?? manifest.integrity,
+          shasum: manifest.dist.shasum ?? manifest.shasum,
+        });
+      } catch {
+        content = undefined;
+      }
+
+      const manifestRecord = manifestToRecord(manifest);
+      const staticScan = this.analyzer.analyze(
+        meta.readme ?? '',
+        manifestRecord,
+        content?.findings,
+        content?.summary,
+      );
+
+      return analyzeDshPluginManifest({
+        input,
+        sourceKind: 'npm',
+        sourceLabel: 'npm registry',
+        sourceUrl: `https://www.npmjs.com/package/${packageName}/v/${version}`,
+        manifest: manifestRecord,
+        pinnedSpec: `${packageName}@${version}`,
+        profile,
+        availableFiles: content?.filePaths,
+        currentDshToolsVersion,
+        staticScan,
+        integrityVerified: content?.summary.integrityVerified ?? null,
+      });
+    }
+
+    const repository = await resolveGitHubPlugin(
+      source.owner!,
+      source.repository!,
+      source.requestedRef,
+    );
+    const staticScan = this.analyzer.analyze(repository.readme, repository.manifest);
+    const patch = getBundlePatchPath(repository.manifest);
+    const patchFileExists = patch
+      ? repository.files.some((file) => normalizeGitHubPath(file) === normalizeGitHubPath(patch))
+      : undefined;
+
+    return analyzeDshPluginManifest({
+      input,
+      sourceKind: 'github',
+      sourceLabel: 'GitHub commit',
+      sourceUrl: repository.url,
+      manifest: repository.manifest,
+      pinnedSpec: `github:${source.owner}/${source.repository}#${repository.commitSha}`,
+      profile,
+      availableFiles: repository.files,
+      patchFileExists,
+      currentDshToolsVersion,
+      staticScan,
+      integrityVerified: null,
+    });
   }
 
   /**
@@ -766,6 +853,19 @@ export class NpmSafeEngine {
   // Internal helpers
   // --------------------------------------------------------------------------
 
+  /** Resolve the current public dsh-tools version without blocking a report. */
+  private async getCurrentDshToolsVersion(): Promise<string | undefined> {
+    try {
+      const meta = await this.client.getPackageMetadata('@deepseek-ai/dsh-tools');
+      // DSH is distributed as a developer preview. npm's conventional
+      // `latest` tag can lag behind the active preview line, while `next`
+      // tracks the version new Harness installs are expected to resolve.
+      return meta['dist-tags'].next ?? meta['dist-tags'].latest;
+    } catch {
+      return undefined;
+    }
+  }
+
   /**
    * Assemble a {@link CheckResult} from its constituent parts.
    */
@@ -840,6 +940,7 @@ export class NpmSafeEngine {
         truncated: false,
         reason,
       },
+      filePaths: [],
     });
 
     if (!manifest?.dist?.tarball) {
@@ -889,6 +990,148 @@ export class NpmSafeEngine {
 // ============================================================================
 // Helpers
 // ============================================================================
+
+interface GitHubPluginSource {
+  readonly manifest: Readonly<Record<string, unknown>>;
+  readonly readme: string;
+  readonly files: readonly string[];
+  readonly commitSha: string;
+  readonly url: string;
+}
+
+class GitHubSourceError extends Error {
+  constructor(message: string, readonly statusCode?: number) {
+    super(message);
+    this.name = 'GitHubSourceError';
+  }
+}
+
+const GITHUB_API = 'https://api.github.com';
+const GITHUB_JSON_LIMIT = 5 * 1024 * 1024;
+
+async function fetchGitHubJson(pathname: string): Promise<unknown> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const response = await fetch(`${GITHUB_API}${pathname}`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': '@npm-safe/core',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new GitHubSourceError(
+        `GitHub 请求失败: ${response.status} ${response.statusText}`,
+        response.status,
+      );
+    }
+    const declaredLength = Number(response.headers.get('content-length') ?? 0);
+    if (declaredLength > GITHUB_JSON_LIMIT) {
+      throw new GitHubSourceError('GitHub 响应超过 5 MiB 安全上限。');
+    }
+    const body = await response.text();
+    if (Buffer.byteLength(body, 'utf8') > GITHUB_JSON_LIMIT) {
+      throw new GitHubSourceError('GitHub 响应超过 5 MiB 安全上限。');
+    }
+    return JSON.parse(body) as unknown;
+  } catch (error) {
+    if (error instanceof GitHubSourceError) throw error;
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new GitHubSourceError('GitHub 请求在 10 秒后超时。');
+    }
+    throw new GitHubSourceError(
+      error instanceof Error ? `GitHub 请求失败: ${error.message}` : 'GitHub 请求失败。',
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function encodeGitHubPath(filePath: string): string {
+  return normalizeGitHubPath(filePath)
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
+function normalizeGitHubPath(filePath: string): string {
+  return filePath.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\/+/, '');
+}
+
+function decodeGitHubFile(value: unknown, label: string): string {
+  if (!isJsonObject(value) || value.type !== 'file' || value.encoding !== 'base64' || typeof value.content !== 'string') {
+    throw new GitHubSourceError(`${label} 不是可读取的 GitHub 文件。`);
+  }
+  return Buffer.from(value.content.replace(/\s+/g, ''), 'base64').toString('utf8');
+}
+
+async function resolveGitHubPlugin(
+  owner: string,
+  repository: string,
+  requestedRef?: string,
+): Promise<GitHubPluginSource> {
+  const repoPath = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}`;
+  const repo = await fetchGitHubJson(repoPath);
+  if (!isJsonObject(repo) || typeof repo.default_branch !== 'string') {
+    throw new GitHubSourceError('GitHub 仓库信息缺少默认分支。');
+  }
+  const ref = requestedRef || repo.default_branch;
+  const commit = await fetchGitHubJson(`${repoPath}/commits/${encodeURIComponent(ref)}`);
+  if (!isJsonObject(commit) || typeof commit.sha !== 'string' || !/^[a-f0-9]{40}$/i.test(commit.sha)) {
+    throw new GitHubSourceError('无法解析 GitHub commit SHA。');
+  }
+  const sha = commit.sha;
+  const packageFile = await fetchGitHubJson(`${repoPath}/contents/package.json?ref=${encodeURIComponent(sha)}`);
+  let manifest: unknown;
+  try {
+    manifest = JSON.parse(decodeGitHubFile(packageFile, 'package.json')) as unknown;
+  } catch (error) {
+    if (error instanceof GitHubSourceError) throw error;
+    throw new GitHubSourceError('GitHub 仓库根目录的 package.json 不是有效 JSON。');
+  }
+  if (!isJsonObject(manifest)) {
+    throw new GitHubSourceError('GitHub 仓库根目录的 package.json 必须是 JSON 对象。');
+  }
+
+  let readme = '';
+  try {
+    const readmeFile = await fetchGitHubJson(`${repoPath}/readme?ref=${encodeURIComponent(sha)}`);
+    readme = decodeGitHubFile(readmeFile, 'README');
+  } catch (error) {
+    if (!(error instanceof GitHubSourceError) || error.statusCode !== 404) throw error;
+  }
+
+  const treeResponse = await fetchGitHubJson(`${repoPath}/git/trees/${encodeURIComponent(sha)}?recursive=1`);
+  const files: string[] = [];
+  if (isJsonObject(treeResponse) && Array.isArray(treeResponse.tree)) {
+    for (const entry of treeResponse.tree) {
+      if (isJsonObject(entry) && entry.type === 'blob' && typeof entry.path === 'string') {
+        files.push(entry.path);
+      }
+    }
+  }
+
+  const patch = getBundlePatchPath(manifest);
+  if (patch) {
+    const normalizedPatch = normalizeGitHubPath(patch);
+    try {
+      await fetchGitHubJson(`${repoPath}/contents/${encodeGitHubPath(normalizedPatch)}?ref=${encodeURIComponent(sha)}`);
+      if (!files.includes(normalizedPatch)) files.push(normalizedPatch);
+    } catch (error) {
+      if (!(error instanceof GitHubSourceError) || error.statusCode !== 404) throw error;
+    }
+  }
+
+  return {
+    manifest,
+    readme,
+    files,
+    commitSha: sha,
+    url: typeof repo.html_url === 'string' ? repo.html_url : `https://github.com/${owner}/${repository}`,
+  };
+}
 
 /**
  * Normalize a {@link PackageRepository} value to a plain string.
@@ -946,6 +1189,22 @@ export type {
   PackageContentScanOptions,
   PackageContentScanResult,
 } from './scanner/package-content.js';
+export {
+  analyzeDshPluginManifest,
+  getBundlePatchPath,
+  parsePluginSource,
+  peerRangeIncludes,
+} from './dsh/plugin-risk.js';
+export type {
+  DshManifestRiskInput,
+  InstallRiskAssessment,
+  InstallRiskCheck,
+  InstallRiskFinding,
+  InstallRiskLevel,
+  InstallRiskSourceKind,
+  InstallRiskStatus,
+  ParsedPluginSource,
+} from './dsh/plugin-risk.js';
 export type { ContentScanSummary, ScanFinding, StaticScanReport } from './scanner/types.js';
 export { DatabaseManager } from './store/database.js';
 export { CacheManager, DEFAULT_CACHE_TTL_MS, MAX_CHECK_HISTORY } from './store/cache-manager.js';

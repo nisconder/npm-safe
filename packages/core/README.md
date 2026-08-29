@@ -18,6 +18,10 @@ package; see the [threat model](https://github.com/nisconder/npm-safe/blob/main/
   attacks, registry mismatch) with severity-weighted scoring (0–100).
 - **Deep package-content scan** — 12 configurable rules, npm integrity
   verification, safe in-memory TAR parsing, and strict resource/origin limits.
+- **Visual DSH installation preflight** — resolve an npm package or public
+  GitHub repository to an immutable source, check lifecycle scripts, DSH core
+  duplication, bundle patch files, and peer compatibility, then return a
+  red / amber / green card plus a pinned command without installing anything.
 - **Optional LLM semantic scan** — OpenAI / Gemini / Anthropic backends,
   disabled by default; falls back to environment variables when no API key
   is configured.

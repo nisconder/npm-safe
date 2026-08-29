@@ -15,13 +15,14 @@
 
 ---
 
-A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core` engine. It provides a Material You dashboard for checking, searching, watching, and refreshing npm package security assessments, with persistent check history and a custom borderless window. The UI language is Chinese (zh-CN).
+A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core` engine. Its primary workflow is a visual DSH installation preflight: paste an npm package or public GitHub repository, inspect the evidence, then copy an immutable install command. It also provides search, watch, refresh, rules, and history views. The UI language is Chinese (zh-CN).
 
 ## Features
 
 - **Overview dashboard** — average security score shown on a half-circle gauge, a 7-day check histogram, total check count, risk breakdown (safe / suspicious / dangerous / unknown), and a recent-checks list (latest 8).
-- **Check** — enter a package name (press Enter or click 检查) and view its security level, score, and detailed findings.
-- **Search** — keyword search against the npm registry (1-250 results, default 20); click a result to jump straight to Check.
+- **Installation risk** — enter an npm package spec or public GitHub repository and receive a red / amber / green DSH risk card. It checks lifecycle scripts, suspicious dependency sources, duplicated DSH runtime packages, `dsh.bundle.patch`, published patch files, and `@deepseek-ai/dsh-tools` peer compatibility.
+- **Pinned command** — npm inputs resolve to an exact version and GitHub inputs to a commit SHA. The app only copies the command; it never runs an installation.
+- **Search** — keyword search against the npm registry (1-250 results, default 20); click a result to jump straight to Installation risk.
 - **Watch** — add/remove packages from the watchlist and refresh individual or all watched packages.
 - **Rules** — list every registered scan rule with its source and description; toggle each rule on/off and override its severity; reload plugin rules from `~/.npm-safe/rules/`.
 - **LLM** — configure the optional LLM scan: enable/disable switch, provider (OpenAI / Gemini / Anthropic), API key, model, and base URL, plus a test-connection button. The API key is masked in the status display.
@@ -43,28 +44,29 @@ Rendered from the persisted check history:
 - **近7日检查** — a 7-bar mini histogram counting checks per day over the last 7 days.
 - **总检查次数** — total number of recorded checks.
 - **风险分布** — counts per security level (安全 / 可疑 / 危险 / 未知).
-- **最近检查** — the latest 8 checks with level badge and score; clicking an entry jumps to Check and runs it.
+- **最近检查** — the latest 8 checks with level badge and score; clicking an entry opens Installation risk and runs a new preflight.
 
 The dashboard is re-rendered every time you navigate back to the tab.
 
-### 检查 (Check)
+### 安装风险 (Installation risk)
 
-- Enter a package name and click **检查** (or press Enter).
-- The result card shows: package name, latest version, security level (colored badge), score `/100`, number of findings, plus (when available) description, homepage, and repository URL.
-- **Homepage / repository links** — each row has a **复制** button that copies the link to the clipboard, and **Ctrl+click** on the link opens it in the default browser (repository descriptors like `github:user/repo`, `git@…`, or `ssh://…` are normalized to their https URL).
-- Each finding lists its severity (`[CRITICAL]`, `[HIGH]`, etc.), rule id and name, message, recommendation, and code snippet / line number when present.
-- If the package does not exist on the registry, a "未找到" card is shown.
+- Enter an npm package name/spec or a public GitHub repository URL and click **生成风险卡** (or press Enter).
+- The card shows the resolved immutable source, overall risk, safety score, seven evidence rows, and actionable findings.
+- npm sources are resolved to `package@exact-version`; GitHub sources are resolved to `github:owner/repository#commit-sha`.
+- Install lifecycle scripts, shared DSH packages misplaced in `dependencies`, duplicate core packages, missing or unpublished bundle patches, incompatible peer ranges, and suspicious dependency specs are called out separately.
+- **Copy pinned command** copies a reproducible `dsh plugin ... add ...` command. Packages with install lifecycle scripts include `--ignore-scripts` as an additional guardrail.
+- This first version is advisory only: generating or copying the card never installs the package.
 
 ### 搜索 (Search)
 
 - Enter keywords and an optional result count (1-250, default 20), then click **搜索** (or press Enter).
 - Each result shows `name@version`, description, and search score.
-- Clicking a result switches to the Check tab, fills the package name, and runs the check automatically.
+- Clicking a result switches to Installation risk, fills the package name, and runs the preflight automatically.
 
 ### 监控 (Watch)
 
 - Type a package name and click **添加** to add it to the watchlist (the package must exist on the registry).
-- Each list item offers **检查** (jump to Check) and **移除** (remove) actions.
+- Each list item offers **检查** (jump to Installation risk) and **移除** (remove) actions.
 - **刷新全部** refreshes all watched packages at once; the button shows a "处理中..." busy state during the request.
 
 ### 评价体系 (Rules)

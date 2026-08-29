@@ -46,3 +46,4 @@ Thumbs.db
 *.tsbuildinfo
 
 .next/
+.codex-remote-attachments/
