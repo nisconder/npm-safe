@@ -167,6 +167,20 @@ describe("TokenBucket", () => {
   });
 
   describe("waiting behavior", () => {
+    it("references the refill timer only while a consumer is queued", async () => {
+      bucket = new TokenBucket(500, 1);
+      const timer = (bucket as unknown as {
+        intervalId: { hasRef?: () => boolean };
+      }).intervalId;
+
+      assert.strictEqual(timer.hasRef?.(), false);
+      await bucket.consume(1);
+      const pending = bucket.consume(1);
+      assert.strictEqual(timer.hasRef?.(), true);
+      await pending;
+      assert.strictEqual(timer.hasRef?.(), false);
+    });
+
     it("eventually fulfills queued consumer after refill", async () => {
       // Use high rate so the test is deterministic and fast.
       bucket = new TokenBucket(500, 2);

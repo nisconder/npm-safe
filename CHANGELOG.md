@@ -13,6 +13,8 @@ semantic versioning for `@npm-safe/core`.
   relying on shell/Node glob expansion that fails on the Node 20 Linux runner.
 - Keep `undici` on the Node 20-compatible 6.x line so the package's declared
   Node.js 20.12 runtime floor is exercised successfully in CI.
+- Keep the token-bucket refill timer referenced while consumers are queued so
+  Node.js 20 cannot exit with their promises still pending.
 
 ### Security
 

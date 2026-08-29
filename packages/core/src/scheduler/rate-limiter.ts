@@ -57,9 +57,22 @@ export class TokenBucket {
     // from elapsed wall-clock time, so tick frequency only affects latency,
     // not the refill rate.
     this.intervalId = setInterval(() => this.refill(), 100);
-    // Don't keep the Node.js event loop alive solely for this timer.
-    if (typeof this.intervalId === "object" && this.intervalId !== null && "unref" in this.intervalId) {
-      (this.intervalId as { unref: () => void }).unref();
+    // Don't keep the Node.js event loop alive while the bucket is idle.
+    // A queued consumer references the timer again until its promise settles.
+    this.setIntervalReferenced(false);
+  }
+
+  /** Toggle whether the Node.js refill timer keeps the event loop alive. */
+  private setIntervalReferenced(referenced: boolean): void {
+    if (typeof this.intervalId !== "object" || this.intervalId === null) {
+      return;
+    }
+
+    const timer = this.intervalId as { ref?: () => void; unref?: () => void };
+    if (referenced) {
+      timer.ref?.();
+    } else {
+      timer.unref?.();
     }
   }
 
@@ -111,6 +124,10 @@ export class TokenBucket {
       // FIFO fairness: we never skip ahead.
       break;
     }
+
+    if (this.queue.length === 0) {
+      this.setIntervalReferenced(false);
+    }
   }
 
   /**
@@ -146,6 +163,9 @@ export class TokenBucket {
     // Slow path: enqueue and wait for refill to fulfill the request.
     return new Promise<void>((resolve, reject) => {
       this.queue.push({ count, resolve, reject });
+      // Node 20 may otherwise exit while this promise is still pending because
+      // an unreferenced interval is not considered active event-loop work.
+      this.setIntervalReferenced(true);
     });
   }
 
