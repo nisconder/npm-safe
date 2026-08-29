@@ -5,6 +5,8 @@ semantic versioning for `@npm-safe/core`.
 
 ## Unreleased
 
+## 1.1.0 - 2026-08-29
+
 ### Fixed
 
 - Pin the workspace to pnpm 10 and let GitHub Actions resolve that single

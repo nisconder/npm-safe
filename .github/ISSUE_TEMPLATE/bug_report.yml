@@ -12,7 +12,7 @@ body:
     id: version
     attributes:
       label: npm-safe version
-      placeholder: "1.0.5"
+      placeholder: "1.1.0"
     validations:
       required: true
   - type: dropdown
