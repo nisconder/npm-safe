@@ -9,6 +9,8 @@ semantic versioning for `@npm-safe/core`.
 
 - Pin the workspace to pnpm 10 and let GitHub Actions resolve that single
   version source, preserving the advertised Node.js 20.12 CI compatibility.
+- Enumerate TypeScript test files in a cross-platform launcher instead of
+  relying on shell/Node glob expansion that fails on the Node 20 Linux runner.
 
 ### Security
 
