@@ -175,9 +175,10 @@ describe("NpmSafeEngine rule API", () => {
     engine = new NpmSafeEngine({
       dbPath: tmpFile("engine3"),
       rulesConfigPath: path.join(fs.mkdtempSync(path.join(os.tmpdir(), "ec3-")), "rules.json"),
-      rulesDir,
+      rulesDir: path.join(os.tmpdir(), "no-constructor-rules-dir"),
     });
-    await new Promise((r) => setTimeout(r, 50));
+    const loaded = await engine.loadRulePlugins(rulesDir);
+    assert.strictEqual(loaded, 1);
     assert.ok(engine.listRules().some((r) => r.id === "dir-plugin"));
   });
 });
