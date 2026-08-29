@@ -19,13 +19,17 @@ A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core
 
 ## Screenshots
 
-The interface uses three explicit verdicts so users can distinguish “ready to test”, “review first”, and “fix before installing” without interpreting a raw scanner log.
+### DSH installation preflight
 
-![Low, medium, and high DSH installation risk states](../../docs/assets/dsh-risk-states.svg)
+The complete desktop window includes the custom title bar, permanent navigation, npm/GitHub input, three-level legend, and evidence-backed risk card.
 
-The detailed card keeps source pinning, seven evidence checks, findings, and the copy-only command in one inspection sheet.
+![Complete npm-safe desktop installation risk screen](docs/desktop-preflight.png)
 
-![Detailed DSH installation risk card](../../docs/assets/dsh-install-risk-card.svg)
+### Local security overview
+
+The overview turns persisted local scan history into a safety gauge, weekly activity, risk distribution, and recent results.
+
+![Complete npm-safe desktop overview screen](docs/desktop-overview.png)
 
 <sub>Interface previews use illustrative package data. The application never installs a package while generating a card.</sub>
 
