@@ -11,6 +11,8 @@ semantic versioning for `@npm-safe/core`.
   version source, preserving the advertised Node.js 20.12 CI compatibility.
 - Enumerate TypeScript test files in a cross-platform launcher instead of
   relying on shell/Node glob expansion that fails on the Node 20 Linux runner.
+- Keep `undici` on the Node 20-compatible 6.x line so the package's declared
+  Node.js 20.12 runtime floor is exercised successfully in CI.
 
 ### Security
 

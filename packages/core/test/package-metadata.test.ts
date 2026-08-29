@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 interface PackageManifest {
   readonly version?: string;
   readonly engines?: Readonly<Record<string, string>>;
+  readonly dependencies?: Readonly<Record<string, string>>;
   readonly scripts?: Readonly<Record<string, string>>;
   readonly files?: readonly string[];
   readonly bin?: Readonly<Record<string, string>>;
@@ -44,6 +45,11 @@ describe('published package metadata', () => {
 
   it('declares the minimum runtime required by direct dependencies', () => {
     assert.strictEqual(manifest.engines?.node, '>=20.12.0');
+    assert.match(
+      manifest.dependencies?.undici ?? '',
+      /^\^6\./,
+      'undici 7+ requires a newer Node.js runtime than the advertised Node 20.12 floor',
+    );
   });
 
   it('keeps the workspace package manager compatible with the Node 20 CI floor', () => {
