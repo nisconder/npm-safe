@@ -11,6 +11,10 @@ This document describes every public export from `@npm-safe/core` in Phase 1. Si
 - [NpmSafeEngine](#npmsafeengine)
 - [NpmSafeEngineOptions](#npmsafeengineoptions)
 - [CheckResult](#checkresult)
+- [DSH Installation Risk](#dsh-installation-risk)
+  - [InstallRiskAssessment](#installriskassessment)
+  - [InstallRiskCheck](#installriskcheck)
+  - [InstallRiskFinding](#installriskfinding)
 - [Enums](#enums)
   - [SecurityLevel](#securitylevel)
   - [Severity](#severity)
@@ -128,6 +132,31 @@ interface PackageCheckOptions {
 ```
 
 When the package does not exist on the registry (HTTP 404), the returned `CheckResult` has `exists: false` and the `security` / `registryInfo` fields are empty. All other errors (network failure, timeout) are rethrown.
+
+#### assessInstallRisk
+
+```ts
+assessInstallRisk(input: string, profile?: string): Promise<InstallRiskAssessment>
+```
+
+Resolve an npm package spec or public GitHub repository and return the data for
+a red / amber / green DSH installation risk card. npm tags are resolved to an
+exact published version and their tarballs are downloaded, integrity-checked,
+and inspected in memory. GitHub refs are resolved to a commit SHA through the
+public GitHub API.
+
+The assessment checks install lifecycle scripts, suspicious dependency specs,
+DSH core packages bundled in `dependencies`, duplicate core declarations,
+`dsh.bundle.patch`, the presence of the declared patch file, and the
+`@deepseek-ai/dsh-tools` peer range. `safeInstallCommand` always uses the
+resolved immutable source and adds `--ignore-scripts` when install lifecycle
+scripts are present. The method is advisory and never executes the command or
+installs a package. `profile` defaults to `web`.
+
+```ts
+const card = await engine.assessInstallRisk('@scope/dsh-plugin');
+console.log(card.riskLevel, card.safeInstallCommand);
+```
 
 #### checkPackages
 
@@ -388,6 +417,53 @@ testLlmConnection(): Promise<boolean>
 Send a test request to the configured LLM provider. Returns `true` if the provider is enabled, configured, and the test request succeeds. Returns `false` when disabled or unconfigured.
 
 ---
+
+## DSH Installation Risk
+
+### InstallRiskAssessment
+
+```ts
+interface InstallRiskAssessment {
+  readonly input: string;
+  readonly sourceKind: 'npm' | 'github';
+  readonly sourceLabel: string;
+  readonly sourceUrl: string;
+  readonly packageName: string;
+  readonly version: string;
+  readonly pinnedSpec: string;
+  readonly safeInstallCommand: string;
+  readonly riskLevel: 'low' | 'medium' | 'high';
+  readonly safetyScore: number;
+  readonly summary: string;
+  readonly checks: readonly InstallRiskCheck[];
+  readonly findings: readonly InstallRiskFinding[];
+  readonly integrityVerified: boolean | null;
+  readonly inspectedAt: string;
+}
+```
+
+### InstallRiskCheck
+
+```ts
+interface InstallRiskCheck {
+  readonly id: string;
+  readonly label: string;
+  readonly status: 'pass' | 'warning' | 'danger' | 'unknown';
+  readonly detail: string;
+}
+```
+
+### InstallRiskFinding
+
+```ts
+interface InstallRiskFinding {
+  readonly id: string;
+  readonly title: string;
+  readonly detail: string;
+  readonly severity: 'info' | 'warning' | 'danger';
+  readonly recommendation: string;
+}
+```
 
 ## NpmSafeEngineOptions
 

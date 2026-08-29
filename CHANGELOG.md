@@ -5,6 +5,16 @@ semantic versioning for `@npm-safe/core`.
 
 ## Unreleased
 
+### Added
+
+- Add a visual DSH installation preflight to the desktop app for npm package
+  names and public GitHub repositories. It checks lifecycle scripts, shared
+  runtime dependencies, dependency sources, `dsh.bundle.patch`, published
+  patch-file presence, and `@deepseek-ai/dsh-tools` peer compatibility.
+- Generate copyable installation commands pinned to an exact npm version or
+  immutable GitHub commit. Packages with install-time scripts default to
+  `--ignore-scripts`; the risk-card flow never performs installation.
+
 ## 1.1.0 - 2026-08-29
 
 ### Fixed

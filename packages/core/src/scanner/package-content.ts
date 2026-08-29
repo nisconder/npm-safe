@@ -33,6 +33,8 @@ export interface PackageContentScanOptions {
 export interface PackageContentScanResult {
   readonly findings: readonly ScanFinding[];
   readonly summary: ContentScanSummary;
+  /** Safe, normalized archive paths observed during the bounded parse. */
+  readonly filePaths: readonly string[];
 }
 
 /** Public metadata for the rules that only run during an opt-in content scan. */
@@ -206,6 +208,7 @@ function failure(
       truncated: false,
       reason: message,
     },
+    filePaths: [],
   };
 }
 
@@ -254,6 +257,7 @@ export function analyzePackageTarball(
   let partialReason: string | undefined;
   let nextPath: string | undefined;
   let nextLinkPath: string | undefined;
+  const filePaths: string[] = [];
 
   const emit = (finding: ScanFinding): void => {
     if (emitted.has(finding.ruleId)) return;
@@ -341,6 +345,8 @@ export function analyzePackageTarball(
         continue;
       }
       if (entry.type !== '\0' && entry.type !== '0' && entry.type !== '7') continue;
+
+      filePaths.push(entry.path);
 
       unpackedBytes += entry.declaredSize;
       if (unpackedBytes > maxUnpackedBytes) {
@@ -477,6 +483,7 @@ export function analyzePackageTarball(
         truncated,
         reason,
       },
+      filePaths,
     };
   }
 
@@ -503,5 +510,6 @@ export function analyzePackageTarball(
       truncated,
       reason: partialReason,
     },
+    filePaths,
   };
 }

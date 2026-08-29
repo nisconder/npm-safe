@@ -16,7 +16,9 @@
 
 <br>
 
-<img src="docs/assets/social-preview.jpg" alt="npm-safe — Scan before you install" width="100%">
+<img src="docs/assets/dsh-risk-states.svg" alt="npm-safe low, medium, and high DSH plugin installation risk states" width="100%">
+
+<sub>Three DSH installation verdicts at a glance. The desktop app analyzes and generates a pinned command; it does not install from this screen.</sub>
 
 </div>
 
@@ -26,6 +28,12 @@ metadata and README signals; an opt-in deep scan also verifies and inspects
 the shipped tarball for dangerous archive structure, executable content,
 obfuscation, process execution, networking, and sensitive environment access.
 Every run returns an explainable 0–100 security score.
+
+The desktop app turns that evidence into a red/yellow/green installation risk
+card for npm package names and public GitHub plugin repositories. It checks DSH
+bundle declarations, shipped patch files, lifecycle scripts, host-owned core
+dependencies, dependency sources, and peer compatibility, then produces a
+version- or commit-pinned command without running it.
 
 Static analysis and caching run locally with no account or hosted backend.
 Optional LLM analysis is disabled by default and only runs when you configure
@@ -46,7 +54,7 @@ metadata and supply-chain attack signals before or during installation.
 | Check a package before choosing it | `npm-safe check <package>` | Rule findings, explanations, and a security score |
 | Guard a package-manager install | `npm-safe install <package>` | An opt-in confirmation gate below your score threshold |
 | Protect an existing project | `npm-safe ci --lockfile` | Direct and transitive dependency scanning with CI exit codes |
-| Review packages visually | [Desktop app](#desktop-gui) | Dashboard, history, watchlist, rules, and LLM settings |
+| Review DSH plugins visually | [Desktop app](#desktop-gui) | Installation risk card, DSH contract checks, and a pinned command |
 | Give coding agents a safety check | `npm-safe skill install` | A skill for Codex, Claude Code, OpenCode, Gemini CLI, and more |
 
 The scanner is transparent by design: the 10 metadata rules and 12 deep-scan

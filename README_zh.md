@@ -16,7 +16,9 @@
 
 <br>
 
-<img src="docs/assets/social-preview.jpg" alt="npm-safe — 安装之前，先扫描" width="100%">
+<img src="docs/assets/dsh-risk-states.svg" alt="npm-safe 低、中、高三种 DSH 插件安装风险状态" width="100%">
+
+<sub>一眼看懂低、中、高三种 DSH 安装结论。桌面端只分析并生成固定来源命令，不会在此页面执行安装。</sub>
 
 </div>
 
@@ -24,6 +26,11 @@
 桌面端和 AI 编程智能体。默认快速扫描已发布的元数据与 README；可选的
 深度扫描还会校验并检查发布 tarball，识别危险归档结构、可执行内容、代码
 混淆、进程执行、联网行为和敏感环境变量访问，并给出可解释的 0–100 评分。
+
+桌面端会把这些证据转换成红、黄、绿安装风险卡，支持输入 npm 包名或公开
+GitHub 插件仓库。它会检查 DSH bundle 声明、发布的 patch 文件、生命周期脚本、
+宿主核心包重复、依赖来源和 peer 兼容性，并生成固定到版本或 commit 的命令，
+但不会自动执行安装。
 
 静态分析和缓存均在本地运行，无需账号或托管后端。可选的 LLM 分析默认
 关闭，只有在你主动配置提供商后才会运行。
@@ -41,7 +48,7 @@
 | 选用依赖前先检查 | `npm-safe check <package>` | 规则命中、解释和安全评分 |
 | 为包管理器安装加门禁 | `npm-safe install <package>` | 低于评分阈值时触发的可选确认门禁 |
 | 保护现有项目 | `npm-safe ci --lockfile` | 直接与间接依赖扫描，以及适用于 CI 的退出码 |
-| 可视化审查依赖 | [桌面端](#桌面图形界面) | 仪表盘、历史、监控、规则与 LLM 设置 |
+| 可视化审查 DSH 插件 | [桌面端](#桌面图形界面) | 安装风险卡、DSH 契约检查与固定来源命令 |
 | 给 AI 编程智能体增加安全检查 | `npm-safe skill install` | 支持 Codex、Claude Code、OpenCode、Gemini CLI 等 |
 
 扫描逻辑完全透明：10 条元数据规则与 12 条深度扫描规则都有文档且可配置，

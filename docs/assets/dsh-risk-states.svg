@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="560" viewBox="0 0 1440 560" role="img" aria-labelledby="title desc">
+  <title id="title">npm-safe 的低、中、高三种 DSH 安装风险状态</title>
+  <desc id="desc">三张并排的绿色、黄色和红色风险卡，分别展示可安装、需要审查和高风险的 DSH 插件预检结果。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17191d"/><stop offset="1" stop-color="#101315"/></linearGradient>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="145%"><feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000" flood-opacity=".36"/></filter>
+    <style>
+      .sans { font-family: "IBM Plex Sans", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+      .mono { font-family: "IBM Plex Mono", "Cascadia Mono", monospace; }
+      .white { fill: #eef4f1; }
+      .muted { fill: #97a29e; }
+      .line { stroke: #34413c; stroke-width: 1; }
+      .title { font-size: 24px; font-weight: 700; }
+      .small { font-size: 14px; }
+      .check-label { font-size: 16px; font-weight: 600; }
+      .check-detail { font-size: 12px; }
+    </style>
+  </defs>
+  <rect width="1440" height="560" fill="#111318"/>
+  <text x="60" y="47" class="mono muted" font-size="14" letter-spacing="2">DSH INSTALL PREFLIGHT / THREE VERDICTS</text>
+  <text x="1380" y="47" text-anchor="end" class="sans muted" font-size="14">固定来源 · 逐项证据 · 不执行安装</text>
+
+  <!-- LOW -->
+  <g transform="translate(60 72)" filter="url(#shadow)">
+    <rect width="420" height="430" rx="20" fill="url(#bg)" stroke="#34453f" stroke-width="1.5"/>
+    <rect width="8" height="430" rx="4" fill="#5ec99d"/>
+    <text x="34" y="43" class="mono muted small">NPM / 2.3.1</text>
+    <text x="34" y="78" class="mono white title">@acme/dsh-clean</text>
+    <rect x="302" y="24" width="88" height="70" rx="11" fill="#14271f" stroke="#458c70"/>
+    <text x="346" y="47" text-anchor="middle" class="mono" fill="#5ec99d" font-size="11" letter-spacing="2">RISK</text>
+    <text x="346" y="72" text-anchor="middle" class="sans" fill="#5ec99d" font-size="21" font-weight="700">Low</text>
+    <text x="346" y="87" text-anchor="middle" class="sans" fill="#5ec99d" font-size="11">低风险</text>
+    <line x1="8" y1="112" x2="420" y2="112" class="line"/>
+    <text x="34" y="159" class="mono" fill="#5ec99d" font-size="36" font-weight="700">94</text>
+    <text x="82" y="159" class="mono muted small">/100</text>
+    <text x="145" y="157" class="sans white" font-size="16">安装契约完整</text>
+    <g transform="translate(34 192)">
+      <circle cx="13" cy="13" r="12" fill="#14271f" stroke="#458c70"/><path d="M7 13l4 4 8-10" fill="none" stroke="#5ec99d" stroke-width="2"/>
+      <text x="36" y="10" class="sans white check-label">来源已固定</text><text x="36" y="29" class="mono muted check-detail">package@2.3.1 / integrity verified</text>
+    </g>
+    <g transform="translate(34 260)">
+      <circle cx="13" cy="13" r="12" fill="#14271f" stroke="#458c70"/><path d="M7 13l4 4 8-10" fill="none" stroke="#5ec99d" stroke-width="2"/>
+      <text x="36" y="10" class="sans white check-label">无安装脚本</text><text x="36" y="29" class="sans muted check-detail">不会在安装阶段自动执行代码</text>
+    </g>
+    <g transform="translate(34 328)">
+      <circle cx="13" cy="13" r="12" fill="#14271f" stroke="#458c70"/><path d="M7 13l4 4 8-10" fill="none" stroke="#5ec99d" stroke-width="2"/>
+      <text x="36" y="10" class="sans white check-label">Bundle 与 peer 兼容</text><text x="36" y="29" class="mono muted check-detail">patch found / dsh-tools compatible</text>
+    </g>
+    <rect x="34" y="385" width="352" height="28" rx="6" fill="#15251f"/>
+    <text x="210" y="404" text-anchor="middle" class="mono" fill="#5ec99d" font-size="12">READY FOR ISOLATED TEST</text>
+  </g>
+
+  <!-- MEDIUM -->
+  <g transform="translate(510 72)" filter="url(#shadow)">
+    <rect width="420" height="430" rx="20" fill="url(#bg)" stroke="#4b4330" stroke-width="1.5"/>
+    <rect width="8" height="430" rx="4" fill="#efbd57"/>
+    <text x="34" y="43" class="mono muted small">NPM / 0.8.4</text>
+    <text x="34" y="78" class="mono white title">@acme/dsh-workflow</text>
+    <rect x="302" y="24" width="88" height="70" rx="11" fill="#282317" stroke="#8b7138"/>
+    <text x="346" y="47" text-anchor="middle" class="mono" fill="#efbd57" font-size="11" letter-spacing="2">RISK</text>
+    <text x="346" y="72" text-anchor="middle" class="sans" fill="#efbd57" font-size="21" font-weight="700">Medium</text>
+    <text x="346" y="87" text-anchor="middle" class="sans" fill="#efbd57" font-size="11">需审查</text>
+    <line x1="8" y1="112" x2="420" y2="112" class="line"/>
+    <text x="34" y="159" class="mono" fill="#efbd57" font-size="36" font-weight="700">72</text>
+    <text x="82" y="159" class="mono muted small">/100</text>
+    <text x="145" y="157" class="sans white" font-size="16">安装前人工确认</text>
+    <g transform="translate(34 192)">
+      <circle cx="13" cy="13" r="12" fill="#14271f" stroke="#458c70"/><path d="M7 13l4 4 8-10" fill="none" stroke="#5ec99d" stroke-width="2"/>
+      <text x="36" y="10" class="sans white check-label">来源与 patch 正常</text><text x="36" y="29" class="mono muted check-detail">package@0.8.4 / patch found</text>
+    </g>
+    <g transform="translate(34 260)">
+      <circle cx="13" cy="13" r="12" fill="#282317" stroke="#8b7138"/><text x="13" y="18" text-anchor="middle" fill="#efbd57" font-size="17" font-weight="700">!</text>
+      <text x="36" y="10" class="sans white check-label">存在 postinstall</text><text x="36" y="29" class="mono muted check-detail">node scripts/setup.js</text>
+    </g>
+    <g transform="translate(34 328)">
+      <circle cx="13" cy="13" r="12" fill="#282317" stroke="#8b7138"/><text x="13" y="18" text-anchor="middle" fill="#efbd57" font-size="17" font-weight="700">!</text>
+      <text x="36" y="10" class="sans white check-label">先禁用脚本安装</text><text x="36" y="29" class="mono muted check-detail">command adds --ignore-scripts</text>
+    </g>
+    <rect x="34" y="385" width="352" height="28" rx="6" fill="#292317"/>
+    <text x="210" y="404" text-anchor="middle" class="mono" fill="#efbd57" font-size="12">REVIEW BEFORE INSTALL</text>
+  </g>
+
+  <!-- HIGH -->
+  <g transform="translate(960 72)" filter="url(#shadow)">
+    <rect width="420" height="430" rx="20" fill="url(#bg)" stroke="#533236" stroke-width="1.5"/>
+    <rect width="8" height="430" rx="4" fill="#ff6f72"/>
+    <text x="34" y="43" class="mono muted small">GITHUB / MAIN</text>
+    <text x="34" y="78" class="mono white title">owner/broken-plugin</text>
+    <rect x="302" y="24" width="88" height="70" rx="11" fill="#2b191c" stroke="#9f4a50"/>
+    <text x="346" y="47" text-anchor="middle" class="mono" fill="#ff777a" font-size="11" letter-spacing="2">RISK</text>
+    <text x="346" y="72" text-anchor="middle" class="sans" fill="#ff777a" font-size="21" font-weight="700">High</text>
+    <text x="346" y="87" text-anchor="middle" class="sans" fill="#ff777a" font-size="11">高风险</text>
+    <line x1="8" y1="112" x2="420" y2="112" class="line"/>
+    <text x="34" y="159" class="mono" fill="#ff777a" font-size="36" font-weight="700">28</text>
+    <text x="82" y="159" class="mono muted small">/100</text>
+    <text x="145" y="157" class="sans white" font-size="16">不要直接安装</text>
+    <g transform="translate(34 192)">
+      <circle cx="13" cy="13" r="12" fill="#2b191c" stroke="#9f4a50"/><path d="M8 8l10 10m0-10L8 18" fill="none" stroke="#ff777a" stroke-width="2"/>
+      <text x="36" y="10" class="sans white check-label">重复 DSH 核心包</text><text x="36" y="29" class="mono muted check-detail">dsh-tools found in dependencies</text>
+    </g>
+    <g transform="translate(34 260)">
+      <circle cx="13" cy="13" r="12" fill="#2b191c" stroke="#9f4a50"/><path d="M8 8l10 10m0-10L8 18" fill="none" stroke="#ff777a" stroke-width="2"/>
+      <text x="36" y="10" class="sans white check-label">缺少 bundle patch</text><text x="36" y="29" class="mono muted check-detail">dsh.bundle.patch not found</text>
+    </g>
+    <g transform="translate(34 328)">
+      <circle cx="13" cy="13" r="12" fill="#2b191c" stroke="#9f4a50"/><path d="M8 8l10 10m0-10L8 18" fill="none" stroke="#ff777a" stroke-width="2"/>
+      <text x="36" y="10" class="sans white check-label">peer 版本不兼容</text><text x="36" y="29" class="mono muted check-detail">declared rc.6 / current rc.8</text>
+    </g>
+    <rect x="34" y="385" width="352" height="28" rx="6" fill="#2b191c"/>
+    <text x="210" y="404" text-anchor="middle" class="mono" fill="#ff777a" font-size="12">FIX CONTRACT FIRST</text>
+  </g>
+</svg>

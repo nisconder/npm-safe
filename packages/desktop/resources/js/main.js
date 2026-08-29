@@ -86,6 +86,7 @@ async function checkForUpdates() {
 
 function registerEngineEvents() {
   const events = [
+    "assessInstallRisk",
     "checkPackage",
     "searchPackages",
     "getWatchlist",
@@ -154,7 +155,7 @@ function setBusy(btn, busy) {
 
 const TAB_TITLES = {
   overview: "总览",
-  check: "检查",
+  check: "安装风险",
   search: "搜索",
   watch: "监控",
   rules: "评价体系",
@@ -290,84 +291,134 @@ function initTitleBar() {
 // Check
 // ---------------------------------------------------------------------------
 
-function renderCheckResult(result) {
+const RISK_LABELS = {
+  low: { en: "Low", zh: "低风险" },
+  medium: { en: "Medium", zh: "需审查" },
+  high: { en: "High", zh: "高风险" },
+};
+
+const CHECK_STATUS = {
+  pass: { icon: "✓", label: "通过" },
+  warning: { icon: "!", label: "注意" },
+  danger: { icon: "×", label: "失败" },
+  unknown: { icon: "?", label: "未知" },
+};
+
+function renderInstallRisk(result) {
   const area = document.getElementById("check-result");
-  if (!result.exists) {
-    area.innerHTML = `<div class="card"><div class="card-title">未找到</div>包 "${escapeHtml(result.packageName)}" 不存在于 npm 注册表。</div>`;
-    return;
-  }
-
-  const report = result.security.staticScan;
-  const findings = report?.findings ?? [];
-
-  const rows = [
-    ["包名", escapeHtml(result.packageName)],
-    ["最新版本", escapeHtml(result.latestVersion)],
-    ["安全等级", `<span class="badge ${escapeAttr(result.security.overallLevel)}">${escapeHtml(result.security.overallLevel)}</span>`],
-    ["分数", `${escapeHtml(String(result.security.overallScore))}/100`],
-    ["发现项数量", String(findings.length)],
-  ];
-
-  if (result.registryInfo?.description) rows.push(["描述", escapeHtml(result.registryInfo.description)]);
-
-  const links = [];
-  if (result.registryInfo?.homepage) links.push({ label: "主页", value: result.registryInfo.homepage });
-  if (result.registryInfo?.repository) links.push({ label: "仓库", value: result.registryInfo.repository });
-
-  let html = `<div class="card"><div class="card-title">${escapeHtml(result.packageName)} 检查结果</div>`;
-  for (const [k, v] of rows) {
-    html += `<div class="card-row"><span>${k}</span><span class="value">${v}</span></div>`;
-  }
-  for (const link of links) {
-    const openable = toOpenableUrl(link.value);
-    const copyTarget = openable || link.value;
-    html += `
-      <div class="card-row link-row">
-        <span>${escapeHtml(link.label)}</span>
-        <span class="value link-value" data-url="${escapeAttr(copyTarget)}" title="Ctrl+点击在浏览器中打开">${escapeHtml(link.value)}</span>
-        <button class="copy-link-btn" data-copy="${escapeAttr(copyTarget)}" title="复制链接">复制</button>
-      </div>`;
-  }
-
-  if (findings.length > 0) {
-    html += `<div class="card-title" style="margin-top:12px">发现项</div>`;
-    for (const f of findings) {
-      const sev = f.severity;
-      html += `
-        <div class="finding ${escapeAttr(sev)}">
-          <div class="finding-header">[${escapeHtml(sev.toUpperCase())}] ${escapeHtml(f.ruleId)} — ${escapeHtml(f.ruleName)}</div>
-          <div class="finding-message">${escapeHtml(f.message)}</div>
-          ${f.recommendation ? `<div class="finding-meta">建议: ${escapeHtml(f.recommendation)}</div>` : ""}
-          ${f.codeSnippet ? `<div class="finding-meta">片段: ${escapeHtml(f.codeSnippet)}</div>` : ""}
-          ${f.lineNumber ? `<div class="finding-meta">行号: ${escapeHtml(String(f.lineNumber))}</div>` : ""}
-        </div>`;
-    }
-  }
-
-  html += "</div>";
-  area.innerHTML = html;
-
-  area.querySelectorAll("[data-url]").forEach((el) => {
-    el.addEventListener("click", (e) => {
-      if (e.ctrlKey && el.dataset.url) {
-        Neutralino.os.open(el.dataset.url);
-      }
-    });
+  const risk = RISK_LABELS[result.riskLevel] ?? RISK_LABELS.medium;
+  const checks = result.checks ?? [];
+  const findings = result.findings ?? [];
+  const checkedAt = new Date(result.inspectedAt).toLocaleString("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
-  area.querySelectorAll("[data-copy]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      try {
-        await Neutralino.clipboard.writeText(btn.dataset.copy);
-        btn.textContent = "已复制";
-        setTimeout(() => {
-          btn.textContent = "复制";
-        }, 1500);
-        setStatus("链接已复制到剪贴板", "success");
-      } catch (err) {
-        setStatus(err.message ?? "复制失败", "error");
-      }
-    });
+  const checksHtml = checks.map((check) => {
+    const status = CHECK_STATUS[check.status] ?? CHECK_STATUS.unknown;
+    return `
+      <div class="risk-check ${escapeAttr(check.status)}">
+        <span class="risk-check-icon" aria-hidden="true">${status.icon}</span>
+        <div class="risk-check-copy">
+          <div class="risk-check-label">${escapeHtml(check.label)}</div>
+          <div class="risk-check-detail">${escapeHtml(check.detail)}</div>
+        </div>
+        <span class="risk-check-status">${status.label}</span>
+      </div>`;
+  }).join("");
+
+  const findingsHtml = findings.length > 0
+    ? findings.map((finding) => `
+        <article class="risk-finding ${escapeAttr(finding.severity)}">
+          <div class="risk-finding-marker" aria-hidden="true"></div>
+          <div>
+            <div class="risk-finding-title">${escapeHtml(finding.title)}</div>
+            <p>${escapeHtml(finding.detail)}</p>
+            <div class="risk-finding-action">建议 · ${escapeHtml(finding.recommendation)}</div>
+          </div>
+        </article>`).join("")
+    : `<div class="risk-clear"><span>✓</span>没有需要展开的风险项。</div>`;
+
+  area.innerHTML = `
+    <article class="install-risk-card risk-${escapeAttr(result.riskLevel)}">
+      <div class="risk-card-rail" aria-hidden="true"></div>
+      <header class="risk-card-header">
+        <div>
+          <div class="risk-source-line">
+            <span class="source-stamp">${escapeHtml(result.sourceKind.toUpperCase())}</span>
+            <span>${escapeHtml(result.sourceLabel)}</span>
+            <span class="source-divider">/</span>
+            <button class="source-link" data-open-source="${escapeAttr(result.sourceUrl)}">查看来源</button>
+          </div>
+          <h3>${escapeHtml(result.packageName)}</h3>
+          <div class="risk-version">${escapeHtml(result.version)}</div>
+        </div>
+        <div class="risk-verdict">
+          <span class="risk-verdict-label">RISK</span>
+          <strong>${escapeHtml(risk.en)}</strong>
+          <span>${escapeHtml(risk.zh)}</span>
+        </div>
+      </header>
+
+      <div class="risk-summary-row">
+        <div class="risk-score-block">
+          <span class="risk-score">${escapeHtml(String(result.safetyScore))}</span>
+          <span class="risk-score-denominator">/100</span>
+          <span class="risk-score-label">安全分</span>
+        </div>
+        <p>${escapeHtml(result.summary)}</p>
+      </div>
+
+      <section class="risk-section">
+        <div class="risk-section-heading">
+          <span>DSH 安装契约</span>
+          <small>${checks.length} 项证据</small>
+        </div>
+        <div class="risk-check-grid">${checksHtml}</div>
+      </section>
+
+      <section class="risk-section">
+        <div class="risk-section-heading">
+          <span>需要处理</span>
+          <small>${findings.length} 项</small>
+        </div>
+        <div class="risk-findings">${findingsHtml}</div>
+      </section>
+
+      <section class="safe-command-panel">
+        <div class="command-label">
+          <span>固定来源安装命令</span>
+          <small>仅复制，不执行</small>
+        </div>
+        <div class="command-row">
+          <code>${escapeHtml(result.safeInstallCommand)}</code>
+          <button class="copy-command-btn" data-copy-command="${escapeAttr(result.safeInstallCommand)}">复制安全命令</button>
+        </div>
+      </section>
+
+      <footer class="risk-card-footer">
+        <span>扫描于 ${escapeHtml(checkedAt)}</span>
+        <span>${result.integrityVerified === true ? "npm 完整性已验证" : result.sourceKind === "github" ? "已固定 commit" : "发布内容未完成完整性验证"}</span>
+      </footer>
+    </article>`;
+
+  area.querySelector("[data-copy-command]")?.addEventListener("click", async (event) => {
+    const button = event.currentTarget;
+    try {
+      await Neutralino.clipboard.writeText(button.dataset.copyCommand);
+      button.textContent = "已复制";
+      setTimeout(() => { button.textContent = "复制安全命令"; }, 1600);
+      setStatus("固定来源安装命令已复制；npm-safe 没有执行安装", "success");
+    } catch (err) {
+      setStatus(err.message ?? "复制失败", "error");
+    }
+  });
+
+  area.querySelector("[data-open-source]")?.addEventListener("click", (event) => {
+    const url = event.currentTarget.dataset.openSource;
+    if (url) Neutralino.os.open(url);
   });
 }
 
@@ -409,19 +460,35 @@ function toOpenableUrl(text) {
 }
 
 async function handleCheck() {
-  const name = document.getElementById("check-name").value.trim();
-  if (!name) return;
+  const input = document.getElementById("check-name").value.trim();
+  if (!input) {
+    setStatus("请输入 npm 包名或 GitHub 插件地址", "error");
+    document.getElementById("check-name").focus();
+    return;
+  }
 
   const btn = document.getElementById("check-btn");
   setBusy(btn, true);
-  setStatus(`正在检查 ${name} ...`);
+  setStatus(`正在生成安装风险卡: ${input} ...`);
+  document.getElementById("check-result").innerHTML = `
+    <div class="preflight-loading">
+      <span class="loading-pulse" aria-hidden="true"></span>
+      <div><strong>正在核对发布内容</strong><p>解析来源、检查 package.json、验证 bundle patch 与固定版本。</p></div>
+    </div>`;
   try {
-    const result = await callEngine("checkPackage", { name });
-    renderCheckResult(result);
-    setStatus(`检查完成: ${name}`, "success");
+    const result = await callEngine("assessInstallRisk", { input, profile: "web" });
+    renderInstallRisk(result);
+    const historyLevel = result.riskLevel === "low" ? "safe" : result.riskLevel === "medium" ? "suspicious" : "dangerous";
+    await callEngine("addHistory", {
+      packageName: result.packageName,
+      level: historyLevel,
+      score: result.safetyScore,
+      timestamp: result.inspectedAt,
+    });
+    setStatus(`风险卡已生成: ${result.packageName}@${result.version}`, "success");
   } catch (err) {
     document.getElementById("check-result").innerHTML =
-      `<div class="card"><div class="card-title" style="color:var(--md-error)">检查失败</div>${escapeHtml(err.message)}</div>`;
+      `<div class="preflight-error"><strong>无法生成风险卡</strong><p>${escapeHtml(err.message)}</p><span>请确认包名、公开仓库地址和网络连接后重试。</span></div>`;
     setStatus(err.message, "error");
   } finally {
     setBusy(btn, false);
@@ -987,6 +1054,12 @@ Neutralino.events.on("windowClose", () => {
   document.getElementById("check-btn").addEventListener("click", handleCheck);
   document.getElementById("check-name").addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleCheck();
+  });
+  document.querySelectorAll("[data-example]").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      document.getElementById("check-name").value = chip.dataset.example;
+      handleCheck();
+    });
   });
   document.getElementById("search-btn").addEventListener("click", handleSearch);
   document.getElementById("search-query").addEventListener("keydown", (e) => {
