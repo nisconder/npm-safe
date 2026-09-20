@@ -48,11 +48,11 @@
     "provenance": true
   },
   "dependencies": {
-    "@clack/prompts": "^1.7.0",
-    "better-sqlite3": "^12.11.1",
+    "@clack/prompts": "^1.8.1",
+    "better-sqlite3": "^13.0.3",
     "commander": "^15.0.0",
-    "type-fest": "^4.0.0",
-    "undici": "^6.28.0"
+    "type-fest": "^5.10.0",
+    "undici": "^8.10.2"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.0",
