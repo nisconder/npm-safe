@@ -12,12 +12,6 @@ import {
   readGateConfig,
 } from "./install-gate.js";
 
-interface CheckResult {
-  readonly ok: boolean;
-  readonly label: string;
-  readonly fix?: string;
-}
-
 /**
  * Run a diagnostic check, print the result, and count problems.
  */
@@ -39,8 +33,22 @@ export function registerDoctorCommand(program: Command): void {
     .command("doctor")
     .description("Diagnose the npm-safe installation and install-gate setup")
     .action(async () => {
+      const opts = program.opts<{ db?: string; proxy?: string }>();
       const problems: string[] = [];
-      const pathParts = (process.env.PATH ?? "").split(path.delimiter).map((p) => path.resolve(p));
+      const normalizePath = (value: string): string => {
+        let resolved = path.resolve(value.replace(/^"(.*)"$/, "$1"));
+        try {
+          // `where` expands Windows short paths, and PATH may contain links.
+          resolved = fs.realpathSync.native(resolved);
+        } catch {
+          // Missing PATH entries can still be reported using their spelling.
+        }
+        return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+      };
+      const pathParts = (process.env.PATH ?? "")
+        .split(path.delimiter)
+        .filter((p) => p.length > 0)
+        .map(normalizePath);
 
       console.log("npm-safe doctor");
       console.log(`  CLI: npm-safe (Node ${process.version})`);
@@ -48,24 +56,37 @@ export function registerDoctorCommand(program: Command): void {
       // 1. npm global bin directory reachable from PATH.
       const globalBin = getNpmGlobalBin();
       const globalBinInPath =
-        globalBin !== null && pathParts.includes(path.resolve(globalBin));
+        globalBin !== null && pathParts.includes(normalizePath(globalBin));
       runCheck(
         globalBinInPath,
         `npm global bin in PATH: ${globalBin ?? "(not detected)"}`,
         globalBin
-          ? `Run: setx PATH "${globalBin};%PATH%" (then reopen the terminal)`
+          ? `Add ${globalBin} to PATH, then reopen the terminal`
           : "Cannot locate the npm global bin directory",
         problems,
       );
 
       // 2. Install gate switch.
-      const config = await readGateConfig();
-      runCheck(
-        config.enabled,
-        `Install gate: ${config.enabled ? "enabled" : "disabled"} (threshold ${config.threshold})`,
-        "Run: npm-safe gate enable",
-        problems,
-      );
+      let dbPath = opts.db;
+      try {
+        dbPath ??= getDefaultDbPath();
+        const config = await readGateConfig(dbPath, opts.proxy);
+        runCheck(
+          config.enabled,
+          `Install gate: ${config.enabled ? "enabled" : "disabled"} (threshold ${config.threshold})`,
+          opts.db
+            ? "Run: npm-safe gate enable (use the same --db option)"
+            : "Run: npm-safe gate enable",
+          problems,
+        );
+      } catch (err) {
+        runCheck(
+          false,
+          `Install gate configuration could not be read: ${dbPath ?? "(default database)"}`,
+          err instanceof Error ? err.message : String(err),
+          problems,
+        );
+      }
 
       // 3. Shell wrappers / PATH shims.
       if (process.platform === "win32") {
@@ -80,11 +101,11 @@ export function registerDoctorCommand(program: Command): void {
           problems,
         );
         if (shimsExist) {
-          const shimIndex = pathParts.indexOf(path.resolve(shimDir));
+          const shimIndex = pathParts.indexOf(normalizePath(shimDir));
           runCheck(
             shimIndex >= 0,
             "Shim directory present in PATH",
-            `Run: setx PATH "${shimDir};%PATH%" (then reopen the terminal)`,
+            `Add ${shimDir} to PATH, then reopen the terminal`,
             problems,
           );
           if (shimIndex >= 0) {
@@ -96,18 +117,18 @@ export function registerDoctorCommand(program: Command): void {
               first =
                 execFileSync("where", ["npm.cmd"], { encoding: "utf8" })
                   .split(/\r?\n/)
-                  .find((l) => l.trim().length > 0) ?? "";
+                  .find((l) => l.trim().length > 0)?.trim() ?? "";
             } catch {
               first = "";
             }
             const shimFile = path.join(shimDir, "npm.cmd");
             const intercepted =
               first.length > 0 &&
-              path.resolve(first).toLowerCase() === shimFile.toLowerCase();
+              normalizePath(first) === normalizePath(shimFile);
             runCheck(
               intercepted,
               "npm resolves to the gate shim first (gate intercepts)",
-              `Move the shim directory ahead of the real npm in PATH: setx PATH "${shimDir};%PATH%" (note: setx does not refresh running processes — log off/on or restart explorer.exe, then open a NEW terminal)`,
+              `Add ${shimDir} as an unquoted PATH entry ahead of the real npm, then reopen the terminal`,
               problems,
             );
           }
@@ -124,15 +145,28 @@ export function registerDoctorCommand(program: Command): void {
       }
 
       // 4. Shared database is writable.
-      const dbPath = getDefaultDbPath();
       try {
+        dbPath ??= getDefaultDbPath();
         const dbm = new DatabaseManager(dbPath);
-        dbm.close();
+        try {
+          // Opening an existing database does not prove it accepts writes.
+          // Roll back the probe so diagnostics never change saved settings.
+          const db = dbm.getDb();
+          db.exec("SAVEPOINT npm_safe_doctor");
+          try {
+            db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)")
+              .run("__npm_safe_doctor__", "write-test");
+          } finally {
+            db.exec("ROLLBACK TO npm_safe_doctor; RELEASE npm_safe_doctor");
+          }
+        } finally {
+          dbm.close();
+        }
         runCheck(true, `Database writable: ${dbPath}`, undefined, problems);
       } catch (err) {
         runCheck(
           false,
-          `Database not writable: ${dbPath}`,
+          `Database not writable: ${dbPath ?? "(default database)"}`,
           `Check permissions: ${err instanceof Error ? err.message : String(err)}`,
           problems,
         );
@@ -156,7 +190,7 @@ function getNpmGlobalBin(): string | null {
   }
   try {
     const out = execFileSync("npm", ["prefix", "-g"], { encoding: "utf8" }).trim();
-    return out || null;
+    return out ? path.join(out, "bin") : null;
   } catch {
     return null;
   }

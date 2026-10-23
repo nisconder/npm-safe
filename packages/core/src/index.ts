@@ -11,6 +11,7 @@
 import { DatabaseManager } from './store/database.js';
 import { CacheManager } from './store/cache-manager.js';
 import { NpmRegistryClient } from './registry/client.js';
+import { resolvePackageVersion } from './registry/package-version.js';
 import { NpmRegistryError } from './registry/types.js';
 import type { AbbreviatedVersion, PackageMetadata, PackageRepository, SearchResult } from './registry/types.js';
 import { TokenBucket } from './scheduler/rate-limiter.js';
@@ -114,7 +115,7 @@ export interface CheckResult {
   /** Whether the package exists on the registry. */
   readonly exists: boolean;
 
-  /** The latest available version, or an empty string when `exists` is `false`. */
+  /** The selected version (latest by default), or empty when `exists` is false. */
   readonly latestVersion: string;
 
   /** Security assessment of the package. */
@@ -151,6 +152,8 @@ export interface CheckResult {
 
 /** Options for a single package check. */
 export interface PackageCheckOptions {
+  /** Exact published version, distribution tag, or semver range (default: latest). */
+  readonly version?: string;
   /** Download and inspect the published tarball in addition to metadata. */
   readonly deep?: boolean;
 }
@@ -290,8 +293,16 @@ export class NpmSafeEngine {
   ): Promise<CheckResult> {
     // 1. Try the cache first.
     const cached = await this.cache.getPackage(name);
+    let cachedVersion: string | undefined;
     if (cached !== null) {
-      const latestVersion = cached['dist-tags'].latest;
+      try {
+        cachedVersion = resolvePackageVersion(cached, options.version);
+      } catch {
+        // A version or tag may have been published since this metadata was cached.
+      }
+    }
+    if (cached !== null && cachedVersion !== undefined) {
+      const latestVersion = cachedVersion;
       let staticScan = await this.cache.getSecurityReport(
         name,
         latestVersion,
@@ -323,7 +334,7 @@ export class NpmSafeEngine {
     // 2. Cache miss or stale — fetch from the registry.
     try {
       const meta = await this.client.getPackageMetadata(name);
-      const latestVersion = meta['dist-tags'].latest;
+      const latestVersion = resolvePackageVersion(meta, options.version);
 
       // Persist the fresh metadata before running analysis so the cache is
       // updated even if analysis fails downstream.

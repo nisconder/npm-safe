@@ -303,12 +303,13 @@
                 </label>
               </div>
               <div class="text-field outlined gate-threshold-field">
-                <input id="gate-threshold" type="number" min="0" max="100" placeholder=" " />
+                <input id="gate-threshold" type="number" min="0" max="100" step="1" placeholder=" " />
                 <label for="gate-threshold">安全阈值（0-100，默认 85）</label>
               </div>
               <div class="form-actions">
                 <button id="gate-save-btn" class="btn filled" data-original-text="保存">保存</button>
               </div>
+              <p class="field-hint">首次使用请运行 <code>npm-safe gate shell</code> 并重启终端，让 npm、pnpm、yarn 命令进入门禁。可用 <code>npm-safe doctor</code> 检查配置。</p>
             </div>
           </section>
         </main>

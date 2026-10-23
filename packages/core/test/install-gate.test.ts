@@ -1,15 +1,35 @@
 ﻿import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { CacheManager } from "../src/store/cache-manager.js";
+import { DatabaseManager } from "../src/store/database.js";
+import { SecurityLevel } from "../src/scanner/types.js";
 
 const CLI_TS = path.resolve("src/cli/cli.ts");
 const PACKAGE_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 function runCli(args: string[], homeDir: string, input?: string): { stdout: string; stderr: string; status: number | null } {
+  // Stable local reports make gate decisions independent of live registry scores.
+  const databaseIndex = args.indexOf("--db");
+  const dbPath = databaseIndex < 0 ? path.join(homeDir, ".npm-safe", "npm-safe.db") : args[databaseIndex + 1];
+  mkdirSync(path.dirname(dbPath), { recursive: true });
+  const database = new DatabaseManager(dbPath);
+  const cache = new CacheManager(database);
+  for (const [name, score] of [["lodash", 97], ["express", 97], ["axios", 74]] as const) {
+    const version = "1.0.0";
+    void cache.setPackage({ name, modified: new Date().toISOString(), "dist-tags": { latest: version }, versions: {
+      [version]: { name, version, dist: { tarball: `https://registry.npmjs.org/${name}/-/${name}-${version}.tgz` } },
+    } });
+    void cache.setSecurityReport({ packageName: name, version, score,
+      overallLevel: score >= 80 ? SecurityLevel.Safe : SecurityLevel.Suspicious,
+      findings: [], scannedAt: new Date().toISOString(),
+    });
+  }
+  database.close();
   const result = spawnSync(
     "node",
     ["--import", "tsx", CLI_TS, ...args],
@@ -106,7 +126,7 @@ describe("CLI gate", () => {
       const content = readFileSync(rc, "utf8");
       assert.ok(content.includes("# >>> npm-safe gate >>>"));
       assert.ok(content.includes("pnpm()"));
-      assert.ok(content.includes("npm-safe install"));
+      assert.ok(content.includes("runGateShim"));
 
       // Idempotent: a second run must not duplicate the block.
       const second = runCli(["gate", "shell", "--file", rc], home);
@@ -131,7 +151,7 @@ describe("CLI gate", () => {
       assert.ok(stdout.includes(ps1));
       const content = readFileSync(ps1, "utf8");
       assert.ok(content.includes("function pnpm"));
-      assert.ok(content.includes("Get-Command pnpm.cmd"));
+      assert.ok(content.includes("runGateShim"));
     } finally {
       rmSync(home, { recursive: true, force: true });
     }
@@ -151,18 +171,10 @@ describe("CLI gate", () => {
           const file = path.join(shimDir, `${pm}.cmd`);
           assert.ok(existsSync(file), `${file} should exist`);
           const content = readFileSync(file, "utf8");
-          assert.ok(content.includes(`NPMSAFE_REAL_${pm.toUpperCase()}`));
-          assert.ok(content.includes("npm-safe install"));
-          // Only install/add/i are gated; everything else is forwarded.
-          assert.ok(content.includes('if /i "%~1"=="install" goto :gated'));
-          assert.ok(content.includes('if /i "%~1"=="add" goto :gated'));
-          assert.ok(content.includes('if /i "%~1"=="i" goto :gated'));
-          // The consumed subcommand is stripped before calling npm-safe install.
-          assert.ok(content.includes('set "ARGS=%ORIG:* =%"'));
-          // Bare `npm install` (no package args) short-circuits straight to the
-          // real package manager instead of feeding the verb back to npm-safe.
-          assert.ok(content.includes('if "%ARGS%"=="%ORIG%"'));
-          assert.ok(content.includes('"%FOUND%" %*\n  exit /b %errorlevel%'));
+          assert.ok(content.includes(`gate-shim.mjs" ${pm} %*`));
+          assert.ok(content.includes("DisableDelayedExpansion"));
+          assert.ok(content.includes("exit /b %errorlevel%"));
+          assert.ok(existsSync(path.join(shimDir, "gate-shim.mjs")));
         }
       } finally {
         rmSync(home, { recursive: true, force: true });
@@ -197,8 +209,8 @@ describe("CLI install gate flow", () => {
     const db = path.join(home, "g.db");
     try {
       runCli(["--db", db, "gate", "enable", "--no-shell"], home);
-      const { status, stdout } = runCli(["--db", db, "install", "lodash", "--dry-run", "--threshold", "85"], home);
-      assert.strictEqual(status, 0);
+      const { status, stdout, stderr } = runCli(["--db", db, "install", "lodash", "--dry-run", "--threshold", "85"], home);
+      assert.strictEqual(status, 0, stderr);
       // Safe packages still print the full check result (level, version, score, findings).
       assert.ok(stdout.includes("[safe] lodash@"));
       assert.ok(stdout.includes("/100"));

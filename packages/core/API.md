@@ -127,6 +127,7 @@ first deep check, then the content summary is reused.
 
 ```ts
 interface PackageCheckOptions {
+  readonly version?: string; // exact version, dist-tag, or semver range; default latest
   readonly deep?: boolean; // default false
 }
 ```

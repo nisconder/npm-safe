@@ -1,12 +1,17 @@
 ﻿import { Command } from "commander";
-import { spawnSync, execFileSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import readline from "node:readline/promises";
 
 import { createEngine } from "./shared.js";
 import { t } from "./i18n.js";
+import { parseInstallArguments, parseRegistryTarget } from "./install-arguments.js";
+import {
+  runPackageManagerProcess, shimDirectory, windowsShimContent,
+  shimHelperContent, bashWrapperBlock, powershellWrapperBlock,
+} from "./install-gate-shell.js";
+import { assertPublicInstallRegistry } from "./install-registry.js";
 
 const GATE_ENABLED_KEY = "installGate.enabled";
 const GATE_THRESHOLD_KEY = "installGate.threshold";
@@ -22,8 +27,8 @@ export async function readGateConfig(db?: string, proxy?: string): Promise<GateC
   try {
     const enabled = (await engine.getSetting(GATE_ENABLED_KEY)) === "true";
     const thresholdRaw = await engine.getSetting(GATE_THRESHOLD_KEY);
-    const threshold = thresholdRaw ? parseInt(thresholdRaw, 10) : DEFAULT_THRESHOLD;
-    return { enabled, threshold: Number.isNaN(threshold) ? DEFAULT_THRESHOLD : threshold };
+    const threshold = thresholdRaw && /^\d+$/.test(thresholdRaw) ? Number(thresholdRaw) : NaN;
+    return { enabled, threshold: Number.isInteger(threshold) && threshold >= 0 && threshold <= 100 ? threshold : DEFAULT_THRESHOLD };
   } finally {
     engine.close();
   }
@@ -49,10 +54,13 @@ async function writeGateConfig(
 
 /** Ask the user to confirm, returning `true` when they do. */
 async function confirm(message: string): Promise<boolean> {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
   try {
-    const answer = (await rl.question(`${message} [y/n] `)).trim().toLowerCase();
+    const closed = new Promise<string>((resolve) => rl.once("close", () => resolve("")));
+    const answer = (await Promise.race([rl.question(`${message} [y/n] `), closed])).trim().toLowerCase();
     return answer === "y" || answer === "yes";
+  } catch {
+    return false;
   } finally {
     rl.close();
   }
@@ -93,9 +101,10 @@ export function registerInstallGateCommands(program: Command): void {
       if (options.shell !== false) {
         try {
           installShims();
-          console.log(t("gate.shell.shimsInstalled", { path: getShimDir() }));
+          if (process.platform === "win32") console.log(t("gate.shell.shimsInstalled", { path: getShimDir() }));
         } catch (err) {
           console.error(t("gate.shell.installFailed", { message: err instanceof Error ? err.message : String(err) }));
+          process.exitCode = 1;
         }
         const target = options.shellFile ?? detectShellConfig();
         if (target) {
@@ -111,6 +120,7 @@ export function registerInstallGateCommands(program: Command): void {
             console.log(t("gate.enableHint"));
           } catch (err) {
             console.error(t("gate.shell.installFailed", { message: err instanceof Error ? err.message : String(err) }));
+            process.exitCode = 1;
           }
         } else {
           console.log(t("gate.shell.noConfig"));
@@ -131,8 +141,8 @@ export function registerInstallGateCommands(program: Command): void {
     .command("set-threshold <n>")
     .description("Set the minimum score required to install without confirmation (0-100)")
     .action(async (threshold: string) => {
-      const value = parseInt(threshold, 10);
-      if (Number.isNaN(value) || value < 0 || value > 100) {
+      const value = /^\d+$/.test(threshold) ? Number(threshold) : NaN;
+      if (!Number.isInteger(value) || value < 0 || value > 100) {
         console.error(t("gate.invalidThreshold", { value: threshold }));
         process.exitCode = 1;
         return;
@@ -156,17 +166,25 @@ export function registerInstallGateCommands(program: Command): void {
           return;
         }
         try {
-          installShims();
+          if (!options.remove) installShims();
           const dir = getShimDir();
+          const encodedDir = Buffer.from(dir, "utf8").toString("base64");
           const script =
-            `$s = '${dir}'; ` +
+            `$ErrorActionPreference = 'Stop'; ` +
+            `$s = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${encodedDir}')); ` +
             `$m = [Environment]::GetEnvironmentVariable('Path', 'Machine'); ` +
-            `if (($m -split ';') -contains $s) { 'already' } else { ` +
-            `[Environment]::SetEnvironmentVariable('Path', $s + ';' + $m, 'Machine'); 'ok' }`;
+            `$rest = @(($m -split ';') | Where-Object { $_ -and $_.Trim('"').TrimEnd('\\') -ine $s.TrimEnd('\\') }); ` +
+            (options.remove
+              ? `[Environment]::SetEnvironmentVariable('Path', ($rest -join ';'), 'Machine'); 'removed'`
+              : `$next = (@($s) + $rest) -join ';'; if ($next -ceq $m) { 'already' } else { ` +
+                `[Environment]::SetEnvironmentVariable('Path', $next, 'Machine'); 'ok' }`);
           const out = execFileSync("powershell", ["-NoProfile", "-Command", script], {
             encoding: "utf8",
           }).trim();
-          if (out === "already") {
+          if (options.remove) {
+            removeShims();
+            console.log(t("gate.shell.shimsRemoved", { path: dir }));
+          } else if (out === "already") {
             console.log(t("gate.shell.machineAlready", { path: dir }));
           } else {
             console.log(t("gate.shell.machineInstalled", { path: dir }));
@@ -209,10 +227,13 @@ export function registerInstallGateCommands(program: Command): void {
         // Install the PATH shims (works in every shell, including cmd.exe).
         try {
           installShims();
-          console.log(t("gate.shell.shimsInstalled", { path: getShimDir() }));
-          printed = true;
+          if (process.platform === "win32") {
+            console.log(t("gate.shell.shimsInstalled", { path: getShimDir() }));
+            printed = true;
+          }
         } catch (err) {
           console.error(t("gate.shell.installFailed", { message: err instanceof Error ? err.message : String(err) }));
+          process.exitCode = 1;
         }
       }
 
@@ -236,71 +257,76 @@ export function registerInstallGateCommands(program: Command): void {
   program
     .command("install [args...]")
     .description("Install npm packages with an opt-in security gate (wraps npm/pnpm/yarn add)")
+    .helpOption(false)
     .passThroughOptions()
     .allowUnknownOption(true)
     .action(async (args: string[]) => {
-      const opts = program.opts<{ db?: string; proxy?: string }>();
-
-      // --yes / --dry-run / --threshold / --dir / --json / --deep are consumed here;
-      // everything else is passed through to the package manager.
-      let yes = false;
-      let dryRun = false;
-      let json = false;
-      let deep = false;
-      let dir: string | undefined;
-      let thresholdRaw: string | undefined;
-      const passthrough: string[] = [];
-      for (let i = 0; i < args.length; i++) {
-        const arg = args[i];
-        if (arg === "--yes" || arg === "-y") {
-          yes = true;
-        } else if (arg === "--dry-run") {
-          dryRun = true;
-        } else if (arg === "--json") {
-          json = true;
-        } else if (arg === "--deep") {
-          deep = true;
-        } else if (arg === "--dir") {
-          dir = args[++i];
-        } else if (arg.startsWith("--dir=")) {
-          dir = arg.slice("--dir=".length);
-        } else if (arg === "--threshold") {
-          thresholdRaw = args[++i];
-        } else if (arg.startsWith("--threshold=")) {
-          thresholdRaw = arg.slice("--threshold=".length);
-        } else {
-          passthrough.push(arg);
-        }
+      if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
+        program.commands.find((command) => command.name() === "install")!.outputHelp();
+        return;
       }
-      let thresholdOverride: number | undefined;
-      if (thresholdRaw !== undefined) {
-        const parsed = parseInt(thresholdRaw, 10);
-        if (Number.isNaN(parsed) || parsed < 0 || parsed > 100) {
-          console.error(t("gate.invalidThreshold", { value: thresholdRaw }));
-          process.exitCode = 1;
-          return;
+      const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
+      let parsed;
+      try {
+        // Resolve --dir before manager-specific flags such as pnpm's -w.
+        let directory = process.cwd();
+        for (let index = 0; index < args.length && args[index] !== "--"; index++) {
+          if (args[index] === "--dir") directory = args[++index] ?? directory;
+          else if (args[index].startsWith("--dir=")) directory = args[index].slice(6);
         }
-        thresholdOverride = parsed;
+        parsed = parseInstallArguments(args, detectPackageManager(directory));
+      } catch (error) {
+        console.error(`[npm-safe] ${error instanceof Error ? error.message : String(error)}`);
+        process.exitCode = 1;
+        return;
       }
-      const threshold = thresholdOverride ?? (await readGateConfig(opts.db, opts.proxy)).threshold;
-
-      const installDir = dir ?? process.cwd();
-      const pm = detectPackageManager(installDir);
-      const installCommand = `${pm} ${pmVerb(pm)}`;
-
-      // Package names are the passthrough args that do not start with a dash.
-      const packageNames = passthrough.filter((a) => !a.startsWith("-"));
-
+      const { yes, dryRun, deep, passthrough, packageNames } = parsed;
+      const json = parsed.json || opts.json === true;
       const config = await readGateConfig(opts.db, opts.proxy);
-      if (!config.enabled || packageNames.length === 0) {
+      const threshold = parsed.threshold ?? config.threshold;
+      const installDir = path.resolve(parsed.dir ?? process.cwd());
+      const pm = parsed.pm ?? detectPackageManager(installDir);
+      const verb = parsed.verb ?? pmVerb(pm);
+      const installCommand = `${pm} ${verb}`;
+      if (config.enabled && parsed.unsupportedTargets.length > 0) {
+        for (const target of parsed.unsupportedTargets) {
+          console.error(`[npm-safe] Cannot check "${target.spec}": ${target.reason}`);
+        }
+        process.exitCode = 1;
+        return;
+      }
+      if (!config.enabled) {
         if (dryRun) {
-          if (!json) {
+          if (json) {
+            console.log(JSON.stringify({ threshold, packages: [] }, null, 2));
+          } else {
             console.log(t("install.dryRun", { command: `${installCommand} ${passthrough.join(" ")}`.trim() }));
           }
           return;
         }
-        process.exitCode = runPackageManager(pm, pmVerb(pm), passthrough, installDir);
+        process.exitCode = runPackageManager(pm, verb, passthrough, installDir, json);
         return;
+      }
+      try {
+        assertPublicInstallRegistry(installDir);
+      } catch (error) {
+        console.error(`[npm-safe] ${error instanceof Error ? error.message : String(error)}`);
+        process.exitCode = 1;
+        return;
+      }
+
+      // Bare install keeps its verb. Without a manager-specific resolved plan,
+      // direct manifest scans are advisory and always require confirmation.
+      const unresolvedInstall = packageNames.length === 0;
+      let targets = packageNames;
+      if (targets.length === 0) {
+        try {
+          targets = readProjectTargets(installDir);
+        } catch (error) {
+          console.error(`[npm-safe] ${error instanceof Error ? error.message : String(error)}`);
+          process.exitCode = 1;
+          return;
+        }
       }
 
       // Gate enabled: check every target package.
@@ -317,9 +343,10 @@ export function registerInstallGateCommands(program: Command): void {
       const engine = await createEngine(opts.db, opts.proxy);
       const checked: CheckedPackage[] = [];
       try {
-        for (const name of packageNames) {
+        for (const name of targets) {
           try {
-            const result = await engine.checkPackage(name, { deep });
+            const target = parseRegistryTarget(name);
+            const result = await engine.checkPackage(target.name, { deep, version: target.version ?? parsed.tag });
             if (!result.exists) {
               console.error(t("install.notFound", { name }));
               process.exitCode = 1;
@@ -342,7 +369,7 @@ export function registerInstallGateCommands(program: Command): void {
             if (!json) {
               console.log(
                 t("install.summary", {
-                  name,
+                  name: target.name,
                   version: entry.version,
                   level: entry.level,
                   score: String(score),
@@ -360,8 +387,14 @@ export function registerInstallGateCommands(program: Command): void {
         engine.close();
       }
 
+      // Keep the installed artifact bound to the inspected published version.
+      for (let index = 0; index < packageNames.length; index++) {
+        const target = parseRegistryTarget(packageNames[index]);
+        passthrough[parsed.packageIndexes[index]] = `${target.name}@${checked[index].version}`;
+      }
+
       if (json) {
-        console.log(JSON.stringify({ threshold, packages: checked }, null, 2));
+        console.log(JSON.stringify({ threshold, packages: checked, unresolvedInstall }, null, 2));
       }
 
       const below = checked.filter((c) => c.belowThreshold);
@@ -380,13 +413,17 @@ export function registerInstallGateCommands(program: Command): void {
           console.error(`  [${item.deepScanStatus ?? "missing"}] ${item.name}`);
         }
       }
-      if (checked.some((item) => item.requiresConfirmation) && !yes) {
+      if (unresolvedInstall) console.error(t("install.unresolvedPlan"));
+      if ((unresolvedInstall || checked.some((item) => item.requiresConfirmation)) && !yes) {
+        // EOF must never leave a risky install looking successful.
+        process.exitCode = 3;
         const ok = await confirm(t("install.confirm"));
         if (!ok) {
-          console.log(t("install.aborted"));
+          console.error(t("install.aborted"));
           process.exitCode = 3;
           return;
         }
+        process.exitCode = 0;
       }
 
       if (dryRun) {
@@ -395,7 +432,7 @@ export function registerInstallGateCommands(program: Command): void {
         }
         return;
       }
-      process.exitCode = runPackageManager(pm, pmVerb(pm), passthrough, installDir);
+      process.exitCode = runPackageManager(pm, verb, passthrough, installDir, json);
     });
 }
 
@@ -412,7 +449,7 @@ function detectPackageManager(cwd = process.cwd()): "npm" | "pnpm" | "yarn" {
       ) as { packageManager?: string };
       if (manifest.packageManager) {
         const name = manifest.packageManager.split("@")[0];
-        if (name === "pnpm" || name === "yarn") return name;
+        if (name === "npm" || name === "pnpm" || name === "yarn") return name;
       }
     } catch {
       // No package.json in this directory — keep walking.
@@ -436,6 +473,25 @@ function pmVerb(pm: "npm" | "pnpm" | "yarn"): "add" | "install" {
   return pm === "npm" ? "install" : "add";
 }
 
+function readProjectTargets(directory: string): string[] {
+  const manifestPath = path.join(directory, "package.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as Record<string, unknown>;
+  const targets = new Map<string, string>();
+  for (const section of ["dependencies", "devDependencies", "optionalDependencies"]) {
+    const dependencies = manifest[section];
+    if (dependencies === undefined) continue;
+    if (!dependencies || typeof dependencies !== "object" || Array.isArray(dependencies)) {
+      throw new Error(`Invalid ${section} in ${manifestPath}.`);
+    }
+    for (const [name, requested] of Object.entries(dependencies)) {
+      if (typeof requested !== "string") throw new Error(`Invalid dependency version for "${name}".`);
+      parseRegistryTarget(`${name}@${requested}`);
+      targets.set(name, `${name}@${requested}`);
+    }
+  }
+  return [...targets.values()];
+}
+
 /**
  * Run the package manager without a shell. On Windows the binaries are
  * `.cmd` shims, so we go through `cmd.exe` with each argument quoted and
@@ -450,31 +506,9 @@ function runPackageManager(
   verb: string,
   args: string[],
   cwd: string,
+  json = false,
 ): number {
-  const envVar = `NPMSAFE_REAL_${pm.toUpperCase()}`;
-  const real = process.env[envVar];
-  const binary = real ?? (process.platform === "win32" ? `${pm}.cmd` : pm);
-  if (process.platform !== "win32") {
-    const result = spawnSync(binary, [verb, ...args], {
-      stdio: "inherit",
-      cwd,
-      env: { ...process.env, [envVar]: "" },
-    });
-    return result.status ?? 1;
-  }
-  const quoted = [verb, ...args].map(quoteWinArg).join(" ");
-  const result = spawnSync(
-    process.env.ComSpec ?? "cmd.exe",
-    ["/d", "/s", "/c", `"${binary}" ${quoted}`],
-    { stdio: "inherit", cwd, env: { ...process.env, [envVar]: "" } },
-  );
-  return result.status ?? 1;
-}
-
-/** Quote a single argument for cmd.exe; safe tokens are left unquoted. */
-function quoteWinArg(arg: string): string {
-  if (/^[A-Za-z0-9@./:_-]+$/.test(arg)) return arg;
-  return `"${arg.replace(/(["\\$`])/g, "\\$1")}"`;
+  return runPackageManagerProcess(pm, [verb, ...args], cwd, json);
 }
 
 // ---------------------------------------------------------------------------
@@ -485,61 +519,11 @@ const SHELL_BLOCK_START = "# >>> npm-safe gate >>>";
 const SHELL_BLOCK_END = "# <<< npm-safe gate <<<";
 
 function bashWrappers(): string {
-  return `${SHELL_BLOCK_START}
-npm() {
-  if [ "$1" = "install" ] || [ "$1" = "add" ] || [ "$1" = "i" ]; then
-    npm-safe install "\${@:2}"
-    [ $? -eq 0 ] || return $?
-  else
-    command npm "$@"
-  fi
-}
-pnpm() {
-  if [ "$1" = "install" ] || [ "$1" = "add" ] || [ "$1" = "i" ]; then
-    npm-safe install "\${@:2}"
-    [ $? -eq 0 ] || return $?
-  else
-    command pnpm "$@"
-  fi
-}
-yarn() {
-  if [ "$1" = "add" ]; then
-    npm-safe install "\${@:2}"
-    [ $? -eq 0 ] || return $?
-  else
-    command yarn "$@"
-  fi
-}
-${SHELL_BLOCK_END}`;
+  return bashWrapperBlock();
 }
 
 function powershellWrappers(): string {
-  return `${SHELL_BLOCK_START}
-function npm {
-  if ($args.Count -gt 0 -and $args[0] -in @('install', 'add', 'i')) {
-    & npm-safe install @($args[1..($args.Count - 1)])
-    if ($LASTEXITCODE -ne 0) { return }
-  } else {
-    & (Get-Command npm.cmd -ErrorAction Stop).Source @args
-  }
-}
-function pnpm {
-  if ($args.Count -gt 0 -and $args[0] -in @('install', 'add', 'i')) {
-    & npm-safe install @($args[1..($args.Count - 1)])
-    if ($LASTEXITCODE -ne 0) { return }
-  } else {
-    & (Get-Command pnpm.cmd -ErrorAction Stop).Source @args
-  }
-}
-function yarn {
-  if ($args.Count -gt 0 -and $args[0] -eq 'add') {
-    & npm-safe install @($args[1..($args.Count - 1)])
-    if ($LASTEXITCODE -ne 0) { return }
-  } else {
-    & (Get-Command yarn.cmd -ErrorAction Stop).Source @args
-  }
-}
-${SHELL_BLOCK_END}`;
+  return powershellWrapperBlock();
 }
 
 /**
@@ -547,71 +531,89 @@ ${SHELL_BLOCK_END}`;
  * PowerShell profile on Windows, ~/.zshrc or ~/.bashrc otherwise.
  */
 export function detectShellConfig(): string | null {
+  const shell = process.env.SHELL ?? "";
+  const home = process.platform === "win32" ? process.env.USERPROFILE ?? process.env.HOME : process.env.HOME;
+  if (!home) return null;
+  if (/(?:^|[\\/])zsh(?:\.exe)?$/i.test(shell)) return path.join(home, ".zshrc");
+  if (/(?:^|[\\/])bash(?:\.exe)?$/i.test(shell)) return path.join(home, ".bashrc");
   if (process.platform === "win32") {
-    const home = process.env.USERPROFILE ?? process.env.HOME;
-    if (!home) return null;
     const candidates = [
       path.join(home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1"),
       path.join(home, "Documents", "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1"),
     ];
+    if (/WindowsPowerShell[\\/]/i.test(shell) || /(?:^|[\\/])powershell(?:\.exe)?$/i.test(shell)) return candidates[1];
+    if (/(?:^|[\\/])pwsh(?:\.exe)?$/i.test(shell)) return candidates[0];
     for (const candidate of candidates) {
       if (fs.existsSync(candidate)) return candidate;
     }
     return candidates[0];
   }
-  const shell = process.env.SHELL ?? "";
-  const home = process.env.HOME;
-  if (!home) return null;
-  if (shell.includes("zsh")) return path.join(home, ".zshrc");
-  if (shell.includes("bash")) return path.join(home, ".bashrc");
   return path.join(home, ".bashrc");
+}
+
+function shellBlockRanges(content: string): Array<{ start: number; end: number }> {
+  const ranges: Array<{ start: number; end: number }> = [];
+  const markers = /^# (?:>>> npm-safe gate >>>|<<< npm-safe gate <<<)\r?$/gm;
+  let start: number | undefined;
+  for (const marker of content.matchAll(markers)) {
+    if (marker[0].startsWith(SHELL_BLOCK_START)) {
+      if (start !== undefined) throw new Error("Incomplete npm-safe gate block in shell configuration");
+      start = marker.index;
+    } else {
+      if (start === undefined) throw new Error("Incomplete npm-safe gate block in shell configuration");
+      ranges.push({ start, end: marker.index + marker[0].replace(/\r$/, "").length });
+      start = undefined;
+    }
+  }
+  if (start !== undefined) throw new Error("Incomplete npm-safe gate block in shell configuration");
+  return ranges;
 }
 
 /** True when the file already contains the gate wrapper block. */
 export function hasShellBlock(file: string): boolean {
   try {
     const content = fs.readFileSync(file, "utf8");
-    return content.includes(SHELL_BLOCK_START);
+    return shellBlockRanges(content).length > 0;
   } catch {
     return false;
   }
 }
 
 /** Install (or refresh) the wrapper block, returning "created" | "updated" | "existing". */
-function installShellBlock(file: string): "created" | "updated" | "existing" {
-  const block = file.endsWith(".ps1") ? powershellWrappers() : bashWrappers();
-  const existed = hasShellBlock(file);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
+export function installShellBlock(file: string): "created" | "updated" | "existing" {
   let content = "";
   if (fs.existsSync(file)) {
     content = fs.readFileSync(file, "utf8");
   }
-  if (existed) {
-    // Replace the previous block in place.
-    const start = content.indexOf(SHELL_BLOCK_START);
-    const end = content.indexOf(SHELL_BLOCK_END);
-    if (start >= 0 && end >= 0) {
-      content = content.slice(0, start) + block + content.slice(end + SHELL_BLOCK_END.length);
-    } else {
-      content = `${content.trimEnd()}\n\n${block}\n`;
+  const ranges = shellBlockRanges(content);
+  const newline = content.includes("\r\n") ? "\r\n" : "\n";
+  const block = (file.toLowerCase().endsWith(".ps1") ? powershellWrappers() : bashWrappers()).replace(/\r?\n/g, newline);
+  if (ranges.length === 1 && content.slice(ranges[0].start, ranges[0].end) === block) return "existing";
+  if (ranges.length > 0) {
+    for (let index = ranges.length - 1; index >= 0; index--) {
+      const range = ranges[index];
+      content = content.slice(0, range.start) + (index === 0 ? block : "") + content.slice(range.end);
     }
   } else {
-    content = `${content.trimEnd()}\n\n${block}\n`;
+    content += `${content.length === 0 ? "" : content.endsWith("\n") ? newline : newline + newline}${block}${newline}`;
   }
+  fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, content);
-  return existed ? "updated" : "created";
+  return ranges.length > 0 ? "updated" : "created";
 }
 
 /** Remove the wrapper block. Returns `true` when something was removed. */
-function removeShellBlock(file: string): boolean {
+export function removeShellBlock(file: string): boolean {
   try {
     if (!fs.existsSync(file)) return false;
-    const content = fs.readFileSync(file, "utf8");
-    const start = content.indexOf(SHELL_BLOCK_START);
-    const end = content.indexOf(SHELL_BLOCK_END);
-    if (start < 0 || end < 0) return false;
-    const next = content.slice(end + SHELL_BLOCK_END.length).replace(/^\n+/, "");
-    fs.writeFileSync(file, content.slice(0, start).trimEnd() + "\n" + next);
+    let content = fs.readFileSync(file, "utf8");
+    const ranges = shellBlockRanges(content);
+    if (ranges.length === 0) return false;
+    for (const range of ranges.reverse()) {
+      const suffix = content.slice(range.end).replace(/^\r?\n/, "");
+      content = content.slice(0, range.start) + suffix;
+    }
+    fs.writeFileSync(file, content);
     return true;
   } catch {
     return false;
@@ -624,7 +626,7 @@ function removeShellBlock(file: string): boolean {
 
 /** Directory holding the npm-safe command shims. */
 export function getShimDir(): string {
-  return path.join(os.homedir(), ".npm-safe", "bin");
+  return shimDirectory();
 }
 
 /**
@@ -633,45 +635,15 @@ export function getShimDir(): string {
  * package manager.
  */
 function shimContent(pm: "npm" | "pnpm" | "yarn"): string {
-  const envVar = `NPMSAFE_REAL_${pm.toUpperCase()}`;
-  return `@echo off
-rem npm-safe gate shim for ${pm} - do not edit
-setlocal
-set "FOUND="
-for /f "delims=" %%i in ('where ${pm} 2^>nul') do (
-  if /i not "%%~fi" == "%~f0" (
-    if not defined FOUND set "FOUND=%%i"
-  )
-)
-if not defined FOUND (
-  echo [npm-safe] ${pm} not found in PATH
-  exit /b 1
-)
-set "${envVar}=%FOUND%"
-if /i "%~1"=="install" goto :gated
-if /i "%~1"=="add" goto :gated
-if /i "%~1"=="i" goto :gated
-"%FOUND%" %*
-exit /b %errorlevel%
-:gated
-set "ORIG=%*"
-set "ARGS=%ORIG:* =%"
-if "%ARGS%"=="%ORIG%" (
-  "%FOUND%" %*
-  exit /b %errorlevel%
-)
-npm-safe install %ARGS%
-if errorlevel 1 exit /b %errorlevel%
-"%FOUND%" %*
-exit /b %errorlevel%
-`;
+  return windowsShimContent(pm);
 }
 
 /** Write the three shims into the shim directory (idempotent). */
 function installShims(): void {
+  if (process.platform !== "win32") return;
   const dir = getShimDir();
   fs.mkdirSync(dir, { recursive: true });
-  if (process.platform !== "win32") return;
+  fs.writeFileSync(path.join(dir, "gate-shim.mjs"), shimHelperContent());
   for (const pm of ["npm", "pnpm", "yarn"] as const) {
     fs.writeFileSync(path.join(dir, `${pm}.cmd`), shimContent(pm));
   }
@@ -681,8 +653,8 @@ function installShims(): void {
 function removeShims(): boolean {
   const dir = getShimDir();
   let removed = false;
-  for (const pm of ["npm", "pnpm", "yarn"] as const) {
-    const file = path.join(dir, `${pm}.cmd`);
+  for (const name of ["npm.cmd", "pnpm.cmd", "yarn.cmd", "gate-shim.mjs"]) {
+    const file = path.join(dir, name);
     try {
       if (fs.existsSync(file)) {
         fs.rmSync(file);

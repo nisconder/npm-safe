@@ -388,6 +388,16 @@ npm-safe install axios --yes       # 自动确认
 npm-safe install axios --dry-run   # 只检查+确认，不实际安装
 ```
 
+显式包名、版本、标签和 semver 范围会先解析到具体发布版本，再安装本次检查的
+版本。包装器保留原包管理器与子命令，`pnpm install` 不会变成 `add`。
+未指定包的安装会扫描 manifest 直接依赖，并始终要求确认，因为该扫描无法绑定
+锁文件版本和项目脚本构成的完整安装计划。确认输入结束时默认拒绝，退出码为 3。
+
+与门禁选项重名的包管理器选项放在 `--` 后，例如
+`npm-safe install -- lodash --dry-run` 会把 `--dry-run` 传给包管理器。
+门禁的 `--yes` 必须位于分隔符前；包装器转发的 npm `--yes` 不会自动批准
+安全警告。启用门禁后，无法检查的安装来源或注册表配置会被拒绝。
+
 `gate enable` 一步完成：开启检查、安装 **PATH shim**（`~/.npm-safe/bin` 下的 npm.cmd / pnpm.cmd / yarn.cmd，对所有 shell 生效），并把 `npm`、`pnpm`、`yarn` 的包装函数写入 shell 配置（Windows 上为 PowerShell `$PROFILE`，其他平台为 `~/.zshrc`/`~/.bashrc`）。激活方式：
 
 | 你的 shell | 激活方式 |
@@ -401,7 +411,11 @@ npm-safe install axios --dry-run   # 只检查+确认，不实际安装
 
 ```bash
 npm-safe gate shell --remove
+# 如果曾写入系统 PATH，以管理员身份移除对应项：
+npm-safe gate shell --machine --remove
 ```
+
+升级 npm-safe 后，执行 `npm-safe gate shell` 并重启终端，以刷新旧包装器和 shim。
 
 门禁与 GUI 共用同一张设置表，CLI 开关与 GUI 开关保持同步。
 

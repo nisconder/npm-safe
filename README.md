@@ -481,6 +481,19 @@ npm-safe install axios --yes       # auto-confirm
 npm-safe install axios --dry-run   # check + prompt without installing
 ```
 
+Explicit names, versions, tags, and semver ranges are resolved to a published
+version; the gate installs that inspected version. Wrappers retain the chosen
+manager and subcommand, so `pnpm install` stays an install and `yarn add` stays
+an add. A bare install scans direct manifest dependencies and always asks for
+confirmation because its lockfile versions and project scripts are not bound
+to a complete installation plan. EOF declines confirmation with exit code 3.
+
+Put package-manager options after `--` when they overlap gate options, for
+example `npm-safe install -- lodash --dry-run`. This passes `--dry-run` to the
+manager. The gate's own `--yes` must appear before that separator; an npm
+`--yes` forwarded by a wrapper never approves a security warning. The enabled
+gate rejects sources and registry configurations it cannot inspect.
+
 `gate enable` does everything in one step: it enables the check, installs
 **PATH shims** into `~/.npm-safe/bin` (npm.cmd / pnpm.cmd / yarn.cmd; they
 work in every shell), and appends wrapper functions for `npm`, `pnpm`, and
@@ -505,7 +518,12 @@ Remove everything with:
 
 ```bash
 npm-safe gate shell --remove
+# If machine PATH activation was used, remove that entry as administrator:
+npm-safe gate shell --machine --remove
 ```
+
+After upgrading npm-safe, run `npm-safe gate shell` and restart the shell to
+refresh previously installed wrappers and shims.
 
 The gate shares the same settings table as the GUI, so the CLI switch and the
 GUI toggle stay in sync.

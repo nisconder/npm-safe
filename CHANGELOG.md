@@ -5,6 +5,19 @@ semantic versioning for `@npm-safe/core`.
 
 ## Unreleased
 
+### Fixed
+
+- Run gated Windows installs exactly once, preserve npm/pnpm/yarn command
+  selection, arguments, and exit codes, and prevent shim recursion.
+- Resolve explicit package versions, tags, and ranges before scanning and bind
+  installs to those inspected versions. Reject unsupported sources and require
+  confirmation when a bare install has no resolved installation plan.
+- Keep JSON output parseable when confirmation is declined or input ends;
+  validate CLI and desktop thresholds as integers from 0 to 100.
+- Refresh shell blocks without damaging surrounding configuration and support
+  removing machine PATH activation. Make doctor honor the selected database
+  and handle unreadable configuration while continuing diagnostics.
+
 ### Added
 
 - Add a visual DSH installation preflight to the desktop app for npm package

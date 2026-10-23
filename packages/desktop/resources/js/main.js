@@ -654,7 +654,9 @@ async function renderInstallGate() {
     const enabled = await callEngine("getSetting", { key: "installGate.enabled" });
     const threshold = await callEngine("getSetting", { key: "installGate.threshold" });
     document.getElementById("gate-enabled").checked = enabled === "true";
-    document.getElementById("gate-threshold").value = threshold ?? "85";
+    const numericThreshold = threshold !== null && /^\d+$/.test(threshold) ? Number(threshold) : NaN;
+    document.getElementById("gate-threshold").value = Number.isInteger(numericThreshold) && numericThreshold >= 0 && numericThreshold <= 100
+      ? String(numericThreshold) : "85";
   } catch (err) {
     setStatus(err.message, "error");
   }
@@ -664,15 +666,15 @@ async function handleGateSave() {
   const btn = document.getElementById("gate-save-btn");
   const enabled = document.getElementById("gate-enabled").checked;
   const thresholdRaw = document.getElementById("gate-threshold").value.trim();
-  const threshold = parseInt(thresholdRaw, 10);
-  if (Number.isNaN(threshold) || threshold < 0 || threshold > 100) {
-    setStatus("无效的阈值，请输入 0-100 之间的数字", "error");
+  const threshold = Number(thresholdRaw);
+  if (!/^\d+$/.test(thresholdRaw) || !Number.isInteger(threshold) || threshold < 0 || threshold > 100) {
+    setStatus("无效的阈值，请输入 0-100 之间的整数", "error");
     return;
   }
   setBusy(btn, true);
   try {
-    await callEngine("setSetting", { key: "installGate.enabled", value: enabled ? "true" : "false" });
     await callEngine("setSetting", { key: "installGate.threshold", value: String(threshold) });
+    await callEngine("setSetting", { key: "installGate.enabled", value: enabled ? "true" : "false" });
     setStatus(enabled ? "安装安全检查已启用" : "安装安全检查已禁用", "success");
   } catch (err) {
     setStatus(err.message, "error");
