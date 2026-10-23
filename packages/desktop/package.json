@@ -1,6 +1,6 @@
 {
   "name": "@npm-safe/desktop",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "build:core": "pnpm -F @npm-safe/core run build",
     "prebuild": "neu update",
     "run": "pnpm run build:core && neu update && neu run",
-    "build": "pnpm run build:core && neu build --release"
+    "build": "pnpm run build:core && node scripts/build-release.mjs"
   },
   "dependencies": {
     "@npm-safe/core": "workspace:*"

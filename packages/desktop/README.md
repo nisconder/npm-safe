@@ -113,10 +113,14 @@ The dashboard is re-rendered every time you navigate back to the tab.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 20.12 or later
-- [pnpm](https://pnpm.io/) 9 or later
+- For development and release builds: [Node.js](https://nodejs.org/) 24 and the
+  pnpm version pinned in the root `package.json`
 - A webview runtime: WebView2 on Windows, WebKit on macOS, WebKitGTK on Linux
 - Neutralinojs binaries are fetched by the `@neutralinojs/neu` CLI (devDependency)
+
+Downloaded release ZIPs include Node.js and the engine's production dependencies.
+Extract the entire ZIP before opening the application; only the OS webview
+runtime must already be installed.
 
 ## Run in Development
 
@@ -142,16 +146,24 @@ cd packages/desktop
 pnpm run build
 ```
 
-The `build` script runs `pnpm run build:core && neu build --release` and
-produces a portable ZIP (`npm-safe-release.zip`) in `packages/desktop/dist/`.
-This ZIP is the distribution artifact — it is
-attached to GitHub Releases by the `desktop-release.yml` workflow on each
-`v*` tag, so users can download the GUI without building it.
+The `build` script builds the core, then creates a host-specific portable ZIP in
+`packages/desktop/dist/release/`: `npm-safe-windows-x64.zip`,
+`npm-safe-linux-x64.zip`, or `npm-safe-macos-x64.zip`. Windows also produces the
+compatibility filename `npm-safe-release.zip`. Build each target on its own OS
+so its SQLite native module matches the included Node.js runtime.
 
-The app ships with a built-in auto-updater: on startup it checks
-`update_manifest.json` on the GitHub Releases page and installs newer
-`resources.neu` payloads automatically. The release workflow uploads the
-manifest + resources.neu alongside the portable ZIP.
+The builder packages the physical extension script, Node.js 24, the core engine,
+and production dependencies. It then extracts the ZIP to a new directory and
+uses the bundled Node.js to verify the core import and an in-memory SQLite
+query. No GUI or user database is opened during this check.
+
+The `desktop-release.yml` workflow builds Windows, Linux, and Intel macOS on
+separate runners and uploads assets only after all three checks pass. The update
+`update_manifest_v2.json` manifest marks these releases with
+`requiresFullDownload`; the app opens the release page so users can download the
+complete matching platform ZIP. A `resources.neu` update alone cannot update the
+bundled engine or Node.js. Versions before 1.1.1 use the retired manifest endpoint
+and must be upgraded by manually downloading the complete ZIP from Releases.
 
 ## Windows First-Run Notes
 

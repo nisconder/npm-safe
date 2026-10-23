@@ -5,8 +5,14 @@ semantic versioning for `@npm-safe/core`.
 
 ## Unreleased
 
+## 1.1.1 - 2026-10-23
+
 ### Fixed
 
+- Package desktop releases separately for Windows, Linux, and macOS with a
+  bundled Node.js runtime, physical extension, and matching native SQLite
+  dependency. Verify the extracted application before publishing it. Existing
+  desktop users must download the complete 1.1.1 ZIP to migrate safely.
 - Run gated Windows installs exactly once, preserve npm/pnpm/yarn command
   selection, arguments, and exit codes, and prevent shim recursion.
 - Resolve explicit package versions, tags, and ranges before scanning and bind

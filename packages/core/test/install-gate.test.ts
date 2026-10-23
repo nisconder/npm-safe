@@ -30,6 +30,11 @@ function runCli(args: string[], homeDir: string, input?: string): { stdout: stri
     });
   }
   database.close();
+  const env: NodeJS.ProcessEnv = { ...process.env, HOME: homeDir, USERPROFILE: homeDir };
+  // pnpm exports the user's registry configuration into lifecycle children.
+  // Fixtures use their own configuration and must not inherit those sources.
+  for (const key of Object.keys(env)) if (/^(?:npm_config_|yarn_)/i.test(key)) delete env[key];
+  env.npm_config_globalconfig = path.join(homeDir, "global.npmrc");
   const result = spawnSync(
     "node",
     ["--import", "tsx", CLI_TS, ...args],
@@ -37,7 +42,7 @@ function runCli(args: string[], homeDir: string, input?: string): { stdout: stri
       encoding: "utf8",
       cwd: PACKAGE_DIR,
       input: input ?? "",
-      env: { ...process.env, HOME: homeDir, USERPROFILE: homeDir },
+      env,
     },
   );
   return { stdout: result.stdout, stderr: result.stderr, status: result.status };

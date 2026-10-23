@@ -174,7 +174,9 @@ npm-safe check lodash
 2. 选择最新版本，下载便携 ZIP（`npm-safe-release.zip`）。
 3. 解压并运行 `npm-safe` 可执行文件（Windows）或 `npm-safe` 二进制（macOS/Linux）。应用内置 `@npm-safe/core` 引擎，数据存储在 `~/.npm-safe/`。
 
-应用启动时会自动检查更新：当发布页面存在更新版本时，会提示并就地安装更新，然后自动重启。只有首次安装需要手动下载 ZIP；之后的更新全自动进行。
+从 1.1.1 起，各平台 ZIP 随包附带 Node.js 和核心引擎。应用启动时检查更新，
+需要完整包时会打开发布下载页。旧版用户升级到 1.1.1 必须手动下载并完整解压
+对应平台 ZIP；仅替换 `resources.neu` 无法更新运行环境和原生依赖。
 
 界面功能：
 

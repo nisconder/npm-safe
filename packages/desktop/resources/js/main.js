@@ -7,7 +7,7 @@
 
 const EXT_ID = "js.npmsafe.core";
 
-const UPDATE_MANIFEST_URL = "https://github.com/nisconder/npm-safe/releases/latest/download/update_manifest.json";
+const UPDATE_MANIFEST_URL = "https://github.com/nisconder/npm-safe/releases/latest/download/update_manifest_v2.json";
 
 let engineReady = false;
 
@@ -68,13 +68,20 @@ async function checkForUpdates() {
   try {
     const manifest = await Neutralino.updater.checkForUpdates(UPDATE_MANIFEST_URL);
     if (manifest.version && manifest.version !== NL_APPVERSION) {
+      const fullDownload = manifest.data?.requiresFullDownload === true || manifest.requiresFullDownload === true;
       const choice = await Neutralino.os.showMessageBox(
         "更新",
-        `发现新版本 ${manifest.version}，是否立即更新？`,
+        fullDownload
+          ? `发现新版本 ${manifest.version}，需要下载完整安装包以更新运行环境。是否打开下载页面？`
+          : `发现新版本 ${manifest.version}，是否立即更新？`,
         "YES_NO",
         "QUESTION",
       );
       if (choice === "YES") {
+        if (fullDownload) {
+          await Neutralino.os.open("https://github.com/nisconder/npm-safe/releases/latest");
+          return;
+        }
         await Neutralino.updater.install();
         await Neutralino.app.restartProcess();
       }

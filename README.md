@@ -194,10 +194,11 @@ GitHub Release, not as an npm package. To download:
    (macOS/Linux). The app bundles the `@npm-safe/core` engine and stores data
    in `~/.npm-safe/`.
 
-The app checks for updates automatically on startup: when a newer version is
-available on the Releases page, it prompts and installs the update in place,
-then restarts. Only the first installation requires a manual ZIP download;
-subsequent updates are automatic.
+From version 1.1.1, platform ZIPs include Node.js and the core engine. The app
+checks for updates on startup and opens the release page when a complete
+download is required. Users upgrading from older versions must download and
+extract the complete ZIP once; replacing only `resources.neu` cannot update
+the bundled runtime or native dependencies.
 
 What the GUI offers:
 

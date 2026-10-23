@@ -142,20 +142,20 @@ Neutralinojs CLI (`@neutralinojs/neu`, a devDependency).
 From `packages/desktop/`:
 
 ```bash
-neu update          # fetch the Neutralinojs binaries (required first)
-neu build --release # produce the release bundle
+pnpm run build     # update binaries, build core, package and verify this platform
 ```
 
-The workspace scripts wrap these: `pnpm run build` runs
-`build:core && neu build --release` (with `neu update` as its `prebuild`),
-and `pnpm run run` starts the app in development mode (`build:core && neu
-update && neu run`).
+Release builds require Node.js 24. `pnpm run build` packages that runtime,
+the physical extension, and the core production dependencies, then verifies
+the extracted ZIP with an in-memory SQLite query. `pnpm run run` starts the
+app in development mode (`build:core && neu update && neu run`).
 
-The release build produces a portable ZIP
-(`packages/desktop/dist/npm-safe-release.zip`). This ZIP is the distribution
-artifact: the `desktop-release.yml` workflow attaches it, along with the
-auto-update manifest and `resources.neu` payload, to the GitHub Release for
-each `v*` tag.
+Release ZIPs are written to `packages/desktop/dist/release/` and built separately
+on Windows, Linux, and macOS so native modules match their bundled runtime.
+Windows also produces the compatibility filename `npm-safe-release.zip`.
+The workflow verifies all three platforms before attaching their artifacts
+and `update_manifest_v2.json` to the release. Pre-1.1.1 clients require a full
+manual download; their old resource-only update endpoint is not published.
 
 ## Publishing
 

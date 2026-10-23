@@ -111,10 +111,13 @@
 
 ## 前置条件
 
-- [Node.js](https://nodejs.org/) 20.12 或更高版本
-- [pnpm](https://pnpm.io/) 9 或更高版本
+- 开发及发布构建需要 [Node.js](https://nodejs.org/) 24，以及根目录
+  `package.json` 固定的 pnpm 版本
 - Webview 运行时：Windows 上的 WebView2、macOS 上的 WebKit、Linux 上的 WebKitGTK
 - Neutralinojs 二进制文件由 `@neutralinojs/neu` CLI（devDependency）获取
+
+下载的发布 ZIP 已包含 Node.js 和引擎生产依赖。请完整解压后再启动应用；
+系统只需预先具备相应的 Webview 运行时。
 
 ## 开发模式运行
 
@@ -140,14 +143,20 @@ cd packages/desktop
 pnpm run build
 ```
 
-`build` 脚本执行 `pnpm run build:core && neu build --release`，在
-`packages/desktop/dist/` 下生成便携 ZIP（`npm-safe-release.zip`）。
-该 ZIP 即分发产物——由 `desktop-release.yml` 工作流在每个 `v*` 标签上附加到
-GitHub Release，用户无需自行构建即可下载 GUI。
+`build` 脚本先构建核心，再在 `packages/desktop/dist/release/` 生成当前系统的
+便携 ZIP：`npm-safe-windows-x64.zip`、`npm-safe-linux-x64.zip` 或
+`npm-safe-macos-x64.zip`。Windows 同时生成兼容文件名 `npm-safe-release.zip`。
+每个目标都必须在对应系统构建，使 SQLite 原生模块与包内 Node.js 匹配。
 
-应用内置自动更新机制：启动时会检查 GitHub 发布页面上的 `update_manifest.json`，
-自动安装更新的 `resources.neu` 更新负载。发布工作流会将清单与
-`resources.neu` 连同便携 ZIP 一并上传。
+构建器包含物理扩展脚本、Node.js 24、核心引擎及生产依赖，然后将 ZIP 解压到
+独立目录，使用包内 Node.js 验证引擎导入和内存 SQLite 查询；验证不会启动 GUI
+或打开用户数据库。
+
+`desktop-release.yml` 使用 Windows、Linux、Intel macOS 三个独立 runner，
+全部验证成功后上传发布附件。新清单 `update_manifest_v2.json` 以
+`requiresFullDownload` 标记此类版本，应用会打开发布页，供用户下载与系统匹配的
+完整 ZIP。单独替换 `resources.neu` 无法更新包内引擎或 Node.js。1.1.1 之前的
+旧版仍使用已停用的清单地址，需要用户从 Releases 手动下载完整 ZIP 升级。
 
 ## Windows 首次运行注意事项
 
