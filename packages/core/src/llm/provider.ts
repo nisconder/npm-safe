@@ -41,6 +41,13 @@ export interface LlmScanInput {
   readonly description: string;
   readonly readme: string;
   readonly packageJson?: Record<string, unknown>;
+  /**
+   * Optional external abort signal. When supplied, the provider combines it
+   * with its own timeout controller via `AbortSignal.any` so an abort during
+   * an in-flight scan settles the promise promptly with an `AbortError`
+   * `DOMException` (cooperative cancellation).
+   */
+  readonly signal?: AbortSignal;
 }
 
 /**
@@ -161,16 +168,19 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
       readme: input.readme.slice(0, this.maxInputChars),
       packageJson: packageJsonStr,
     });
-    const payload = await this.request({
-      model: this.model,
-      temperature: 0,
-      max_tokens: this.maxTokens,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content },
-      ],
-    });
+    const payload = await this.request(
+      {
+        model: this.model,
+        temperature: 0,
+        max_tokens: this.maxTokens,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content },
+        ],
+      },
+      input.signal,
+    );
     const parsed = parseJsonObject(payload);
     return buildReport(parsed, new Date().toISOString());
   }
@@ -190,15 +200,31 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
    * Issue a POST to `/chat/completions` with timeout and error normalization.
    *
    * @param body - The JSON request body.
+   * @param signal - Optional external abort signal combined with the owned
+   *   timeout controller via `AbortSignal.any`. An external abort propagates
+   *   as `DOMException('The operation was aborted.', 'AbortError')`.
    * @returns The `choices[0].message.content` string from the response.
    * @throws {LlmProviderError} On network, timeout, HTTP, or shape errors.
+   * @throws {DOMException} With name `AbortError` when `signal` is aborted.
    */
-  private async request(body: Record<string, unknown>): Promise<string> {
+  private async request(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    if (signal?.aborted) {
+      throw new DOMException("The operation was aborted.", "AbortError");
+    }
     if (!this.apiKey) {
       throw new LlmProviderError("LLM provider is not configured.");
     }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    // Combine the owned timeout controller with the external abort signal
+    // so either one aborts the fetch. When no external signal is supplied
+    // the owned controller is used directly.
+    const combinedSignal = signal
+      ? AbortSignal.any([controller.signal, signal])
+      : controller.signal;
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: "POST",
@@ -207,7 +233,7 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
           authorization: `Bearer ${this.apiKey}`,
         },
         body: JSON.stringify(body),
-        signal: controller.signal,
+        signal: combinedSignal,
       });
       if (!response.ok) {
         throw new LlmProviderError(
@@ -220,8 +246,16 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
       if (!content) throw new LlmProviderError("LLM response contained no content.");
       return content;
     } catch (error) {
+      if (signal?.aborted) {
+        throw new DOMException("The operation was aborted.", "AbortError");
+      }
       if (error instanceof LlmProviderError) throw error;
       if (error instanceof DOMException && error.name === "AbortError") {
+        // An external abort must propagate as AbortError (cooperative
+        // cancellation); the owned timeout is wrapped as LlmProviderError.
+        if (signal?.aborted) {
+          throw new DOMException("The operation was aborted.", "AbortError");
+        }
         throw new LlmProviderError("LLM request timed out.");
       }
       throw new LlmProviderError(

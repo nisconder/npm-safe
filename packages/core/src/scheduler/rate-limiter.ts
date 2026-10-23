@@ -12,6 +12,7 @@ interface PendingConsumer {
   resolve: () => void;
   /** Rejects the consumer's `consume()` promise on dispose. */
   reject: (error: Error) => void;
+  cleanup?: () => void;
 }
 
 /**
@@ -109,6 +110,7 @@ export class TokenBucket {
         // by accumulation. Auto-allow it and drain the bucket to zero.
         this.available = 0;
         this.queue.shift();
+        next.cleanup?.();
         next.resolve();
         continue;
       }
@@ -116,6 +118,7 @@ export class TokenBucket {
       if (this.available >= next.count) {
         this.available -= next.count;
         this.queue.shift();
+        next.cleanup?.();
         next.resolve();
         continue;
       }
@@ -138,7 +141,10 @@ export class TokenBucket {
    *
    * @param count - Number of tokens to consume (default: 1).
    */
-  async consume(count: number = 1): Promise<void> {
+  async consume(count: number = 1, signal?: AbortSignal): Promise<void> {
+    if (signal?.aborted) {
+      throw new DOMException('The operation was aborted.', 'AbortError');
+    }
     if (this.intervalId === null) {
       throw new Error("TokenBucket has been disposed");
     }
@@ -162,7 +168,18 @@ export class TokenBucket {
 
     // Slow path: enqueue and wait for refill to fulfill the request.
     return new Promise<void>((resolve, reject) => {
-      this.queue.push({ count, resolve, reject });
+      const pending: PendingConsumer = { count, resolve, reject };
+      const abort = (): void => {
+        const index = this.queue.indexOf(pending);
+        if (index < 0) return;
+        this.queue.splice(index, 1);
+        pending.cleanup?.();
+        reject(new DOMException('The operation was aborted.', 'AbortError'));
+        this.drainQueue();
+      };
+      pending.cleanup = () => signal?.removeEventListener('abort', abort);
+      this.queue.push(pending);
+      signal?.addEventListener('abort', abort, { once: true });
       // Node 20 may otherwise exit while this promise is still pending because
       // an unreferenced interval is not considered active event-loop work.
       this.setIntervalReferenced(true);
@@ -228,6 +245,7 @@ export class TokenBucket {
     // Reject all pending consumers in FIFO order.
     while (this.queue.length > 0) {
       const pending = this.queue.shift()!;
+      pending.cleanup?.();
       pending.reject(new Error("TokenBucket has been disposed"));
     }
   }

@@ -125,6 +125,8 @@ export interface ScanRule {
  * Report produced by a static (non-LLM) scan of a package.
  */
 export interface StaticScanReport {
+  /** Identifies scanner implementation and effective rules used for this report. */
+  readonly scannerFingerprint?: string;
   /** Name of the scanned package. */
   readonly packageName: string;
   /** Version of the scanned package. */

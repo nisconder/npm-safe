@@ -8,6 +8,7 @@
  * @module index
  */
 
+import { classifySecurity } from './scanner/security-policy.js';
 import { DatabaseManager } from './store/database.js';
 import { CacheManager } from './store/cache-manager.js';
 import { NpmRegistryClient } from './registry/client.js';
@@ -152,6 +153,8 @@ export interface CheckResult {
 
 /** Options for a single package check. */
 export interface PackageCheckOptions {
+  readonly forceRefresh?: boolean;
+  readonly signal?: AbortSignal;
   /** Exact published version, distribution tag, or semver range (default: latest). */
   readonly version?: string;
   /** Download and inspect the published tarball in addition to metadata. */
@@ -162,6 +165,7 @@ export interface PackageCheckOptions {
  * Options accepted by {@link NpmSafeEngine.checkPackages}.
  */
 export interface BatchCheckOptions {
+  readonly signal?: AbortSignal;
   /**
    * Maximum number of concurrent checks. Every check still consumes one
    * token from the rate limiter.
@@ -237,6 +241,8 @@ export class NpmSafeEngine {
   private readonly llmConfig: LlmConfigManager;
   /** Optional semantic security scanner. */
   private llmProvider?: LlmScanProvider;
+  private readonly rulesReady: Promise<number>;
+  private autoRefreshGeneration = 0;
 
   /**
    * @param options - Optional configuration overrides; see
@@ -268,7 +274,7 @@ export class NpmSafeEngine {
       this.analyzer,
       () => this.llmProvider,
     );
-    void this.loadRulePlugins(options?.rulesDir);
+    this.rulesReady = this.loadRulePlugins(options?.rulesDir);
   }
 
   // --------------------------------------------------------------------------
@@ -291,8 +297,11 @@ export class NpmSafeEngine {
     name: string,
     options: PackageCheckOptions = {},
   ): Promise<CheckResult> {
-    // 1. Try the cache first.
-    const cached = await this.cache.getPackage(name);
+    options.signal?.throwIfAborted();
+    await this.rulesReady;
+    options.signal?.throwIfAborted();
+    // Try cached reports only under the current scanner/rule identity.
+    const cached = options.forceRefresh ? null : await this.cache.getPackage(name);
     let cachedVersion: string | undefined;
     if (cached !== null) {
       try {
@@ -307,13 +316,13 @@ export class NpmSafeEngine {
         name,
         latestVersion,
       );
-      if (!staticScan || (options.deep && !staticScan.contentScan)) {
-        staticScan = await this.createStaticReport(cached, latestVersion, options.deep ?? false);
+      if (!staticScan || !this.analyzer.canReuseReports() || staticScan.scannerFingerprint !== this.analyzer.getFingerprint() || (options.deep && !staticScan.contentScan)) {
+        staticScan = await this.createStaticReport(cached, latestVersion, !!options.deep || !!staticScan?.contentScan, options.signal);
         await this.cache.setSecurityReport(staticScan);
       }
       const llmScan = this.llmProvider
         ? (await this.cache.getLlmScanReport(name, latestVersion)) ??
-          await this.scanWithLlm(cached, latestVersion)
+          await this.scanWithLlm(cached, latestVersion, options.signal)
         : undefined;
 
       return this.buildCheckResult(
@@ -333,18 +342,19 @@ export class NpmSafeEngine {
 
     // 2. Cache miss or stale — fetch from the registry.
     try {
-      const meta = await this.client.getPackageMetadata(name);
+      const meta = await this.client.getPackageMetadata(name, { signal: options.signal });
+      options.signal?.throwIfAborted();
       const latestVersion = resolvePackageVersion(meta, options.version);
 
       // Persist the fresh metadata before running analysis so the cache is
       // updated even if analysis fails downstream.
       await this.cache.setPackage(meta);
 
-      const report = await this.createStaticReport(meta, latestVersion, options.deep ?? false);
+      const report = await this.createStaticReport(meta, latestVersion, options.deep ?? false, options.signal);
 
       await this.cache.setSecurityReport(report);
       const llmScan = this.llmProvider
-        ? await this.scanWithLlm(meta, latestVersion)
+        ? await this.scanWithLlm(meta, latestVersion, options.signal)
         : undefined;
 
       return this.buildCheckResult(
@@ -383,6 +393,7 @@ export class NpmSafeEngine {
    * installation risk card. This never installs the plugin.
    */
   async assessInstallRisk(input: string, profile = 'web'): Promise<InstallRiskAssessment> {
+    await this.rulesReady;
     const source = parsePluginSource(input);
     const currentDshToolsVersion = await this.getCurrentDshToolsVersion();
 
@@ -464,8 +475,8 @@ export class NpmSafeEngine {
    * @param size - Maximum number of results to return. Defaults to `20`.
    * @returns An array of search-result hits, ordered by relevance.
    */
-  async searchPackages(query: string, size?: number): Promise<SearchResult[]> {
-    return this.client.searchPackages(query, size);
+  async searchPackages(query: string, size?: number, signal?: AbortSignal): Promise<SearchResult[]> {
+    return this.client.searchPackages(query, size, signal);
   }
 
   /**
@@ -485,6 +496,7 @@ export class NpmSafeEngine {
     names: readonly string[],
     options?: BatchCheckOptions,
   ): Promise<BatchPackageResult[]> {
+    options?.signal?.throwIfAborted();
     const concurrency = Math.max(
       1,
       Math.min(options?.concurrency ?? 5, names.length || 1),
@@ -495,17 +507,19 @@ export class NpmSafeEngine {
 
     const worker = async (): Promise<void> => {
       for (;;) {
+        options?.signal?.throwIfAborted();
         const index = next++;
         if (index >= names.length) return;
         const name = names[index];
         try {
-          await this.limiter.consume(1);
-          const result = await this.checkPackage(name, { deep: options?.deep });
+          await this.limiter.consume(1, options?.signal);
+          const result = await this.checkPackage(name, { deep: options?.deep, signal: options?.signal });
           const entry: BatchPackageResult = { name, ok: true, result };
           results[index] = entry;
           done++;
           options?.onProgress?.(done, names.length, entry);
         } catch (error) {
+          options?.signal?.throwIfAborted();
           const entry: BatchPackageResult = {
             name,
             ok: false,
@@ -570,8 +584,9 @@ export class NpmSafeEngine {
    *
    * @param name - Fully-qualified package name to refresh.
    */
-  async refreshPackage(name: string): Promise<boolean> {
-    return this.scheduler.refreshPackage(name);
+  async refreshPackage(name: string, options?: { signal?: AbortSignal }): Promise<boolean> {
+    await this.rulesReady;
+    return this.scheduler.refreshPackage(name, options);
   }
 
   /**
@@ -579,8 +594,9 @@ export class NpmSafeEngine {
    *
    * Packages are processed sequentially so the rate limiter is respected.
    */
-  async refreshAll(): Promise<boolean> {
-    return this.scheduler.refreshAll();
+  async refreshAll(options?: { signal?: AbortSignal }): Promise<boolean> {
+    await this.rulesReady;
+    return this.scheduler.refreshAll(options);
   }
 
   // --------------------------------------------------------------------------
@@ -830,7 +846,11 @@ export class NpmSafeEngine {
    *   Defaults to 1 hour.
    */
   startAutoRefresh(intervalMs?: number): void {
-    this.scheduler.start(intervalMs);
+    const generation = ++this.autoRefreshGeneration;
+    this.scheduler.stop();
+    void this.rulesReady.then(() => {
+      if (generation === this.autoRefreshGeneration) this.scheduler.start(intervalMs);
+    });
   }
 
   /**
@@ -840,6 +860,7 @@ export class NpmSafeEngine {
    * continues to completion.
    */
   stopAutoRefresh(): void {
+    this.autoRefreshGeneration++;
     this.scheduler.stop();
   }
 
@@ -855,7 +876,7 @@ export class NpmSafeEngine {
    * instance must not be used for further operations.
    */
   close(): void {
-    this.scheduler.stop();
+    this.stopAutoRefresh();
     this.limiter.dispose();
     this.database.close();
   }
@@ -899,7 +920,11 @@ export class NpmSafeEngine {
       exists,
       latestVersion,
       security: {
-        overallLevel: scoreToSecurityLevel(overallScore),
+        overallLevel: staticScan ? classifySecurity(
+          overallScore,
+          [...staticScan.findings, ...(llmScan?.enabled ? llmScan.findings ?? [] : [])],
+          !staticScan.contentScan || staticScan.contentScan.status === 'complete',
+        ) : SecurityLevel.Unknown,
         overallScore,
         staticScan,
         llmScan,
@@ -914,12 +939,13 @@ export class NpmSafeEngine {
     meta: PackageMetadata,
     version: string,
     deep: boolean,
+    signal?: AbortSignal,
   ): Promise<StaticScanReport> {
     const manifest = meta.versions[version];
     const packageJson: Record<string, unknown> | undefined = manifest
       ? ({ ...manifest } as unknown as Record<string, unknown>)
       : undefined;
-    const content = deep ? await this.scanPackageContent(manifest) : undefined;
+    const content = deep ? await this.scanPackageContent(manifest, signal) : undefined;
     return this.analyzer.analyze(
       meta.readme ?? '',
       packageJson,
@@ -931,6 +957,7 @@ export class NpmSafeEngine {
   /** Download and inspect a tarball without letting failures hide the package report. */
   private async scanPackageContent(
     manifest: AbbreviatedVersion | undefined,
+    signal?: AbortSignal,
   ): Promise<PackageContentScanResult> {
     const unavailable = (reason: string): PackageContentScanResult => ({
       findings: [{
@@ -958,12 +985,14 @@ export class NpmSafeEngine {
       return unavailable('The registry metadata does not provide a package tarball URL.');
     }
     try {
-      const archive = await this.client.downloadTarball(manifest.dist.tarball);
+      const archive = await this.client.downloadTarball(manifest.dist.tarball, undefined, signal);
+      signal?.throwIfAborted();
       return analyzePackageTarball(archive, {
         integrity: manifest.dist.integrity ?? manifest.integrity,
         shasum: manifest.dist.shasum ?? manifest.shasum,
       });
     } catch {
+      signal?.throwIfAborted();
       return unavailable('The tarball download failed or was refused by the deep-scan safety policy.');
     }
   }
@@ -971,6 +1000,7 @@ export class NpmSafeEngine {
   private async scanWithLlm(
     meta: PackageMetadata,
     version: string,
+    signal?: AbortSignal,
   ): Promise<LlmScanReport> {
     if (!this.llmProvider) {
       return { enabled: false, reason: 'LLM provider is not configured.' };
@@ -978,6 +1008,7 @@ export class NpmSafeEngine {
     const manifest = meta.versions[version];
     try {
       const report = await this.llmProvider.scan({
+        signal,
         packageName: meta.name,
         version,
         description: meta.description ?? '',
@@ -987,6 +1018,7 @@ export class NpmSafeEngine {
       await this.cache.setLlmScanReport(meta.name, version, report);
       return report;
     } catch (error) {
+      signal?.throwIfAborted();
       const report: LlmScanReport = {
         enabled: false,
         reason: error instanceof Error ? error.message : String(error),
@@ -1165,14 +1197,7 @@ function combineScores(
 ): number {
   if (!staticScan) return 0;
   if (!llmScan?.enabled) return staticScan.score;
-  return Math.round(staticScan.score * 0.6 + (100 - (llmScan.suspiciousScore ?? 0)) * 0.4);
-}
-
-function scoreToSecurityLevel(score: number): SecurityLevel {
-  if (score >= 80) return SecurityLevel.Safe;
-  if (score >= 50) return SecurityLevel.Suspicious;
-  if (score >= 20) return SecurityLevel.Dangerous;
-  return SecurityLevel.Unknown;
+  return Math.min(staticScan.score, Math.round(staticScan.score * 0.6 + (100 - (llmScan.suspiciousScore ?? 0)) * 0.4));
 }
 
 export { createLlmProvider, LlmProviderError } from './llm/provider.js';
@@ -1220,3 +1245,8 @@ export type { ContentScanSummary, ScanFinding, StaticScanReport } from './scanne
 export { DatabaseManager } from './store/database.js';
 export { CacheManager, DEFAULT_CACHE_TTL_MS, MAX_CHECK_HISTORY } from './store/cache-manager.js';
 export type { CacheManagerOptions } from './store/cache-manager.js';
+
+export { readProjectDependencies } from './project-dependencies.js';
+export type { ProjectDependency } from './project-dependencies.js';
+export { classifySecurity, shouldFailCi, SECURITY_LEVEL_RANK } from './scanner/security-policy.js';
+export { SecurityLevel, Severity, FindingCategory } from './scanner/types.js';

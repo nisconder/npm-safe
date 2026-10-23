@@ -130,14 +130,25 @@ interface SearchResponse {
 }
 
 /**
- * Sleep for the given number of milliseconds. Resolves once the timer
- * elapses; never rejects.
+ * Wait before a retry; an external abort interrupts the delay.
  *
  * @param ms - Duration to sleep in milliseconds.
  * @returns A promise that resolves after the delay.
  */
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const abort = (): void => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', abort);
+      reject(new DOMException('The operation was aborted.', 'AbortError'));
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', abort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted) abort();
+  });
 }
 
 /** A non-retryable download refusal caused by a local safety policy. */
@@ -279,8 +290,14 @@ export class NpmRegistryClient {
    * @throws {NpmRegistryError} When the request fails after all retries or
    *   the registry returns a non-2xx status.
    */
-  async getPackageMetadata(name: string): Promise<PackageMetadata> {
-    return this.request<PackageMetadata>(`${this.baseUrl}/${encodeName(name)}`);
+  async getPackageMetadata(
+    name: string,
+    options?: { readonly signal?: AbortSignal },
+  ): Promise<PackageMetadata> {
+    return this.request<PackageMetadata>(
+      `${this.baseUrl}/${encodeName(name)}`,
+      undefined, undefined, undefined, undefined, options?.signal,
+    );
   }
 
   /**
@@ -298,9 +315,11 @@ export class NpmRegistryClient {
   async getVersionManifest(
     name: string,
     version: string,
+    options?: { readonly signal?: AbortSignal },
   ): Promise<AbbreviatedVersion> {
     return this.request<AbbreviatedVersion>(
       `${this.baseUrl}/${encodeName(name)}/${encodeURIComponent(version)}`,
+      undefined, undefined, undefined, undefined, options?.signal,
     );
   }
 
@@ -320,11 +339,14 @@ export class NpmRegistryClient {
   async searchPackages(
     query: string,
     size: number = 20,
+    signal?: AbortSignal,
   ): Promise<SearchResult[]> {
     const url = `${this.baseUrl}/-/v1/search?text=${encodeURIComponent(
       query,
     )}&size=${encodeURIComponent(String(size))}`;
-    const body = await this.request<SearchResponse>(url);
+    const body = await this.request<SearchResponse>(
+      url, undefined, undefined, undefined, undefined, signal,
+    );
     // Normalise the raw response into the public SearchResult shape. The
     // registry omits `searchScore` on some responses, so default to the
     // final score when absent.
@@ -346,6 +368,7 @@ export class NpmRegistryClient {
   async downloadTarball(
     tarballUrl: string,
     maxBytes = DEFAULT_MAX_TARBALL_BYTES,
+    signal?: AbortSignal,
   ): Promise<Buffer> {
     let target: URL;
     let registry: URL;
@@ -370,6 +393,7 @@ export class NpmRegistryClient {
       'application/octet-stream',
       'identity',
       'error',
+      signal,
     );
   }
 
@@ -398,13 +422,17 @@ export class NpmRegistryClient {
     accept = 'application/json',
     acceptEncoding = 'gzip, deflate',
     redirect: RequestRedirect = 'follow',
+    signal?: AbortSignal,
   ): Promise<T> {
     let lastError: unknown = null;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      if (signal?.aborted) {
+        throw new DOMException('The operation was aborted.', 'AbortError');
+      }
       // Back off before every retry (skip on the first attempt).
       if (attempt > 1) {
-        await sleep(RETRY_BACKOFF_MS[attempt - 2]!);
+        await sleep(RETRY_BACKOFF_MS[attempt - 2]!, signal);
       }
 
       const controller = new AbortController();
@@ -422,7 +450,9 @@ export class NpmRegistryClient {
             'Accept-Encoding': acceptEncoding,
             'User-Agent': this.userAgent,
           },
-          signal: controller.signal,
+          signal: signal
+            ? AbortSignal.any([controller.signal, signal])
+            : controller.signal,
           redirect,
         };
         if (dispatcher) {
@@ -448,6 +478,9 @@ export class NpmRegistryClient {
 
         return await parse(response);
       } catch (error) {
+        if (signal?.aborted) {
+          throw new DOMException('The operation was aborted.', 'AbortError');
+        }
         if (error instanceof RegistryPolicyError) throw error;
         // An abort triggered by our own timeout is surfaced as an
         // NpmRegistryError so callers see a consistent error type.

@@ -1,20 +1,15 @@
 import { Command } from "commander";
-import fs from "node:fs";
-import path from "node:path";
+import { readProjectDependencies, type ProjectDependency } from "../project-dependencies.js";
+import { SECURITY_LEVEL_RANK, shouldFailCi } from "../scanner/security-policy.js";
 
-import { SecurityLevel } from "../scanner/types.js";
+import { SecurityLevel, Severity } from "../scanner/types.js";
 import { createEngine } from "./shared.js";
 import { t } from "./i18n.js";
 
 /**
  * Severity ordering used for the failure gate: lower rank = more severe.
  */
-const LEVEL_RANK: Readonly<Record<string, number>> = {
-  [SecurityLevel.Dangerous]: 1,
-  [SecurityLevel.Unknown]: 2,
-  [SecurityLevel.Suspicious]: 3,
-  [SecurityLevel.Safe]: 4,
-};
+const LEVEL_RANK = SECURITY_LEVEL_RANK;
 
 const LEVEL_ORDER: readonly string[] = [
   SecurityLevel.Safe,
@@ -22,10 +17,6 @@ const LEVEL_ORDER: readonly string[] = [
   SecurityLevel.Dangerous,
   SecurityLevel.Unknown,
 ];
-
-interface Dependency {
-  readonly name: string;
-}
 
 interface PackageResult {
   readonly name: string;
@@ -49,101 +40,13 @@ interface CiReport {
   readonly packages: readonly PackageResult[];
 }
 
-/** Read direct dependencies (and optionally devDependencies) from a manifest. */
-function readDependencies(
-  dir: string,
-  includeDev: boolean,
-): Dependency[] {
-  const manifestPath = path.join(dir, "package.json");
-  let manifest: Record<string, unknown>;
-  try {
-    manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as Record<string, unknown>;
-  } catch {
-    throw new Error(t("ci.noManifest", { dir }));
-  }
-  const names = new Set<string>();
-  for (const key of ["dependencies", ...(includeDev ? ["devDependencies"] : [])]) {
-    const section = manifest[key];
-    if (section && typeof section === "object") {
-      for (const name of Object.keys(section as Record<string, unknown>)) {
-        if (name !== "optionalDependencies") names.add(name);
-      }
-    }
-  }
-  return [...names].map((name) => ({ name }));
-}
-
-/**
- * Read every package (including transitive dependencies) from a
- * `package-lock.json` (npm lockfile v2/v3 `packages` map, with a fallback to
- * the v1 `dependencies` tree). Direct deps can be filtered to those also
- * present in `package.json` when `includeDev` is set accordingly.
- */
-function readLockfileDependencies(
-  dir: string,
-  includeDev: boolean,
-): Dependency[] {
-  const lockPath = path.join(dir, "package-lock.json");
-  let lock: Record<string, unknown>;
-  try {
-    lock = JSON.parse(fs.readFileSync(lockPath, "utf8")) as Record<string, unknown>;
-  } catch {
-    throw new Error(t("ci.noLockfile", { dir }));
-  }
-
-  const names = new Set<string>();
-  const packages = lock.packages;
-  if (packages && typeof packages === "object") {
-    for (const key of Object.keys(packages as Record<string, unknown>)) {
-      if (key === "") continue; // root project entry
-      // "node_modules/a" -> "a"; "node_modules/@scope/c" -> "@scope/c";
-      // "node_modules/a/node_modules/d" -> "d" (the innermost package).
-      const stripped = key.replace(/^node_modules\//, "");
-      const parts = stripped.split("/node_modules/");
-      const name = parts[parts.length - 1];
-      if (name.length > 0) names.add(name);
-    }
-  }
-
-  // npm lockfile v1 fallback: nested dependencies tree.
-  const collect = (section: unknown): void => {
-    if (!section || typeof section !== "object") return;
-    for (const [name, entry] of Object.entries(section as Record<string, unknown>)) {
-      if (name === "optionalDependencies") continue;
-      names.add(name);
-      if (entry && typeof entry === "object") {
-        collect((entry as Record<string, unknown>).dependencies);
-      }
-    }
-  };
-  collect(lock.dependencies);
-
-  if (!includeDev) {
-    // --prod: restrict to the direct dependencies declared in package.json.
-    const manifestPath = path.join(dir, "package.json");
-    try {
-      const manifest = JSON.parse(
-        fs.readFileSync(manifestPath, "utf8"),
-      ) as Record<string, unknown>;
-      const prod = new Set<string>(
-        Object.keys((manifest.dependencies as Record<string, unknown>) ?? {}),
-      );
-      return [...names].filter((name) => prod.has(name)).map((name) => ({ name }));
-    } catch {
-      // No package.json — fall through to the full lockfile set.
-    }
-  }
-
-  return [...names].map((name) => ({ name }));
-}
-
 export function registerCiCommand(program: Command): void {
   program
     .command("ci")
     .description("Scan a project's dependencies and fail the build on severe findings")
     .option("-d, --dir <path>", "Project directory containing package.json (default: current directory)")
     .option("-j, --json", "Output raw JSON report")
-    .option("--prod", "Only scan `dependencies` (skip devDependencies)")
+    .option("--prod", "Scan production dependencies (including their transitive tree with --lockfile)")
     .option("--lockfile", "Scan every dependency in package-lock.json (including transitive)")
     .option("--deep", "Download and inspect each published package tarball")
     .option("--fail-level <level>", `Fail when any dependency reaches this level (${LEVEL_ORDER.join(" / ")}, default: dangerous)`)
@@ -151,8 +54,8 @@ export function registerCiCommand(program: Command): void {
     .action(async (options: { dir?: string; json?: boolean; prod?: boolean; lockfile?: boolean; deep?: boolean; failLevel?: string; rateLimit?: string }) => {
       const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
       const dir = options.dir ?? process.cwd();
-      const failLevel = options.failLevel ?? SecurityLevel.Dangerous;
-      if (!LEVEL_RANK[failLevel]) {
+      const failLevel = (options.failLevel ?? SecurityLevel.Dangerous) as SecurityLevel;
+      if (!Object.hasOwn(LEVEL_RANK, failLevel)) {
         console.error(t("ci.unknownLevel", { level: failLevel, supported: LEVEL_ORDER.join(" / ") }));
         process.exitCode = 1;
         return;
@@ -164,11 +67,9 @@ export function registerCiCommand(program: Command): void {
         return;
       }
 
-      let deps: Dependency[];
+      let deps: ProjectDependency[];
       try {
-        deps = options.lockfile
-          ? readLockfileDependencies(dir, !options.prod)
-          : readDependencies(dir, !options.prod);
+        deps = readProjectDependencies(dir, { lockfile: options.lockfile, prod: options.prod });
       } catch (err) {
         console.error(err instanceof Error ? err.message : String(err));
         process.exitCode = 1;
@@ -196,6 +97,7 @@ export function registerCiCommand(program: Command): void {
 
       const engine = await createEngine(opts.db, opts.proxy, { rateLimit });
       const results: PackageResult[] = [];
+      let criticalDetected = false;
       const summary: Record<string, number> = {
         safe: 0,
         suspicious: 0,
@@ -208,12 +110,12 @@ export function registerCiCommand(program: Command): void {
       try {
         for (const dep of deps) {
           try {
-            const result = await engine.checkPackage(dep.name, { deep: options.deep });
+            const result = await engine.checkPackage(dep.name, { version: dep.version, deep: options.deep });
             if (!result.exists) {
               results.push({
                 name: dep.name,
                 exists: false,
-                version: "",
+                version: dep.version ?? "",
                 level: SecurityLevel.Unknown,
                 score: 0,
                 findingCount: 0,
@@ -222,7 +124,14 @@ export function registerCiCommand(program: Command): void {
               summary.unknown++;
               continue;
             }
+            if (dep.version && result.latestVersion !== dep.version) {
+              throw new Error(`Version mismatch: requested ${dep.name}@${dep.version}, scanned ${result.latestVersion}.`);
+            }
             const level = result.security.overallLevel;
+            criticalDetected ||= [
+              ...(result.security.staticScan?.findings ?? []),
+              ...(result.security.llmScan?.enabled ? result.security.llmScan.findings ?? [] : []),
+            ].some((finding) => finding.severity === Severity.Critical);
             const deepScanStatus = result.security.staticScan?.contentScan?.status;
             results.push({
               name: dep.name,
@@ -240,7 +149,7 @@ export function registerCiCommand(program: Command): void {
             results.push({
               name: dep.name,
               exists: false,
-              version: "",
+              version: dep.version ?? "",
               level: SecurityLevel.Unknown,
               score: 0,
               findingCount: 0,
@@ -253,12 +162,12 @@ export function registerCiCommand(program: Command): void {
         engine.close();
       }
 
-      const failRank = LEVEL_RANK[failLevel];
       const failed =
+        criticalDetected ||
         summary.errors > 0 ||
         summary.deepIncomplete > 0 ||
         results.some(
-          (r) => r.exists && LEVEL_RANK[r.level] !== undefined && LEVEL_RANK[r.level] <= failRank,
+          (r) => !r.exists || shouldFailCi(r.level as SecurityLevel, failLevel),
         );
 
       try {

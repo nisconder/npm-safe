@@ -70,13 +70,16 @@ export class AnthropicLlmProvider implements LlmScanProvider {
       readme: input.readme.slice(0, this.maxInputChars),
       packageJson: packageJsonStr,
     });
-    const payload = await this.request({
-      model: this.model,
-      max_tokens: this.maxTokens,
-      temperature: 0,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content }],
-    });
+    const payload = await this.request(
+      {
+        model: this.model,
+        max_tokens: this.maxTokens,
+        temperature: 0,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content }],
+      },
+      input.signal,
+    );
     const parsed = parseJsonObject(payload);
     return buildReport(parsed, new Date().toISOString());
   }
@@ -96,15 +99,31 @@ export class AnthropicLlmProvider implements LlmScanProvider {
    * Issue a POST to `/v1/messages` with timeout and error normalization.
    *
    * @param body - The JSON request body.
+   * @param signal - Optional external abort signal combined with the owned
+   *   timeout controller via `AbortSignal.any`. An external abort propagates
+   *   as `DOMException('The operation was aborted.', 'AbortError')`.
    * @returns The `content[0].text` string from the response.
    * @throws {LlmProviderError} On network, timeout, HTTP, or shape errors.
+   * @throws {DOMException} With name `AbortError` when `signal` is aborted.
    */
-  private async request(body: Record<string, unknown>): Promise<string> {
+  private async request(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    if (signal?.aborted) {
+      throw new DOMException("The operation was aborted.", "AbortError");
+    }
     if (!this.apiKey) {
       throw new LlmProviderError("LLM provider is not configured.");
     }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    // Combine the owned timeout controller with the external abort signal
+    // so either one aborts the fetch. When no external signal is supplied
+    // the owned controller is used directly.
+    const combinedSignal = signal
+      ? AbortSignal.any([controller.signal, signal])
+      : controller.signal;
     try {
       const response = await fetch(`${this.baseUrl}/v1/messages`, {
         method: "POST",
@@ -114,7 +133,7 @@ export class AnthropicLlmProvider implements LlmScanProvider {
           "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify(body),
-        signal: controller.signal,
+        signal: combinedSignal,
       });
       if (!response.ok) {
         throw new LlmProviderError(
@@ -127,8 +146,16 @@ export class AnthropicLlmProvider implements LlmScanProvider {
       if (!content) throw new LlmProviderError("LLM response contained no content.");
       return content;
     } catch (error) {
+      if (signal?.aborted) {
+        throw new DOMException("The operation was aborted.", "AbortError");
+      }
       if (error instanceof LlmProviderError) throw error;
       if (error instanceof DOMException && error.name === "AbortError") {
+        // An external abort must propagate as AbortError (cooperative
+        // cancellation); the owned timeout is wrapped as LlmProviderError.
+        if (signal?.aborted) {
+          throw new DOMException("The operation was aborted.", "AbortError");
+        }
         throw new LlmProviderError("LLM request timed out.");
       }
       throw new LlmProviderError(

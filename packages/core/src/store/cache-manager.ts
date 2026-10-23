@@ -18,6 +18,7 @@
 
 import Database from "better-sqlite3";
 import { DatabaseManager } from "./database.js";
+import { classifySecurity } from "../scanner/security-policy.js";
 import type { PackageMetadata, PackageRepository } from "../registry/types.js";
 import {
   SecurityLevel,
@@ -83,23 +84,6 @@ interface NameRow {
 interface KeyValueRow {
   readonly key: string;
   readonly value: string;
-}
-
-/**
- * Derives a {@link SecurityLevel} from a numeric static-scan score using the
- * same thresholds as the static analyzer: `>=80` Safe, `>=50` Suspicious,
- * `>=20` Dangerous, otherwise Unknown. The `security_reports` table persists
- * only the numeric score (not the enum), so the level is reconstructed on
- * read to satisfy the {@link StaticScanReport} shape.
- *
- * @param score - Numeric score from 0 to 100 (higher is safer).
- * @returns The security level matching the score band.
- */
-function scoreToLevel(score: number): SecurityLevel {
-  if (score >= 80) return SecurityLevel.Safe;
-  if (score >= 50) return SecurityLevel.Suspicious;
-  if (score >= 20) return SecurityLevel.Dangerous;
-  return SecurityLevel.Unknown;
 }
 
 /**
@@ -202,9 +186,8 @@ export class CacheManager {
 
   /**
    * Returns the most recent static security report for `pkg`@`version`, or
-   * `null` if none is cached. The {@link SecurityLevel} is reconstructed from
-   * the persisted numeric score because the `security_reports` table stores
-   * only the score, not the enum.
+   * `null` if none is cached. The level is reconstructed with the shared security policy from findings,
+   * score and scan completeness.
    *
    * @param pkg - Fully-qualified package name.
    * @param version - Semver version string.
@@ -230,9 +213,12 @@ export class CacheManager {
       findings = [];
     }
     let contentScan: ContentScanSummary | undefined;
+    let scannerFingerprint: string | undefined;
     if (row.summary) {
       try {
-        const parsed = JSON.parse(row.summary) as Partial<ContentScanSummary>;
+        const details = JSON.parse(row.summary);
+        scannerFingerprint = typeof details?.scannerFingerprint === 'string' ? details.scannerFingerprint : undefined;
+        const parsed = (details?.contentScan ?? details) as Partial<ContentScanSummary>;
         if (
           parsed &&
           (parsed.status === "complete" || parsed.status === "partial" || parsed.status === "failed") &&
@@ -252,7 +238,8 @@ export class CacheManager {
     return {
       packageName: row.package_name,
       version: row.version,
-      overallLevel: scoreToLevel(row.overall_score),
+      overallLevel: classifySecurity(row.overall_score, findings, !contentScan || contentScan.status === 'complete'),
+      scannerFingerprint,
       score: row.overall_score,
       findings,
       contentScan,
@@ -270,7 +257,7 @@ export class CacheManager {
    */
   async setSecurityReport(report: StaticScanReport): Promise<void> {
     const findingsJson = JSON.stringify(report.findings);
-    const summary = report.contentScan ? JSON.stringify(report.contentScan) : "";
+    const summary = JSON.stringify({ contentScan: report.contentScan, scannerFingerprint: report.scannerFingerprint });
     this.db
       .prepare<[string, string, number, string, string, string]>(
         `INSERT INTO security_reports (package_name, version, scan_type, overall_score, findings_json, summary, scanned_at)

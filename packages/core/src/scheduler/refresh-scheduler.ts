@@ -204,18 +204,35 @@ export class RefreshScheduler extends EventEmitter {
    * resolves normally after emitting the error so a failing package does not
    * abort a batch.
    *
+   * **Cooperative cancellation**: when `options.signal` is supplied it is
+   * forwarded to the registry client and the LLM scan. An external abort
+   * propagates as `DOMException('The operation was aborted.', 'AbortError')`
+   * (instead of the usual `false` return) so a caller awaiting refresh can
+   * observe the abort promptly.
+   *
    * @param name - Fully-qualified package name (scope included when scoped).
+   * @param options - Optional refresh options. `options.signal` is an
+   *   external abort signal forwarded to the registry fetch and LLM scan.
    * @returns `true` when the refresh succeeds, or `false` after emitting
-   *   `refresh:error`. Never rejects for per-package refresh failures.
+   *   `refresh:error`. Never rejects for per-package refresh failures —
+   *   only rejects with `AbortError` when `options.signal` is aborted.
    */
-  async refreshPackage(name: string): Promise<boolean> {
+  async refreshPackage(
+    name: string,
+    options?: { readonly signal?: AbortSignal },
+  ): Promise<boolean> {
+    if (options?.signal?.aborted) {
+      throw new DOMException('The operation was aborted.', 'AbortError');
+    }
     this.emit('refresh:start', { packageName: name } satisfies RefreshStartPayload);
 
     try {
       // Gate the registry call through the rate limiter.
-      await this.limiter.consume(1);
+      await this.limiter.consume(1, options?.signal);
 
-      const meta: PackageMetadata = await this.client.getPackageMetadata(name);
+      const meta: PackageMetadata = await this.client.getPackageMetadata(name, {
+        signal: options?.signal,
+      });
 
       // Persist the fresh packument before doing anything else so the
       // cache is updated even if analysis fails downstream.
@@ -239,7 +256,7 @@ export class RefreshScheduler extends EventEmitter {
       await this.cache.setSecurityReport(report);
       const llmProvider = this.getLlmProvider();
       const llmScan = llmProvider
-        ? await this.scanWithLlm(meta, latestVersion)
+        ? await this.scanWithLlm(meta, latestVersion, options?.signal)
         : undefined;
 
       this.emit(
@@ -248,6 +265,12 @@ export class RefreshScheduler extends EventEmitter {
       );
       return true;
     } catch (error) {
+      // An external abort must propagate as AbortError instead of being
+      // swallowed as a per-package failure — the cooperative-cancellation
+      // contract requires the caller to observe the abort promptly.
+      if (options?.signal?.aborted) {
+        throw new DOMException('The operation was aborted.', 'AbortError');
+      }
       // Per-package failures are reported, not thrown, so a batch refresh
       // continues with the remaining packages.
       this.emit(
@@ -259,33 +282,40 @@ export class RefreshScheduler extends EventEmitter {
   }
 
   private async scanWithLlm(
-  meta: PackageMetadata,
-  version: string,
+    meta: PackageMetadata,
+    version: string,
+    signal?: AbortSignal,
   ): Promise<LlmScanReport> {
-  const provider = this.getLlmProvider();
-  if (!provider) {
-    return { enabled: false, reason: 'LLM provider is not configured.' };
-  }
-  try {
-    const manifest = meta.versions[version];
-    const report = await provider.scan({
-      packageName: meta.name,
-      version,
-      description: meta.description ?? '',
-      readme: meta.readme ?? '',
-      packageJson: manifest ? { ...manifest } as Record<string, unknown> : undefined,
-    });
-    await this.cache.setLlmScanReport(meta.name, version, report);
-    return report;
-  } catch (error) {
-    const report: LlmScanReport = {
-      enabled: false,
-      reason: error instanceof Error ? error.message : String(error),
-      scannedAt: new Date().toISOString(),
-    };
-    await this.cache.setLlmScanReport(meta.name, version, report);
-    return report;
-  }
+    const provider = this.getLlmProvider();
+    if (!provider) {
+      return { enabled: false, reason: 'LLM provider is not configured.' };
+    }
+    try {
+      const manifest = meta.versions[version];
+      const report = await provider.scan({
+        packageName: meta.name,
+        version,
+        description: meta.description ?? '',
+        readme: meta.readme ?? '',
+        packageJson: manifest ? { ...manifest } as Record<string, unknown> : undefined,
+        signal,
+      });
+      await this.cache.setLlmScanReport(meta.name, version, report);
+      return report;
+    } catch (error) {
+      // An external abort must propagate as AbortError so the caller
+      // settles promptly (cooperative cancellation).
+      if (signal?.aborted) {
+        throw new DOMException('The operation was aborted.', 'AbortError');
+      }
+      const report: LlmScanReport = {
+        enabled: false,
+        reason: error instanceof Error ? error.message : String(error),
+        scannedAt: new Date().toISOString(),
+      };
+      await this.cache.setLlmScanReport(meta.name, version, report);
+      return report;
+    }
   }
 
   /**
@@ -296,14 +326,34 @@ export class RefreshScheduler extends EventEmitter {
    * package's outcome is surfaced via the `refresh:complete` / `refresh:error`
    * events emitted by {@link RefreshScheduler.refreshPackage}.
    *
+   * **Cooperative cancellation**: when `options.signal` is supplied, the top
+   * of each loop iteration checks `signal.aborted` and throws
+   * `DOMException('The operation was aborted.', 'AbortError')` so a
+   * mid-batch abort settles promptly instead of continuing to iterate.
+   *
+   * @param options - Optional refresh options. `options.signal` is an
+   *   external abort signal forwarded to each per-package refresh.
    * @returns `true` when every stale package refresh succeeds, otherwise
-   *   `false` after all stale packages have been attempted.
+   *   `false` after all stale packages have been attempted. Rejects with
+   *   `AbortError` when `options.signal` is aborted.
    */
-  async refreshAll(): Promise<boolean> {
+  async refreshAll(
+    options?: { readonly signal?: AbortSignal },
+  ): Promise<boolean> {
+    if (options?.signal?.aborted) {
+      throw new DOMException('The operation was aborted.', 'AbortError');
+    }
     const stale = await this.cache.getStalePackages();
     let allSucceeded = true;
     for (const name of stale) {
-      const succeeded = await this.refreshPackage(name);
+      // Short-circuit at the top of each iteration so an aborted batch
+      // settles promptly (cooperative cancellation).
+      if (options?.signal?.aborted) {
+        throw new DOMException('The operation was aborted.', 'AbortError');
+      }
+      const succeeded = await this.refreshPackage(name, {
+        signal: options?.signal,
+      });
       allSucceeded = allSucceeded && succeeded;
     }
     return allSucceeded;

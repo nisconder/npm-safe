@@ -5,6 +5,8 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { StaticAnalyzer } from "../src/scanner/static-rules.js";
+import { RuleConfigManager } from "../src/scanner/rule-config.js";
 import { CacheManager } from "../src/store/cache-manager.js";
 import { DatabaseManager } from "../src/store/database.js";
 import { SecurityLevel } from "../src/scanner/types.js";
@@ -24,7 +26,7 @@ function runCli(args: string[], homeDir: string, input?: string): { stdout: stri
     void cache.setPackage({ name, modified: new Date().toISOString(), "dist-tags": { latest: version }, versions: {
       [version]: { name, version, dist: { tarball: `https://registry.npmjs.org/${name}/-/${name}-${version}.tgz` } },
     } });
-    void cache.setSecurityReport({ packageName: name, version, score,
+    void cache.setSecurityReport({ scannerFingerprint: new StaticAnalyzer(undefined, new RuleConfigManager(path.join(homeDir, ".npm-safe", "rules.json"))).getFingerprint(), packageName: name, version, score,
       overallLevel: score >= 80 ? SecurityLevel.Safe : SecurityLevel.Suspicious,
       findings: [], scannedAt: new Date().toISOString(),
     });

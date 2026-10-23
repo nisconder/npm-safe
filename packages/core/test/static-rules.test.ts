@@ -669,7 +669,7 @@ describe("StaticAnalyzer scoring", () => {
     const report = analyzer.analyze(readme);
     assert.ok(report.score < 80);
     assert.strictEqual(report.score, 75);
-    assert.strictEqual(report.overallLevel, SecurityLevel.Suspicious);
+    assert.strictEqual(report.overallLevel, SecurityLevel.Dangerous);
   });
 
   it("clamps score to minimum 0", () => {
@@ -686,29 +686,29 @@ describe("StaticAnalyzer scoring", () => {
     `;
     const report = analyzer.analyze(readme, pkg);
     assert.strictEqual(report.score, 0);
-    assert.strictEqual(report.overallLevel, SecurityLevel.Unknown);
+    assert.strictEqual(report.overallLevel, SecurityLevel.Dangerous);
   });
 
-  it("levels: >=80 Safe, >=50 Suspicious, >=20 Dangerous, <20 Unknown", () => {
+  it("critical findings stay dangerous at every score", () => {
     {
       const pkg = { name: "a", version: "1.0.0" };
       const r = analyzer.analyze("", pkg);
       assert.strictEqual(r.overallLevel, SecurityLevel.Safe);
     }
     {
-      // npm token = Critical -> 100-25 = 75 -> Suspicious
+      // npm token = Critical -> 100-25 = 75 -> Dangerous
       const r = analyzer.analyze("npm_abcdefghijklmnopqrstuvwxyz");
-      assert.strictEqual(r.overallLevel, SecurityLevel.Suspicious);
+      assert.strictEqual(r.overallLevel, SecurityLevel.Dangerous);
     }
     {
-      // npm token + AWS key = 2*Critical -> 100-50 = 50 -> Suspicious
+      // npm token + AWS key = 2*Critical -> 100-50 = 50 -> Dangerous
       const r = analyzer.analyze(
         "npm_abcdefghijklmnopqrstuvwxyz\nAKIA1234567890ABCDEF",
       );
-      assert.strictEqual(r.overallLevel, SecurityLevel.Suspicious);
+      assert.strictEqual(r.overallLevel, SecurityLevel.Dangerous);
     }
     {
-      // npm token in README + AWS in README + SSH in README + npm in pkg = 4*Critical -> 100-100=0 → Unknown
+      // npm token in README + AWS in README + SSH in README + npm in pkg = 4*Critical -> 100-100=0 → Dangerous
       const pkg2 = {
         name: "bad",
         description: "npm_abcdefghijklmnopqrstuvwxyz",
@@ -717,7 +717,7 @@ describe("StaticAnalyzer scoring", () => {
         "npm_zxcvbnmasdfghjklqwertyuiopasd\nAKIA1234567890ABCDEF\n-----BEGIN RSA PRIVATE KEY-----\nkeydata\n-----END RSA PRIVATE KEY-----",
         pkg2,
       );
-      assert.strictEqual(r.overallLevel, SecurityLevel.Unknown);
+      assert.strictEqual(r.overallLevel, SecurityLevel.Dangerous);
     }
   });
 

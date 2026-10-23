@@ -375,6 +375,7 @@ npm-safe ci --dir ./packages/core          # default fail level: dangerous
 npm-safe ci --fail-level suspicious        # stricter gate
 npm-safe ci --prod                         # skip devDependencies
 npm-safe ci --lockfile                     # scan all lockfile deps (incl. transitive)
+npm-safe ci --lockfile --prod              # scan the full production dependency tree
 npm-safe ci --lockfile --deep              # inspect tarballs; fail if any deep scan is incomplete
 npm-safe ci --json                         # machine-readable report
 npm-safe ci --rate-limit 50                # registry requests per second
@@ -384,6 +385,25 @@ Exit codes: `0` pass, `1` usage/config error, `2` one or more dependencies
 reached the fail level (or the scan errored). A ready-to-use GitHub Actions
 workflow lives at `.github/workflows/ci.yml`; it runs the test suite, type
 checks, and a dependency security scan on every push/PR.
+
+Lockfile scans check each distinct package name and exact locked version;
+multiple installed versions are checked separately. Production mode follows
+dependencies, optional dependencies and installed peers through the locked
+tree, including nested and hoisted packages. Unsupported local, Git or custom
+registry archives and missing exact versions stop the scan with an error
+instead of substituting the latest public registry package.
+
+Critical findings always block CI, including at a high numerical score.
+Unknown or missing packages and incomplete deep scans also fail closed.
+Adding findings can lower the score to zero without turning established
+danger into an inconclusive result. Static report cache identities include
+the scanner revision, registered rules and effective configuration; changing
+rule enablement, severity or options triggers re-evaluation against cached
+metadata, and repeats a previous deep scan when necessary.
+For external or runtime registered rules, reports are re-evaluated on every
+check because a function's source text cannot identify its closures or imported
+helpers. Fresh package metadata is still reused. Automatic refresh waits for
+configured rule plugins to finish loading before its first scan.
 
 For another repository, copy the minimal workflow from
 [`examples/github-actions/npm-safe.yml`](examples/github-actions/npm-safe.yml).
@@ -674,10 +694,10 @@ npm-safe/
 | **SQLite via better-sqlite3** | Zero-configuration embedded database. WAL mode, `busy_timeout=5000`, `synchronous=NORMAL`, and foreign keys are enabled on open. |
 | **Pure static analysis (no network)** | The scanner inspects only metadata and README text already fetched by the registry client. No external API calls during analysis. |
 | **TokenBucket rate limiter (5 tokens/s, 10 burst)** | Prevents registry throttling. Tokens refill at 5 per second; burst allows up to 10 immediate requests. |
-| **Cache-first `checkPackage` with TTL staleness** | Returns cached results immediately when the TTL has not expired. Stale cache triggers a background refresh. Default TTL is 1 hour. |
+| **Cache-first `checkPackage` with TTL staleness** | Reuses fresh metadata and reports under the current scanner/rule fingerprint. Stale metadata is fetched before returning; changed rules invalidate the report. Default metadata TTL is 1 hour. |
 | **String enums for `SecurityLevel` / `Severity`** | Unlike numeric enums, string enums are safe to log, serialize, and use in `switch` statements without reverse-mapping surprises. |
 | **Score: 100 minus severity weights** | Critical = 25, High = 15, Medium = 8, Low = 3. Starting from 100 ensures an unscored package scores 100 (safe). |
-| **Level thresholds** | `>=80` Safe, `>=50` Suspicious, `>=20` Dangerous, else Unknown. These thresholds are shared between `StaticAnalyzer` and `CacheManager` for consistency. |
+| **Level thresholds** | Critical findings or scores below 50 are Dangerous; otherwise `>=80` Safe and `>=50` Suspicious. Incomplete scans without established danger are Unknown. One shared policy covers live scans, cached reports, the engine and CI. LLM analysis cannot raise a static safety score. |
 
 ---
 

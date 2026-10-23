@@ -8,6 +8,8 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { StaticAnalyzer } from "../src/scanner/static-rules.js";
+import { RuleConfigManager } from "../src/scanner/rule-config.js";
 import { CacheManager } from "../src/store/cache-manager.js";
 import { DatabaseManager } from "../src/store/database.js";
 import { SecurityLevel } from "../src/scanner/types.js";
@@ -121,6 +123,7 @@ process.exitCode = Number(process.env.NPMSAFE_PM_EXIT || '0');
     await cache.setPackage(METADATA);
     for (const [version, score] of [["1.0.0", 25], ["2.0.0", 100]] as const) {
       await cache.setSecurityReport({
+        scannerFingerprint: new StaticAnalyzer(undefined, new RuleConfigManager(path.join(home, ".npm-safe", "rules.json"))).getFingerprint(),
         packageName: METADATA.name,
         version,
         overallLevel: score === 100 ? SecurityLevel.Safe : SecurityLevel.Dangerous,

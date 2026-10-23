@@ -16,6 +16,11 @@ import {
   type ContentScanSummary,
 } from './types.js';
 import { RuleConfigManager } from './rule-config.js';
+import { createHash } from 'node:crypto';
+import { classifySecurity } from './security-policy.js';
+
+// Bump whenever scanner/content semantics change, including policy and limits.
+export const SCANNER_CACHE_VERSION = '2';
 
 /** Severity weights subtracted from the base score (100) per finding. */
 const SEVERITY_WEIGHT: Readonly<Record<Severity, number>> = {
@@ -729,6 +734,8 @@ export interface RuleDescriptor {
  * {@link StaticScanReport}.
  */
 export class StaticAnalyzer {
+  private revision = 0;
+  private reusableReports: boolean;
   private readonly rules: Map<string, ScanRule>;
   private readonly config: RuleConfigManager | null;
 
@@ -738,6 +745,7 @@ export class StaticAnalyzer {
    *   (enabled / severity) are applied at analysis time.
    */
   constructor(rules?: ScanRule[], config?: RuleConfigManager) {
+    this.reusableReports = rules === undefined;
     this.rules = new Map(
       (rules ?? [...BUILTIN_RULES]).map((r) => [r.id, r]),
     );
@@ -751,7 +759,9 @@ export class StaticAnalyzer {
    * @param rule - The rule to register.
    */
   registerRule(rule: ScanRule): void {
+    this.reusableReports = false;
     this.rules.set(rule.id, rule);
+    this.revision++;
   }
 
   /**
@@ -761,7 +771,24 @@ export class StaticAnalyzer {
    * @returns `true` if a rule was removed, `false` if no such rule exists.
    */
   unregisterRule(ruleId: string): boolean {
-    return this.rules.delete(ruleId);
+    const removed = this.rules.delete(ruleId);
+    if (removed) this.revision++;
+    return removed;
+  }
+
+  /** Arbitrary external closures/helpers cannot be safely identified by source text. */
+  canReuseReports(): boolean {
+    return this.reusableReports;
+  }
+
+  /** Cache identity includes rule code, overrides, options and runtime replacement. */
+  getFingerprint(): string {
+    return createHash('sha256').update(JSON.stringify({
+      version: SCANNER_CACHE_VERSION,
+      revision: this.revision,
+      rules: [...this.rules.values()].map((rule) => ({ ...rule, match: rule.match.toString() })),
+      config: this.config?.getConfiguredRuleIds().sort().map((id) => [id, this.config!.getRule(id)]),
+    })).digest('hex');
   }
 
   /**
@@ -794,8 +821,8 @@ export class StaticAnalyzer {
    * Scoring starts at 100 and subtracts a per-finding weight based on severity:
    * critical=-25, high=-15, medium=-8, low=-3. The score is clamped to [0, 100].
    *
-   * Overall level: score >= 80 → Safe, >= 50 → Suspicious, >= 20 → Dangerous,
-   * else Unknown.
+   * Critical findings or scores below 50 are Dangerous. Incomplete scans
+   * without established danger are Unknown; lower scores never reduce risk.
    *
    * @param readme - README content as a string (may be empty).
    * @param packageJson - Parsed package.json, if available.
@@ -838,7 +865,7 @@ export class StaticAnalyzer {
     }
     score = Math.max(MIN_SCORE, Math.min(MAX_SCORE, score));
 
-    const overallLevel = this.levelFromScore(score);
+    const overallLevel = classifySecurity(score, findings, !contentScan || contentScan.status === 'complete');
 
     const packageName =
       readStringField(packageJson, 'name') ?? '<unknown>';
@@ -846,6 +873,7 @@ export class StaticAnalyzer {
       readStringField(packageJson, 'version') ?? '0.0.0';
 
     return {
+      scannerFingerprint: this.getFingerprint(),
       packageName,
       version,
       overallLevel,
@@ -856,16 +884,4 @@ export class StaticAnalyzer {
     };
   }
 
-  /**
-   * Map a numeric score to a {@link SecurityLevel}.
-   *
-   * @param score - Clamped score in [0, 100].
-   * @returns The corresponding security level.
-   */
-  private levelFromScore(score: number): SecurityLevel {
-    if (score >= 80) return SecurityLevel.Safe;
-    if (score >= 50) return SecurityLevel.Suspicious;
-    if (score >= 20) return SecurityLevel.Dangerous;
-    return SecurityLevel.Unknown;
-  }
 }
