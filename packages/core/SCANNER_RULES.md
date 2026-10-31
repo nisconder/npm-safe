@@ -7,7 +7,7 @@ that report with bounded inspection of the published package tarball. Neither
 mode uses LLM inference or executes package code.
 
 The 10 metadata rules are defined in `src/scanner/static-rules.ts` and exported
-via `BUILTIN_RULES`. Twelve content rule descriptors are exported from
+via `BUILTIN_RULES`. Fourteen content rule descriptors are exported from
 `src/scanner/package-content.ts` via `CONTENT_SCAN_RULES`.
 
 ---
@@ -33,12 +33,18 @@ package.
 
 **Security levels:**
 
-| Score Range | Level |
-|-------------|-------|
-| 80 or above | Safe |
-| 50 or above | Suspicious |
-| 20 or above | Dangerous |
-| Below 20 | Unknown |
+| Condition, evaluated in order | Level |
+|-------------------------------|-------|
+| Any Critical finding, or score below 50 | Dangerous |
+| Otherwise, incomplete content inspection or a non-finite score | Unknown |
+| Otherwise, score 80 or above | Safe |
+| Otherwise, score 50–79 | Suspicious |
+
+`classifySecurity` in `src/scanner/security-policy.ts` is shared by live scans,
+cached reports, the engine and CI. Established danger takes precedence over
+incompleteness: a Critical finding remains Dangerous even in a partial scan.
+An inconclusive result fails CI closed. Historical evaluation reports retain
+the policy and scanner identity recorded when they were produced.
 
 ---
 
@@ -48,8 +54,8 @@ package.
 |---|---------|----------|----------|-------------|-----------------|
 | 1 | `install-script` | `install-script` | Medium–Critical | `scripts.install`, `scripts.preinstall`, `scripts.postinstall` in package.json | Reports every install-time script; escalates remote downloads, process execution, encoded payloads, shell pipelines, and raw-IP fetches |
 | 2 | `eval-obfuscation` | `code-obfuscation` | High | README content | `EVAL_FUNCTION_PATTERN` (eval/Function) and `ENCODED_STRING_PATTERN` (hex/unicode escapes) both present |
-| 3 | `base64-shell` | `code-obfuscation` | High | README content | `BASE64_BLOB_PATTERN` (40+ base64 chars) and `SHELL_KEYWORD_PATTERN` (sh, bash, curl, wget, nc, ncat, python, perl, ruby, powershell) both present |
-| 4 | `binary-links` | `binary-download` | Medium | README content | `BINARY_LINK_PATTERN` -- markdown URLs ending in `.exe`, `.sh`, `.bat`, `.ps1`, `.cmd`, `.com`, `.scr`, `.msi` |
+| 3 | `base64-shell` | `code-obfuscation` | High | README content | A bounded literal base64 decode-to-interpreter command or encoded PowerShell command; unrelated URL/data text does not supply execution evidence |
+| 4 | `binary-links` | `binary-download` | Medium | README content | Parsed HTTP(S) pathname ends in `.exe`, `.sh`, `.bat`, `.ps1`, `.cmd`, `.scr`, or `.msi`; domains, queries and fragments do not supply the suffix |
 | 5 | `typosquatting` | `typosquatting` | High | `packageJson.name` | Levenshtein edit distance <= 2 between the unscoped package name and any of 20 `POPULAR_PACKAGES`; exact match excluded; name must be at least 3 characters |
 | 6 | `secret-exposure` | `sensitive-exposure` | Critical | README and package.json string values | Any of `NPM_TOKEN_PATTERN` (npm_ + 20+ alphanumeric), `AWS_KEY_PATTERN` (AKIA + 16 uppercase alphanumeric), `SSH_KEY_PATTERN` (-----BEGIN...PRIVATE KEY-----) |
 | 7 | `child-process-browser` | `suspicious-dependency` | High | package.json and README | `browser` field present in package.json OR name hints at frontend (react/vue/angular/svelte/solid/frontend/client/browser/dom/ui) AND `CHILD_PROCESS_PATTERN` found in README or scripts |
@@ -72,10 +78,12 @@ or `engine.checkPackage(name, { deep: true })`.
 | `content-archive-link` | High | A symbolic or hard link, including PAX/GNU long links, targets an escaping path. |
 | `content-native-binary` | Low | The archive contains `.node`, `.dll`, `.so`, `.dylib`, `.exe`, `.wasm`, or `.bin` content. |
 | `content-remote-shell` | Critical | Remote content is piped or passed directly to a shell/interpreter. |
-| `content-obfuscated-exec` | High | A long encoded payload appears with `eval`/`Function` dynamic execution. |
-| `content-network-exec` | High | One published file combines network access with child-process capability. |
+| `content-obfuscated-exec` | High | An encoded-payload signal appears with a case-sensitive `eval`/`Function` call; JavaScript comments and quoted examples do not supply the call. |
+| `content-network-exec` | High | A bounded local flow connects fetch response text to a child-process command or explicit shell `-c` input. |
 | `content-process-exec` | Medium | Non-test runtime source imports or invokes Node child-process functionality. |
 | `content-sensitive-network` | High | One file reads sensitive environment values and performs network access. |
+| `content-concealed-native-exec` | High | Quoted string concatenation or escapes conceal a child-process native-loader call with a DLL entry point. |
+| `content-browser-interception` | Critical | Source replaces global fetch with response reconstruction, replaces XHR methods, and contains executable Ethereum and Bitcoin address-matching regexes. |
 | `content-scan-incomplete` | Medium | A resource limit prevents complete content inspection. |
 | `content-scan-unavailable` | Medium | The tarball is missing, refused by origin policy, or cannot be downloaded. |
 
@@ -88,8 +96,44 @@ large package from overwhelming the score. A `ContentScanSummary` records
 the partial/failure reason.
 
 Deep rules honor the same enable/disable and severity overrides as metadata
-rules and appear in `npm-safe rules list`. The content scanner is deliberately
-high-confidence and regex-based; AST/data-flow analysis remains future work.
+rules and appear in `npm-safe rules list`. The content scanner uses regular
+expressions, bounded lexical inspection and narrow local response-flow shapes;
+full AST and general interprocedural data-flow analysis remain future work.
+The lexical checks do not execute JavaScript, resolve arbitrary
+values or decode payloads. They fold adjacent quoted string literals only
+(including static escapes), with a 4,096-character literal/fold limit, and
+skip template expressions. Lexical inspection is limited to 1 MiB of source
+and 200,000 tokens per file; reaching either budget makes inspection partial.
+Files whose necessary lexical signals are absent retain the other rules but
+avoid token allocation. These prefilters do not use package names or lower
+resource budgets. Tokenization uses character-code classification and folds
+strings during the scan, preserving raw-token accounting and source positions.
+
+`content-network-exec` requires a recognized child-process binding and local
+response-text flow into `exec`/`execSync`, or an explicit shell `-c` argument.
+Unrelated downloads and process invocations no longer constitute this high
+signal; the generic medium process-capability rule still applies. The helper
+supports bare or qualified global fetch, bounded copies and literal
+concatenations, with 256-token/4,096-character expressions and limited local
+scope tracking. It does not follow custom HTTP callbacks, Promise chains,
+downloads written to disk and then executed, or arbitrary cross-function flow.
+Complete archive parsing does not imply complete behavior/data-flow coverage.
+
+`content-concealed-native-exec` requires a direct or same-block constant alias
+of `require('child_process')`/`require('node:child_process')`, a supported process
+method, a concealed `rundll32` command/module/method and an observable DLL
+entry-point argument. It does not flag an ordinary literal native build merely
+for importing child-process functionality. Variable propagation, imported
+aliases, dynamic templates and general constant evaluation are not covered.
+
+`content-browser-interception` combines multiple capabilities because wallet
+providers, fetch/XHR instrumentation, HTTP polyfills and address validation
+are each normal on their own. Its critical severity reflects the combined
+potential to rewrite payment-related responses, not confirmed theft. Lexical
+scope checks exclude recognized local mocks, but this remains a co-occurrence
+heuristic: legitimate response rewriting with payment validation can still
+trigger it. Computed string tables, alternative network APIs and full data
+flow are not resolved. No package names or versions are allowlisted or blocked.
 
 ---
 
@@ -217,24 +261,24 @@ inspected as a possible obfuscation attempt.
 
 **Description**
 
-Detects long base64-encoded blobs appearing near shell command keywords in the
-README. Attackers often encode a malicious script in base64 and pipe the
-decoded output to a shell interpreter to evade text-based scans.
+Detects literal base64 decoding into interpreter input, a supported quoted
+command substitution, or an encoded PowerShell command in the README. Merely
+placing a long URL, badge or data blob near shell-related prose is insufficient.
 
 **Detection Logic**
 
-The rule scans the README for:
+The bounded helper validates a 40–65,536-character base64 literal and requires
+a local decoder-to-interpreter relationship. It recognizes supported base64
+or OpenSSL pipelines, literal encoded PowerShell flags, and known quoted
+substitution wrappers. Copyable commands inside Markdown fences remain eligible.
+Data-only decoding, unrelated commands, comments and printed examples do not
+provide that relationship. URL text is not treated as an encoded shell script.
 
-- `BASE64_BLOB_PATTERN` = `/\b[A-Za-z0-9+/]{40,}={0,2}\b/`
-  Matches runs of base64 characters at least 40 characters long, with optional
-  padding.
-
-- `SHELL_KEYWORD_PATTERN` =
-  `/\b(?:sh|bash|curl|wget|nc|ncat|python|perl|ruby|powershell)\b/`
-  Matches common shell and scripting interpreters.
-
-A finding is produced when both patterns match. The reported line number is the
-first line containing either the base64 blob or the shell keyword.
+The maximum logical command is 64 KiB, with eight continuation lines and 1,024
+shell tokens. Variable values, general shell grammar and arbitrary Node `-e`
+programs are not evaluated. The line number identifies the local command's
+start. A syntactically supported installation example can still trigger this
+heuristic without proving malicious package behavior.
 
 **Example Scenario**
 
@@ -265,14 +309,12 @@ tool.
 
 **Detection Logic**
 
-The rule iterates over each line of the README and tests for:
-
-- `BINARY_LINK_PATTERN` =
-  `/\bhttps?:\/\/[^\s)]+?\.(?:exe|sh|bat|ps1|cmd|com|scr|msi)\b/i`
-
-This matches HTTP or HTTPS URLs whose path ends with one of the listed
-executable extensions (case-insensitive). One finding is emitted per matching
-line, with the matched URL as the code snippet.
+The rule parses HTTP(S) URLs and checks the final pathname suffix against
+`.exe`, `.sh`, `.bat`, `.ps1`, `.cmd`, `.scr` and `.msi`, case-insensitively.
+Percent-encoded path characters are normalized when valid. Hostnames, query
+parameters and fragments cannot provide the suffix: `https://service.sh/docs`
+is not a script link, while `https://example.test/install.sh?download=1` is.
+One finding is emitted per matching line, preserving the original evidence URL.
 
 **Example Scenario**
 

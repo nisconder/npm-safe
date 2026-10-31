@@ -1,0 +1,386 @@
+{
+  "schemaVersion": 1,
+  "id": "benignchallenge-v1",
+  "kind": "real",
+  "suitePurpose": "Supplemental control-only challenge set, not a final accuracy corpus",
+  "selectionRule": "Exact historical releases chosen by intended legitimate capability before any scanner output was inspected; all acquired controls retained even if scanning later fails or is partial.",
+  "limitations": [
+    "All ten entries are provisionally benign; this set measures known control alerts, not recall or general ecosystem false-positive rate.",
+    "Chosen by capability before outputs, with original bytes and explicit provenance; no exclusion based on subsequent results.",
+    "Known ordinary security vulnerabilities do not convert a package into a malicious package. These historical releases are data inputs, not install recommendations.",
+    "All entries use split=test only for the harness contract. The six-version pilot remains a separate regression corpus and is not merged into held-out accuracy claims.",
+    "Partial or failed scans remain selected in the denominator and must be reported separately."
+  ],
+  "samples": [
+    {
+      "id": "esbuild-0.25.5",
+      "name": "esbuild",
+      "version": "0.25.5",
+      "label": "benign",
+      "family": "challenge-native-installer-downloader",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/esbuild/-/esbuild-0.25.5.tgz",
+        "labelEvidence": "https://esbuild.github.io/getting-started/; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Legitimate postinstall, platform binary selection, download fallback and process invocation; exercises behavior shared with installers. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:46.8856976Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/esbuild/0.25.5",
+        "registryManifestSha256": "77c732c067585e4583fc08f55fc1341cae4d5f9bde7afc8029fc6a14aa3468d8",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://esbuild.github.io/getting-started/",
+        "selectionRationale": "Legitimate postinstall, platform binary selection, download fallback and process invocation; exercises behavior shared with installers.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "e39a6861bf66a39575d5fb6c28dbe7900feae0f31ad0d779c6c08c60b2bb9555",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "esbuild-0.25.5/manifest.json",
+          "sha256": "4ae4279cd0e269c69d5a054bcd7451b6b524070e470ed562ba183dbc8e9e0996"
+        },
+        "readme": {
+          "path": "esbuild-0.25.5/README.md",
+          "sha256": "6d481cd60ec3c679e5e395f547ab4221147f35642894f6b95a8df38fd25c87bd"
+        },
+        "tarball": {
+          "path": "esbuild-0.25.5/package.tgz",
+          "sha256": "7b72463848bbdb5da3385fb9dfffae3c1f0bbb14141b635294877789d0ec28b1"
+        }
+      }
+    },
+    {
+      "id": "node-gyp-11.2.0",
+      "name": "node-gyp",
+      "version": "11.2.0",
+      "label": "benign",
+      "family": "challenge-native-installer-downloader",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/node-gyp/-/node-gyp-11.2.0.tgz",
+        "labelEvidence": "https://github.com/nodejs/node-gyp; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Native addon build tool; legitimate header download, toolchain discovery and child-process use. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:48.8736255Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/node-gyp/11.2.0",
+        "registryManifestSha256": "08e69b3e80a4e6e916002d244f91aeb827516555984b747af0d2cfbf08066d29",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/nodejs/node-gyp",
+        "selectionRationale": "Native addon build tool; legitimate header download, toolchain discovery and child-process use.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "b0fa598b790d19f23136a97c432017f0903cfb55a570389c2461516e74cb7e47",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "node-gyp-11.2.0/manifest.json",
+          "sha256": "202617f0b2daa81ce0faa644415be936159bb9bb1ede52d9c8b91b7476e6429a"
+        },
+        "readme": {
+          "path": "node-gyp-11.2.0/README.md",
+          "sha256": "53b94054cbd2b116c8e86e07b67d30004505a0b3500e0e24a69f7d82519248d5"
+        },
+        "tarball": {
+          "path": "node-gyp-11.2.0/package.tgz",
+          "sha256": "1d371b0558b1ba877a7ca52a21983d6d4d1051c73489d211d50ad8fc3ff487e2"
+        }
+      }
+    },
+    {
+      "id": "cross-spawn-7.0.6",
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "label": "benign",
+      "family": "challenge-process-launcher",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/cross-spawn/-/cross-spawn-7.0.6.tgz",
+        "labelEvidence": "https://github.com/moxystudio/node-cross-spawn; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Cross-platform child_process replacement; legitimate process execution capability. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:51.3590512Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/cross-spawn/7.0.6",
+        "registryManifestSha256": "410b2fff1a9a836d1e1e1c1c4bf2505a389e765400a46d2f13509595fafce78b",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/moxystudio/node-cross-spawn",
+        "selectionRationale": "Cross-platform child_process replacement; legitimate process execution capability.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "d6a08bfa520e2ad3ea1c3152801a564f7a3bc0e81b827976746d4ebcf8bd24d6",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "cross-spawn-7.0.6/manifest.json",
+          "sha256": "a3b7d3cbd6f01a90610003cbbbbace828d114a7e653bf67cce3c1194d35cf679"
+        },
+        "readme": {
+          "path": "cross-spawn-7.0.6/README.md",
+          "sha256": "022aa5bc5706ce14899569741b420e8cb59108c90871d341f31b684d279bd594"
+        },
+        "tarball": {
+          "path": "cross-spawn-7.0.6/package.tgz",
+          "sha256": "188c320cdc413adfec03098fda72af7a9b02152ba13d3a8f87f172d93ced38ea"
+        }
+      }
+    },
+    {
+      "id": "metamask--providers-22.1.0",
+      "name": "@metamask/providers",
+      "version": "22.1.0",
+      "label": "benign",
+      "family": "challenge-browser-wallet-provider",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@metamask/providers/-/providers-22.1.0.tgz",
+        "labelEvidence": "https://github.com/MetaMask/providers; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Legitimate injected Ethereum provider and browser request mediation, close to the browser-wallet behavior surface. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:53.1429663Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/%40metamask%2Fproviders/22.1.0",
+        "registryManifestSha256": "b53f4549afc2af6e5e120a02dc28c158ae028ef5399fd8b04a0c614fdef04edd",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/MetaMask/providers",
+        "selectionRationale": "Legitimate injected Ethereum provider and browser request mediation, close to the browser-wallet behavior surface.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "0991d307c49df7e0b5e4f81c6edbc26b384699c40b93fa66f7dbfc1ad8f7da02",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "metamask--providers-22.1.0/manifest.json",
+          "sha256": "72a2c34454cb2f8cf9b4067625e003c80f42dc41bfe805e0f094c05b352311b1"
+        },
+        "readme": {
+          "path": "metamask--providers-22.1.0/README.md",
+          "sha256": "8561b9d536d09164b0c604d741348ac9c50ba4e06d462a2ebfd0331d917cf2a7"
+        },
+        "tarball": {
+          "path": "metamask--providers-22.1.0/package.tgz",
+          "sha256": "e0ea8436e1b275e9b8155e4a10237c118e421cd57e6618f4b5d15202d89fa4fe"
+        }
+      }
+    },
+    {
+      "id": "walletconnect--ethereum-provider-2.21.1",
+      "name": "@walletconnect/ethereum-provider",
+      "version": "2.21.1",
+      "label": "benign",
+      "family": "challenge-browser-wallet-provider",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@walletconnect/ethereum-provider/-/ethereum-provider-2.21.1.tgz",
+        "labelEvidence": "https://github.com/WalletConnect/walletconnect-monorepo/tree/v2.0/providers/ethereum-provider; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Legitimate wallet connector using browser provider APIs and Ethereum RPC. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:55.0697660Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/%40walletconnect%2Fethereum-provider/2.21.1",
+        "registryManifestSha256": "4b6ced1837aef762dc8266bbe8c063d3bc59df6b8da90906b1b439938ee9a81b",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/WalletConnect/walletconnect-monorepo/tree/v2.0/providers/ethereum-provider",
+        "selectionRationale": "Legitimate wallet connector using browser provider APIs and Ethereum RPC.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "d270d2decaca663a1e0f5d4ed5f07f9f4cfa6fb964b445d87eba470445885ce5",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "walletconnect--ethereum-provider-2.21.1/manifest.json",
+          "sha256": "de440f2b0af091a9b00abd3c4c56532edff63d07494f824c3931b92a406df57f"
+        },
+        "readme": {
+          "path": "walletconnect--ethereum-provider-2.21.1/README.md",
+          "sha256": "2260256cd006e1eaa7097214434d7507c8eff0c9728b49d4fd37abce56b802b5"
+        },
+        "tarball": {
+          "path": "walletconnect--ethereum-provider-2.21.1/package.tgz",
+          "sha256": "790f51756e23260e0c92f9180ae1130162000eaa60bda4322816bdaccea39bb9"
+        }
+      }
+    },
+    {
+      "id": "sentry--browser-9.22.0",
+      "name": "@sentry/browser",
+      "version": "9.22.0",
+      "label": "benign",
+      "family": "challenge-browser-telemetry",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@sentry/browser/-/browser-9.22.0.tgz",
+        "labelEvidence": "https://github.com/getsentry/sentry-javascript/tree/develop/packages/browser; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Legitimate browser error and performance telemetry; request instrumentation may resemble interception. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:58.1082854Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/%40sentry%2Fbrowser/9.22.0",
+        "registryManifestSha256": "9a03d2d17afd7f29c56085fa1185c1b67810d5e819c69daede1f4745e7d34a4b",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/getsentry/sentry-javascript/tree/develop/packages/browser",
+        "selectionRationale": "Legitimate browser error and performance telemetry; request instrumentation may resemble interception.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "453dbb79f74a0ece533e7ffa38f33dc29b555f47b5ab4b0e3f476dee4c95d77f",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "sentry--browser-9.22.0/manifest.json",
+          "sha256": "033149593f91784424cd226e0f46a868cb27efd5f2df68b18267721c46919dbc"
+        },
+        "readme": {
+          "path": "sentry--browser-9.22.0/README.md",
+          "sha256": "dfa4a1fde45ce1ad30c300422c7f0a5165d540f0ccead800291ea51e610071f6"
+        },
+        "tarball": {
+          "path": "sentry--browser-9.22.0/package.tgz",
+          "sha256": "ba7139d962df32d8f18289878635e687767b924f1b6aa8f0ce8eb84874801f39"
+        }
+      }
+    },
+    {
+      "id": "axios-1.9.0",
+      "name": "axios",
+      "version": "1.9.0",
+      "label": "benign",
+      "family": "challenge-browser-http-client",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/axios/-/axios-1.9.0.tgz",
+        "labelEvidence": "https://github.com/axios/axios; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Browser and Node HTTP client with bundled/minified distributions; network primitives alone are ordinary functionality. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:38:00.3681823Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/axios/1.9.0",
+        "registryManifestSha256": "07e448dac31d6463b2f998a792561aaafe38049000f44e3e748fea4c7608c6a8",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/axios/axios",
+        "selectionRationale": "Browser and Node HTTP client with bundled/minified distributions; network primitives alone are ordinary functionality.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "46095ab1001d5ecfe60510688f4039bc97b74462b93ae70c3f75fe6ce4ae3742",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "axios-1.9.0/manifest.json",
+          "sha256": "21fce121b3d5ab62e748e586ab6c68db3b7b2b4fbba3a3f1a454197cd1ed25cc"
+        },
+        "readme": {
+          "path": "axios-1.9.0/README.md",
+          "sha256": "510a21de8dc25ee79747df0733a6bf7c97ccc64c7fc975bcd9c2ab9b31371aee"
+        },
+        "tarball": {
+          "path": "axios-1.9.0/package.tgz",
+          "sha256": "6758628f748506b961ff588dcb572473342f33efb10ee9f914d2b68f5a73d745"
+        }
+      }
+    },
+    {
+      "id": "lodash-4.17.21",
+      "name": "lodash",
+      "version": "4.17.21",
+      "label": "benign",
+      "family": "challenge-dynamic-code-tooling",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
+        "labelEvidence": "https://github.com/lodash/lodash; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Utility library with templating/dynamic code construction and minified distribution; challenging benign dynamic syntax. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:38:03.8724471Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/lodash/4.17.21",
+        "registryManifestSha256": "49938fac33dc7eccdadce7f837a054cc4ae2c6bb965ee547065bf3146b7414b8",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/lodash/lodash",
+        "selectionRationale": "Utility library with templating/dynamic code construction and minified distribution; challenging benign dynamic syntax.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "500100dac7c28445228d713dcf9f3f149474941dbd74b0824c7c85f33c018be9",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "lodash-4.17.21/manifest.json",
+          "sha256": "cf782ca68ef8ad22272993329117f756a11886eeed80c627d87dcbc2897fcd47"
+        },
+        "readme": {
+          "path": "lodash-4.17.21/README.md",
+          "sha256": "aa8223fc6ac03beb61e9e1d55587c6a77bef133a3687b7bc85b61a738ad76740"
+        },
+        "tarball": {
+          "path": "lodash-4.17.21/package.tgz",
+          "sha256": "6a087ac9e5702a0c9d60fbcd48696012646ec8df1491dea472b150e79fcaf804"
+        }
+      }
+    },
+    {
+      "id": "terser-5.39.0",
+      "name": "terser",
+      "version": "5.39.0",
+      "label": "benign",
+      "family": "challenge-dynamic-code-tooling",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/terser/-/terser-5.39.0.tgz",
+        "labelEvidence": "https://github.com/terser/terser; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Parser/minifier legitimately handles dynamic-code syntax, string concatenation and generated bundles. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:38:06.0777336Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/terser/5.39.0",
+        "registryManifestSha256": "73bbd0eb0400b66190f1496c58e16f9a903af4b4cce1933dd65478220606d10e",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/terser/terser",
+        "selectionRationale": "Parser/minifier legitimately handles dynamic-code syntax, string concatenation and generated bundles.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "7044aececf7f0fb17af167f49e0bdec40d68a6e18997a61e112c6c1df376b845",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "terser-5.39.0/manifest.json",
+          "sha256": "90625b51a40009a4c5b518d45cb2037f5381a1971b9ce84ab81199ae6572f27c"
+        },
+        "readme": {
+          "path": "terser-5.39.0/README.md",
+          "sha256": "7281081b749075eeb6d25e3a60013df3f22d3e1141c6eb7d4873b4a6f7d145c6"
+        },
+        "tarball": {
+          "path": "terser-5.39.0/package.tgz",
+          "sha256": "ef669abcd38fc0a31dede049f1186ae4999783c34cfa6652a5e12b4e57cccf58"
+        }
+      }
+    },
+    {
+      "id": "core-js-3.42.0",
+      "name": "core-js",
+      "version": "3.42.0",
+      "label": "benign",
+      "family": "challenge-browser-polyfill",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/core-js/-/core-js-3.42.0.tgz",
+        "labelEvidence": "https://github.com/zloirock/core-js; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Browser polyfills include global/Function feature detection and compatibility indirection; broad source archive. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:38:08.5927952Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/core-js/3.42.0",
+        "registryManifestSha256": "31acd29fa48a02329037e8340a8451eb8abfcfc5c89ab1de9d919682be1e0aa5",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/zloirock/core-js",
+        "selectionRationale": "Browser polyfills include global/Function feature detection and compatibility indirection; broad source archive.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "7517fec8cec4b490d42c6f994391ac6b94ff56d3224f00c5c58ebd8f55db00f1",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "core-js-3.42.0/manifest.json",
+          "sha256": "af42fb590d3a934462b0252c910e1fcb49fc8ffe0cd4d008debd215cad6d1590"
+        },
+        "readme": {
+          "path": "core-js-3.42.0/README.md",
+          "sha256": "3b9879071bab77bc137004f66acc1773c58d71b0e3ee1c04013f8fc97db4768f"
+        },
+        "tarball": {
+          "path": "core-js-3.42.0/package.tgz",
+          "sha256": "ba4cb35e7c13da82dc2ebfb1e9e57463dc941ab950dbc9a854dd1f7775464db0"
+        }
+      }
+    }
+  ]
+}

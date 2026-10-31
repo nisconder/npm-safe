@@ -1,0 +1,722 @@
+{
+  "schemaVersion": 1,
+  "scope": "controls",
+  "phase": "postmerge",
+  "sanitization": "Current core1.1.2 integration projection; no README/source text/finding messages/code snippets. Historical core1.1.1 reports remain unchanged.",
+  "sourceReportSha256": "39a8eb3d5649728d387f6aac12dd80528e1edde668cff52ab65482063333d63b",
+  "generatedAt": "2026-10-31T09:20:19.385Z",
+  "dataset": {
+    "id": "benignchallenge-v1",
+    "kind": "real",
+    "sha256": "96c9453c38682b29c81306ccd3baa82c8559b68465316307a47a48c2616c6e5d"
+  },
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "scanner": {
+    "entrypoint": "TypeScript source via existing core-local tsx; default built-in rules; no LLM/config/cache",
+    "sourceFiles": {
+      "packages/core/src/scanner/browser-signals.ts": "e77c9b0e53ebcfa7f38d8f952e874615aa07129edfcef28dcb71dae6ee6bafdf",
+      "packages/core/src/scanner/content-dynamic-signals.ts": "f162494f4c55057e43816d8c1859a58df687472cdf07e1cf1c917e9f3efd4f9a",
+      "packages/core/src/scanner/content-network-signals.ts": "da3039019bdff517863678fc684074e034f87820eff88637cda54e440614e169",
+      "packages/core/src/scanner/content-process-signals.ts": "eb6cde99996fb3ba3e8a435e3687bd1297b948b18582b65faf7bd421205ab1f8",
+      "packages/core/src/scanner/network-flow-expression.ts": "dc5f08cd9c5e3de54770f847301a0554a657ffcc7169f7d8c23fa5f131646029",
+      "packages/core/src/scanner/package-content.ts": "f52404f75ccbd896aa1decf64c93abbe183b233d584318e90794f89bfe84e993",
+      "packages/core/src/scanner/readme-shell-signals.ts": "3e7079e9f4d4422298dbf839a72a93cb68d057edc402cbfb3f72db898abae039",
+      "packages/core/src/scanner/readme-url-signals.ts": "0e0271bbd73aa50163a888ad07178d6f4eb38b17b9dc15c7212b66b9d1dbbd4c",
+      "packages/core/src/scanner/rule-config.ts": "bf4e5da7cef1539dddd1a0955406363cb6047cc0c822cf5c5314701ba65c0b5c",
+      "packages/core/src/scanner/rule-loader.ts": "b34e1ed46dbeb9ed79a9d0b59e91be718efe23ee59a885923b46317894331d4c",
+      "packages/core/src/scanner/security-policy.ts": "08b6c1000088a98c1332dfc0d9bb098e0071b288250469ea92f3b1f16a240a6b",
+      "packages/core/src/scanner/source-binding-patterns.ts": "9b6abfe5b835ea5076a249e78e371c9b20bbee56b4999914f8fdac1ce02063b9",
+      "packages/core/src/scanner/source-bindings.ts": "8bce6d41845fe25a3785d0b00286848e3d3522fc052639bd404c96005b907d45",
+      "packages/core/src/scanner/source-tokens.ts": "f398398311b06d8e6344c480cb0404bb07d7c3c4072c61e31ba25fc9038ea2ef",
+      "packages/core/src/scanner/static-rules.ts": "bb16b47c0be22db4478521ff06b98dc39387a09a800b1419f9286d9243701afa",
+      "packages/core/src/scanner/types.ts": "41b1daeaff7b9f76dcdf90c021b772fded81aa4e1b326e524708836a87672f3c"
+    },
+    "sourceFingerprint": "af515c67ba4ccfcaab497ed65375659ea4b8fe929ad8399a5fe76c42eb06ae20",
+    "coreVersion": "1.1.2",
+    "tsxVersion": "4.23.13"
+  },
+  "summary": {
+    "dev": {
+      "metadata": {
+        "total": 0,
+        "complete": 0,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": null,
+        "highCritical": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": null,
+          "endToEndRecall": null,
+          "coverage": null
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": null,
+          "endToEndRecall": null,
+          "coverage": null
+        },
+        "scannerTime": {
+          "count": 0,
+          "p50Ms": null,
+          "p95Ms": null
+        },
+        "wallTime": {
+          "count": 0,
+          "p50Ms": null,
+          "p95Ms": null
+        }
+      },
+      "deep": {
+        "total": 0,
+        "complete": 0,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": null,
+        "highCritical": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": null,
+          "endToEndRecall": null,
+          "coverage": null
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": null,
+          "endToEndRecall": null,
+          "coverage": null
+        },
+        "scannerTime": {
+          "count": 0,
+          "p50Ms": null,
+          "p95Ms": null
+        },
+        "wallTime": {
+          "count": 0,
+          "p50Ms": null,
+          "p95Ms": null
+        }
+      },
+      "deepDelta": {
+        "highCritical": {
+          "pairedEvaluable": 0,
+          "excludedPairs": 0,
+          "addedTruePositives": 0,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        },
+        "productLevel": {
+          "pairedEvaluable": 0,
+          "excludedPairs": 0,
+          "addedTruePositives": 0,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        }
+      }
+    },
+    "test": {
+      "metadata": {
+        "total": 10,
+        "complete": 10,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": 0,
+        "highCritical": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 10,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": null,
+          "coverage": 1
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 10,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": null,
+          "coverage": 1
+        },
+        "scannerTime": {
+          "count": 10,
+          "p50Ms": 0.22649999999998727,
+          "p95Ms": 6.648199999999974
+        },
+        "wallTime": {
+          "count": 10,
+          "p50Ms": 6.097199999999987,
+          "p95Ms": 11.951099999999997
+        }
+      },
+      "deep": {
+        "total": 10,
+        "complete": 9,
+        "partial": 1,
+        "failed": 0,
+        "incompleteRate": 0.1,
+        "highCritical": {
+          "tp": 0,
+          "fp": 1,
+          "tn": 8,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 1,
+          "precision": 0,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": 0.1111111111111111,
+          "endToEndRecall": null,
+          "coverage": 0.9
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 9,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 1,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": null,
+          "coverage": 0.9
+        },
+        "scannerTime": {
+          "count": 10,
+          "p50Ms": 14.090100000000007,
+          "p95Ms": 58.95479999999998
+        },
+        "wallTime": {
+          "count": 10,
+          "p50Ms": 22.269299999999987,
+          "p95Ms": 65.14410000000004
+        }
+      },
+      "deepDelta": {
+        "highCritical": {
+          "pairedEvaluable": 9,
+          "excludedPairs": 1,
+          "addedTruePositives": 0,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 1,
+          "removedFalsePositives": 0
+        },
+        "productLevel": {
+          "pairedEvaluable": 9,
+          "excludedPairs": 1,
+          "addedTruePositives": 0,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        }
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "esbuild-0.25.5",
+      "name": "esbuild",
+      "version": "0.25.5",
+      "label": "benign",
+      "family": "challenge-native-installer-downloader",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "scanDurationMs": 2.3230999999999824,
+      "wallDurationMs": 7.455799999999982,
+      "rules": [
+        {
+          "ruleId": "install-script",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "id": "esbuild-0.25.5",
+      "name": "esbuild",
+      "version": "0.25.5",
+      "label": "benign",
+      "family": "challenge-native-installer-downloader",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 84,
+      "highCriticalAlert": false,
+      "scanDurationMs": 11.232499999999987,
+      "wallDurationMs": 17.749799999999993,
+      "rules": [
+        {
+          "ruleId": "install-script",
+          "severity": "medium"
+        },
+        {
+          "ruleId": "content-process-exec",
+          "severity": "medium",
+          "filePath": "package/bin/esbuild",
+          "lineNumber": 219
+        }
+      ],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 30770,
+        "unpackedBytes": 134494,
+        "filesScanned": 5,
+        "filesSkipped": 2,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    },
+    {
+      "id": "node-gyp-11.2.0",
+      "name": "node-gyp",
+      "version": "11.2.0",
+      "label": "benign",
+      "family": "challenge-native-installer-downloader",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.30109999999999104,
+      "wallDurationMs": 6.097199999999987,
+      "rules": []
+    },
+    {
+      "id": "node-gyp-11.2.0",
+      "name": "node-gyp",
+      "version": "11.2.0",
+      "label": "benign",
+      "family": "challenge-native-installer-downloader",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "scanDurationMs": 24.19829999999999,
+      "wallDurationMs": 32.795800000000014,
+      "rules": [
+        {
+          "ruleId": "content-process-exec",
+          "severity": "medium",
+          "filePath": "package/lib/node-gyp.js",
+          "lineNumber": 6
+        }
+      ],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 458082,
+        "unpackedBytes": 1856250,
+        "filesScanned": 84,
+        "filesSkipped": 24,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    },
+    {
+      "id": "cross-spawn-7.0.6",
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "label": "benign",
+      "family": "challenge-process-launcher",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.24790000000001555,
+      "wallDurationMs": 7.134199999999993,
+      "rules": []
+    },
+    {
+      "id": "cross-spawn-7.0.6",
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "label": "benign",
+      "family": "challenge-process-launcher",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.5138000000000034,
+      "wallDurationMs": 7.945300000000003,
+      "rules": [
+        {
+          "ruleId": "content-process-exec",
+          "severity": "medium",
+          "filePath": "package/index.js",
+          "lineNumber": 3
+        }
+      ],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 6255,
+        "unpackedBytes": 16094,
+        "filesScanned": 7,
+        "filesSkipped": 2,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    },
+    {
+      "id": "metamask--providers-22.1.0",
+      "name": "@metamask/providers",
+      "version": "22.1.0",
+      "label": "benign",
+      "family": "challenge-browser-wallet-provider",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.1525000000000034,
+      "wallDurationMs": 4.9687999999999874,
+      "rules": []
+    },
+    {
+      "id": "metamask--providers-22.1.0",
+      "name": "@metamask/providers",
+      "version": "22.1.0",
+      "label": "benign",
+      "family": "challenge-browser-wallet-provider",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 2.4972999999999956,
+      "wallDurationMs": 9.90640000000002,
+      "rules": [],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 74235,
+        "unpackedBytes": 499460,
+        "filesScanned": 65,
+        "filesSkipped": 63,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    },
+    {
+      "id": "walletconnect--ethereum-provider-2.21.1",
+      "name": "@walletconnect/ethereum-provider",
+      "version": "2.21.1",
+      "label": "benign",
+      "family": "challenge-browser-wallet-provider",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.203899999999976,
+      "wallDurationMs": 5.076900000000023,
+      "rules": []
+    },
+    {
+      "id": "walletconnect--ethereum-provider-2.21.1",
+      "name": "@walletconnect/ethereum-provider",
+      "version": "2.21.1",
+      "label": "benign",
+      "family": "challenge-browser-wallet-provider",
+      "split": "test",
+      "mode": "deep",
+      "status": "partial",
+      "overallLevel": "unknown",
+      "score": 92,
+      "highCriticalAlert": false,
+      "scanDurationMs": 14.090100000000007,
+      "wallDurationMs": 22.269299999999987,
+      "rules": [
+        {
+          "ruleId": "content-scan-incomplete",
+          "severity": "medium"
+        }
+      ],
+      "contentScan": {
+        "status": "partial",
+        "archiveBytes": 1201417,
+        "unpackedBytes": 6085367,
+        "filesScanned": 13,
+        "filesSkipped": 17,
+        "integrityVerified": true,
+        "truncated": true,
+        "reason": "Text scanning stopped at the configured byte limit."
+      },
+      "error": "Text scanning stopped at the configured byte limit."
+    },
+    {
+      "id": "sentry--browser-9.22.0",
+      "name": "@sentry/browser",
+      "version": "9.22.0",
+      "label": "benign",
+      "family": "challenge-browser-telemetry",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.22649999999998727,
+      "wallDurationMs": 5.446699999999964,
+      "rules": []
+    },
+    {
+      "id": "sentry--browser-9.22.0",
+      "name": "@sentry/browser",
+      "version": "9.22.0",
+      "label": "benign",
+      "family": "challenge-browser-telemetry",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 10.774200000000008,
+      "wallDurationMs": 17.51279999999997,
+      "rules": [],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 199555,
+        "unpackedBytes": 1213946,
+        "filesScanned": 220,
+        "filesSkipped": 151,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    },
+    {
+      "id": "axios-1.9.0",
+      "name": "axios",
+      "version": "1.9.0",
+      "label": "benign",
+      "family": "challenge-browser-http-client",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 6.648199999999974,
+      "wallDurationMs": 11.951099999999997,
+      "rules": []
+    },
+    {
+      "id": "axios-1.9.0",
+      "name": "axios",
+      "version": "1.9.0",
+      "label": "benign",
+      "family": "challenge-browser-http-client",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 40.202999999999975,
+      "wallDurationMs": 46.36039999999997,
+      "rules": [],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 552654,
+        "unpackedBytes": 2155396,
+        "filesScanned": 71,
+        "filesSkipped": 14,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    },
+    {
+      "id": "lodash-4.17.21",
+      "name": "lodash",
+      "version": "4.17.21",
+      "label": "benign",
+      "family": "challenge-dynamic-code-tooling",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.12000000000000455,
+      "wallDurationMs": 4.490400000000022,
+      "rules": []
+    },
+    {
+      "id": "lodash-4.17.21",
+      "name": "lodash",
+      "version": "4.17.21",
+      "label": "benign",
+      "family": "challenge-dynamic-code-tooling",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 85,
+      "highCriticalAlert": true,
+      "scanDurationMs": 28.059199999999976,
+      "wallDurationMs": 34.440200000000004,
+      "rules": [
+        {
+          "ruleId": "content-obfuscated-exec",
+          "severity": "high",
+          "filePath": "package/lodash.js",
+          "lineNumber": 436
+        }
+      ],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 318961,
+        "unpackedBytes": 1412415,
+        "filesScanned": 1049,
+        "filesSkipped": 5,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    },
+    {
+      "id": "terser-5.39.0",
+      "name": "terser",
+      "version": "5.39.0",
+      "label": "benign",
+      "family": "challenge-dynamic-code-tooling",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.592899999999986,
+      "wallDurationMs": 7.489100000000008,
+      "rules": []
+    },
+    {
+      "id": "terser-5.39.0",
+      "name": "terser",
+      "version": "5.39.0",
+      "label": "benign",
+      "family": "challenge-dynamic-code-tooling",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 58.95479999999998,
+      "wallDurationMs": 65.14410000000004,
+      "rules": [],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 443697,
+        "unpackedBytes": 2221569,
+        "filesScanned": 37,
+        "filesSkipped": 5,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    },
+    {
+      "id": "core-js-3.42.0",
+      "name": "core-js",
+      "version": "3.42.0",
+      "label": "benign",
+      "family": "challenge-browser-polyfill",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.21050000000002456,
+      "wallDurationMs": 7.547300000000007,
+      "rules": [
+        {
+          "ruleId": "install-script",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "id": "core-js-3.42.0",
+      "name": "core-js",
+      "version": "3.42.0",
+      "label": "benign",
+      "family": "challenge-browser-polyfill",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "scanDurationMs": 23.66250000000008,
+      "wallDurationMs": 30.43479999999994,
+      "rules": [
+        {
+          "ruleId": "install-script",
+          "severity": "medium"
+        }
+      ],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 297367,
+        "unpackedBytes": 1272681,
+        "filesScanned": 3568,
+        "filesSkipped": 10,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    }
+  ]
+}

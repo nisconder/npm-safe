@@ -18,9 +18,11 @@ import {
 import { RuleConfigManager } from './rule-config.js';
 import { createHash } from 'node:crypto';
 import { classifySecurity } from './security-policy.js';
+import { findEncodedShell } from './readme-shell-signals.js';
+import { findExecutableLinks } from './readme-url-signals.js';
 
 // Bump whenever scanner/content semantics change, including policy and limits.
-export const SCANNER_CACHE_VERSION = '2';
+export const SCANNER_CACHE_VERSION = '3';
 
 /** Severity weights subtracted from the base score (100) per finding. */
 const SEVERITY_WEIGHT: Readonly<Record<Severity, number>> = {
@@ -186,9 +188,6 @@ const PROCESS_EXEC_PATTERN =
 /** Matches base64-looking blobs (long runs of base64 alphabet chars). */
 const BASE64_BLOB_PATTERN = /\b[A-Za-z0-9+/]{40,}={0,2}\b/;
 
-/** Matches shell command keywords commonly used in malicious payloads. */
-const SHELL_KEYWORD_PATTERN = /\b(?:sh|bash|curl|wget|nc|ncat|python|perl|ruby|powershell)\b/;
-
 /** Matches npm auth tokens. */
 const NPM_TOKEN_PATTERN = /npm_[A-Za-z0-9]{20,}/;
 
@@ -197,10 +196,6 @@ const AWS_KEY_PATTERN = /AKIA[0-9A-Z]{16}/;
 
 /** Matches SSH private key headers. */
 const SSH_KEY_PATTERN = /-----BEGIN (?:RSA |OPENSSH |EC |DSA )?PRIVATE KEY-----/;
-
-/** Matches links to executable files in markdown. */
-const BINARY_LINK_PATTERN =
-  /\bhttps?:\/\/[^\s)]+?\.(?:exe|sh|bat|ps1|cmd|scr|msi)\b/i;
 
 /** Matches require/import of the child_process module. */
 const CHILD_PROCESS_PATTERN =
@@ -325,40 +320,29 @@ const evalObfuscationRule: ScanRule = {
 /**
  * Rule: base64-shell
  *
- * Detects base64-encoded blobs appearing near shell command keywords, a
- * common pattern for hiding payloads that are decoded and piped to a shell.
+ * Detects literal base64 data passed through a decoder into an interpreter,
+ * or an explicitly encoded PowerShell command, within a local command.
  */
 const base64ShellRule: ScanRule = {
   id: 'base64-shell',
   name: 'Base64-encoded shell payload',
   description:
-    'Base64-encoded blobs appearing near shell command keywords (curl, sh, bash, ...).',
+    'Literal base64 decoded into an interpreter or used as an encoded PowerShell command.',
   severity: Severity.High,
   category: FindingCategory.CodeObfuscation,
   enabled: true,
   match(readme) {
     const findings: ScanFinding[] = [];
-    if (!BASE64_BLOB_PATTERN.test(readme)) return findings;
-    if (!SHELL_KEYWORD_PATTERN.test(readme)) return findings;
-    const lines = splitLines(readme);
-    let blobLine: number | undefined;
-    let shellLine: number | undefined;
-    for (let i = 0; i < lines.length; i++) {
-      if (blobLine === undefined && BASE64_BLOB_PATTERN.test(lines[i])) {
-        blobLine = i + 1;
-      }
-      if (shellLine === undefined && SHELL_KEYWORD_PATTERN.test(lines[i])) {
-        shellLine = i + 1;
-      }
-      if (blobLine !== undefined && shellLine !== undefined) break;
-    }
+    const match = findEncodedShell(readme);
+    if (!match) return findings;
     findings.push({
       ruleId: 'base64-shell',
       ruleName: 'Base64-encoded shell payload',
       severity: Severity.High,
       message:
-        'Base64-encoded blob found near shell command keywords, possibly hiding a decoded payload.',
-      lineNumber: blobLine ?? shellLine,
+        'A local README command passes literal base64 through a decoder into an interpreter, or supplies an encoded PowerShell command.',
+      lineNumber: match.line,
+      codeSnippet: match.snippet,
       recommendation:
         'Decode and inspect any base64 blobs; remove shell execution from package code.',
       category: FindingCategory.CodeObfuscation,
@@ -383,22 +367,18 @@ const binaryLinksRule: ScanRule = {
   enabled: true,
   match(readme) {
     const findings: ScanFinding[] = [];
-    const lines = splitLines(readme);
-    for (let i = 0; i < lines.length; i++) {
-      const match = lines[i].match(BINARY_LINK_PATTERN);
-      if (match) {
-        findings.push({
-          ruleId: 'binary-links',
-          ruleName: 'Direct binary download links',
-          severity: Severity.Medium,
-          message: `README links directly to an executable: ${match[0]}`,
-          codeSnippet: match[0],
-          lineNumber: i + 1,
-          recommendation:
-            'Avoid linking to raw executables; publish to a registry or provide source.',
-          category: FindingCategory.BinaryDownload,
-        });
-      }
+    for (const match of findExecutableLinks(readme)) {
+      findings.push({
+        ruleId: 'binary-links',
+        ruleName: 'Direct binary download links',
+        severity: Severity.Medium,
+        message: `README links directly to an executable: ${match.url}`,
+        codeSnippet: match.url,
+        lineNumber: match.line,
+        recommendation:
+          'Avoid linking to raw executables; publish to a registry or provide source.',
+        category: FindingCategory.BinaryDownload,
+      });
     }
     return findings;
   },

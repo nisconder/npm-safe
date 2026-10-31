@@ -5,6 +5,23 @@ semantic versioning for `@npm-safe/core`.
 
 ## Unreleased
 
+### Fixed
+
+- Detect concealed native-loader invocations assembled from quoted string
+  fragments and combined browser response interception/payment-address signals.
+- Exclude ordinary function syntax and JavaScript comments/string examples from
+  dynamic-execution evidence. Report lexical inspection budgets as incomplete.
+- Require local decoded-shell commands in README checks, inspect executable URL
+  path suffixes, and distinguish response-to-command flow from incidental
+  network/process capabilities.
+- Reduce deep-scan token allocation with necessary-condition prefilters and a
+  faster lexer that preserves token streams, offsets and resource limits.
+
+### Added
+
+- Add regression and benign-behavior tests plus a fixed ten-version control
+  challenge to compare detections, false positives, coverage and scan time.
+
 ## 1.1.1 - 2026-10-23
 
 ### Fixed

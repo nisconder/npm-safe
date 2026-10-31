@@ -1,0 +1,2155 @@
+{
+  "generatedAt": "2026-10-31T08:44:19.324Z",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "protocol": "One unmeasured warm-up per scanner/suite; three measured repetitions, serial, alternating scanner order; fixed within-suite order. Pooled per-package nearest-rank p50/p95 include partial attempts. Not independent statistical trials or an ecosystem latency estimate.",
+  "allRepeatedDecisionsStable": true,
+  "references": {
+    "before/controls": [
+      {
+        "id": "esbuild-0.25.5",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "install-script"
+        ]
+      },
+      {
+        "id": "esbuild-0.25.5",
+        "mode": "deep",
+        "status": "complete",
+        "score": 69,
+        "level": "suspicious",
+        "ruleIds": [
+          "install-script",
+          "content-process-exec",
+          "content-network-exec"
+        ]
+      },
+      {
+        "id": "node-gyp-11.2.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 85,
+        "level": "safe",
+        "ruleIds": [
+          "base64-shell"
+        ]
+      },
+      {
+        "id": "node-gyp-11.2.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "ruleIds": [
+          "base64-shell",
+          "content-process-exec"
+        ]
+      },
+      {
+        "id": "cross-spawn-7.0.6",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "cross-spawn-7.0.6",
+        "mode": "deep",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "content-process-exec"
+        ]
+      },
+      {
+        "id": "metamask--providers-22.1.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "metamask--providers-22.1.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "walletconnect--ethereum-provider-2.21.1",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "walletconnect--ethereum-provider-2.21.1",
+        "mode": "deep",
+        "status": "partial",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "content-scan-incomplete"
+        ]
+      },
+      {
+        "id": "sentry--browser-9.22.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "sentry--browser-9.22.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "axios-1.9.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "ruleIds": [
+          "base64-shell",
+          "binary-links"
+        ]
+      },
+      {
+        "id": "axios-1.9.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "ruleIds": [
+          "base64-shell",
+          "binary-links"
+        ]
+      },
+      {
+        "id": "lodash-4.17.21",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "lodash-4.17.21",
+        "mode": "deep",
+        "status": "complete",
+        "score": 85,
+        "level": "safe",
+        "ruleIds": [
+          "content-obfuscated-exec"
+        ]
+      },
+      {
+        "id": "terser-5.39.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 85,
+        "level": "safe",
+        "ruleIds": [
+          "base64-shell"
+        ]
+      },
+      {
+        "id": "terser-5.39.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 70,
+        "level": "suspicious",
+        "ruleIds": [
+          "base64-shell",
+          "content-obfuscated-exec"
+        ]
+      },
+      {
+        "id": "core-js-3.42.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "install-script"
+        ]
+      },
+      {
+        "id": "core-js-3.42.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "ruleIds": [
+          "install-script",
+          "content-obfuscated-exec"
+        ]
+      }
+    ],
+    "before/regression": [
+      {
+        "id": "debug-4.4.2",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "debug-4.4.2",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "debug-4.4.1",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "debug-4.4.1",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "eslint-config-prettier-10.1.7",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "install-script"
+        ]
+      },
+      {
+        "id": "eslint-config-prettier-10.1.7",
+        "mode": "deep",
+        "status": "complete",
+        "score": 89,
+        "level": "safe",
+        "ruleIds": [
+          "install-script",
+          "content-native-binary"
+        ]
+      },
+      {
+        "id": "eslint-config-prettier-10.1.5",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "eslint-config-prettier-10.1.5",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "is-3.3.1",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "install-script"
+        ]
+      },
+      {
+        "id": "is-3.3.1",
+        "mode": "deep",
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "ruleIds": [
+          "install-script",
+          "content-obfuscated-exec"
+        ]
+      },
+      {
+        "id": "is-3.3.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "is-3.3.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      }
+    ],
+    "after/controls": [
+      {
+        "id": "esbuild-0.25.5",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "install-script"
+        ]
+      },
+      {
+        "id": "esbuild-0.25.5",
+        "mode": "deep",
+        "status": "complete",
+        "score": 69,
+        "level": "suspicious",
+        "ruleIds": [
+          "install-script",
+          "content-process-exec",
+          "content-network-exec"
+        ]
+      },
+      {
+        "id": "node-gyp-11.2.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 85,
+        "level": "safe",
+        "ruleIds": [
+          "base64-shell"
+        ]
+      },
+      {
+        "id": "node-gyp-11.2.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "ruleIds": [
+          "base64-shell",
+          "content-process-exec"
+        ]
+      },
+      {
+        "id": "cross-spawn-7.0.6",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "cross-spawn-7.0.6",
+        "mode": "deep",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "content-process-exec"
+        ]
+      },
+      {
+        "id": "metamask--providers-22.1.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "metamask--providers-22.1.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "walletconnect--ethereum-provider-2.21.1",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "walletconnect--ethereum-provider-2.21.1",
+        "mode": "deep",
+        "status": "partial",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "content-scan-incomplete"
+        ]
+      },
+      {
+        "id": "sentry--browser-9.22.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "sentry--browser-9.22.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "axios-1.9.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "ruleIds": [
+          "base64-shell",
+          "binary-links"
+        ]
+      },
+      {
+        "id": "axios-1.9.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "ruleIds": [
+          "base64-shell",
+          "binary-links"
+        ]
+      },
+      {
+        "id": "lodash-4.17.21",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "lodash-4.17.21",
+        "mode": "deep",
+        "status": "complete",
+        "score": 85,
+        "level": "safe",
+        "ruleIds": [
+          "content-obfuscated-exec"
+        ]
+      },
+      {
+        "id": "terser-5.39.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 85,
+        "level": "safe",
+        "ruleIds": [
+          "base64-shell"
+        ]
+      },
+      {
+        "id": "terser-5.39.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 85,
+        "level": "safe",
+        "ruleIds": [
+          "base64-shell"
+        ]
+      },
+      {
+        "id": "core-js-3.42.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "install-script"
+        ]
+      },
+      {
+        "id": "core-js-3.42.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "install-script"
+        ]
+      }
+    ],
+    "after/regression": [
+      {
+        "id": "debug-4.4.2",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "debug-4.4.2",
+        "mode": "deep",
+        "status": "complete",
+        "score": 75,
+        "level": "suspicious",
+        "ruleIds": [
+          "content-browser-interception"
+        ]
+      },
+      {
+        "id": "debug-4.4.1",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "debug-4.4.1",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "eslint-config-prettier-10.1.7",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "install-script"
+        ]
+      },
+      {
+        "id": "eslint-config-prettier-10.1.7",
+        "mode": "deep",
+        "status": "complete",
+        "score": 74,
+        "level": "suspicious",
+        "ruleIds": [
+          "install-script",
+          "content-concealed-native-exec",
+          "content-native-binary"
+        ]
+      },
+      {
+        "id": "eslint-config-prettier-10.1.5",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "eslint-config-prettier-10.1.5",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "is-3.3.1",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "ruleIds": [
+          "install-script"
+        ]
+      },
+      {
+        "id": "is-3.3.1",
+        "mode": "deep",
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "ruleIds": [
+          "install-script",
+          "content-obfuscated-exec"
+        ]
+      },
+      {
+        "id": "is-3.3.0",
+        "mode": "metadata",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      },
+      {
+        "id": "is-3.3.0",
+        "mode": "deep",
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "ruleIds": []
+      }
+    ]
+  },
+  "summary": [
+    {
+      "scanner": "before",
+      "suite": "controls",
+      "mode": "metadata",
+      "observations": 30,
+      "scannerP50Ms": 0.26710000000002765,
+      "scannerP95Ms": 1.135099999999511,
+      "wallP50Ms": 10.146200000000135,
+      "wallP95Ms": 15.749900000000252
+    },
+    {
+      "scanner": "before",
+      "suite": "controls",
+      "mode": "deep",
+      "observations": 30,
+      "scannerP50Ms": 22.699299999999994,
+      "scannerP95Ms": 48.6842000000006,
+      "wallP50Ms": 36.92609999999968,
+      "wallP95Ms": 62.49459999999999
+    },
+    {
+      "scanner": "before",
+      "suite": "regression",
+      "mode": "metadata",
+      "observations": 18,
+      "scannerP50Ms": 0.5410000000001673,
+      "scannerP95Ms": 0.880300000000716,
+      "wallP50Ms": 9.869700000000194,
+      "wallP95Ms": 15.030899999999747
+    },
+    {
+      "scanner": "before",
+      "suite": "regression",
+      "mode": "deep",
+      "observations": 18,
+      "scannerP50Ms": 1.788000000000011,
+      "scannerP95Ms": 7.660200000000259,
+      "wallP50Ms": 15.887099999999919,
+      "wallP95Ms": 23.052599999999984
+    },
+    {
+      "scanner": "after",
+      "suite": "controls",
+      "mode": "metadata",
+      "observations": 30,
+      "scannerP50Ms": 0.23300000000017462,
+      "scannerP95Ms": 1.1550000000002,
+      "wallP50Ms": 9.481800000000021,
+      "wallP95Ms": 18.416599999999562
+    },
+    {
+      "scanner": "after",
+      "suite": "controls",
+      "mode": "deep",
+      "observations": 30,
+      "scannerP50Ms": 25.1570999999999,
+      "scannerP95Ms": 138.42980000000034,
+      "wallP50Ms": 37.6402999999998,
+      "wallP95Ms": 149.5101999999997
+    },
+    {
+      "scanner": "after",
+      "suite": "regression",
+      "mode": "metadata",
+      "observations": 18,
+      "scannerP50Ms": 0.514100000000326,
+      "scannerP95Ms": 0.7991999999994732,
+      "wallP50Ms": 9.721999999999753,
+      "wallP95Ms": 12.373299999999745
+    },
+    {
+      "scanner": "after",
+      "suite": "regression",
+      "mode": "deep",
+      "observations": 18,
+      "scannerP50Ms": 3.8702000000002954,
+      "scannerP95Ms": 18.083799999999883,
+      "wallP50Ms": 17.27480000000014,
+      "wallP95Ms": 32.69300000000021
+    }
+  ],
+  "runs": [
+    {
+      "repetition": 0,
+      "scanner": "before",
+      "suite": "controls",
+      "datasetSha256": "96c9453c38682b29c81306ccd3baa82c8559b68465316307a47a48c2616c6e5d",
+      "sourceFingerprint": "73e1e0d1087e9fb8c02775c411cf38c1b88b3733bf2dae6043beed6bc6a5650c",
+      "rows": [
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.1307000000001608,
+          "wallDurationMs": 6.337099999999964
+        },
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 2.427299999999832,
+          "wallDurationMs": 11.365599999999858
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.2989000000000033,
+          "wallDurationMs": 6.869899999999916
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 20.379699999999957,
+          "wallDurationMs": 30.511999999999944
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.21119999999996253,
+          "wallDurationMs": 10.026299999999992
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 0.6739999999999782,
+          "wallDurationMs": 11.517999999999802
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.25929999999993925,
+          "wallDurationMs": 9.148599999999988
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 6.683700000000044,
+          "wallDurationMs": 18.135499999999865
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.2903999999998632,
+          "wallDurationMs": 8.118900000000167
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "deep",
+          "status": "partial",
+          "scanDurationMs": 22.699299999999994,
+          "wallDurationMs": 35.196699999999964
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.2821999999998752,
+          "wallDurationMs": 7.7487999999998465
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 10.463300000000118,
+          "wallDurationMs": 22.448100000000068
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 1.0382999999999356,
+          "wallDurationMs": 9.061899999999923
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 29.174800000000005,
+          "wallDurationMs": 40.95959999999991
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.10800000000017462,
+          "wallDurationMs": 7.4184999999999945
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 34.171499999999924,
+          "wallDurationMs": 45.31600000000003
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.9786000000001422,
+          "wallDurationMs": 10.276299999999992
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 37.76119999999992,
+          "wallDurationMs": 50.059299999999894
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.21839999999997417,
+          "wallDurationMs": 10.667299999999841
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 47.7829999999999,
+          "wallDurationMs": 59.13079999999991
+        }
+      ]
+    },
+    {
+      "repetition": 0,
+      "scanner": "before",
+      "suite": "regression",
+      "datasetSha256": "232e8bf5ba1e61425366331c164535840d3a1e3ab37e41f2ebe355dae1bf2122",
+      "sourceFingerprint": "73e1e0d1087e9fb8c02775c411cf38c1b88b3733bf2dae6043beed6bc6a5650c",
+      "rows": [
+        {
+          "id": "debug-4.4.2",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.5231000000001131,
+          "wallDurationMs": 13.614599999999882
+        },
+        {
+          "id": "debug-4.4.2",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 4.276700000000119,
+          "wallDurationMs": 16.128400000000056
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.4567000000001826,
+          "wallDurationMs": 9.044200000000046
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.3061999999999898,
+          "wallDurationMs": 11.761700000000019
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.7689000000000306,
+          "wallDurationMs": 7.544099999999844
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 7.542000000000144,
+          "wallDurationMs": 18.032500000000027
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.733600000000024,
+          "wallDurationMs": 7.9772999999997865
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.4805999999998676,
+          "wallDurationMs": 12.887100000000146
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.1516999999998916,
+          "wallDurationMs": 7.142499999999927
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 5.0694999999998345,
+          "wallDurationMs": 15.045100000000048
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.14370000000008076,
+          "wallDurationMs": 6.427400000000034
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.788000000000011,
+          "wallDurationMs": 12.885800000000017
+        }
+      ]
+    },
+    {
+      "repetition": 0,
+      "scanner": "after",
+      "suite": "controls",
+      "datasetSha256": "96c9453c38682b29c81306ccd3baa82c8559b68465316307a47a48c2616c6e5d",
+      "sourceFingerprint": "227f0150c904f3e20a4e129f179987bec9296a94bda27ae7b287f2817526f1b7",
+      "rows": [
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.1569000000001779,
+          "wallDurationMs": 9.434500000000071
+        },
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 9.953800000000001,
+          "wallDurationMs": 20.763099999999895
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.4133999999999105,
+          "wallDurationMs": 9.481800000000021
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 23.674099999999953,
+          "wallDurationMs": 35.79639999999995
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.21420000000011896,
+          "wallDurationMs": 12.551200000000108
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.034900000000107,
+          "wallDurationMs": 12.12239999999997
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.27070000000003347,
+          "wallDurationMs": 8.567600000000084
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 9.210399999999936,
+          "wallDurationMs": 20.685200000000123
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.29189999999994143,
+          "wallDurationMs": 8.526900000000069
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "deep",
+          "status": "partial",
+          "scanDurationMs": 25.749199999999973,
+          "wallDurationMs": 37.6402999999998
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.23300000000017462,
+          "wallDurationMs": 11.660300000000007
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 24.652700000000095,
+          "wallDurationMs": 35.30729999999994
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 1.1550000000002,
+          "wallDurationMs": 8.871200000000044
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 60.584299999999985,
+          "wallDurationMs": 72.79150000000027
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.12190000000009604,
+          "wallDurationMs": 8.362100000000282
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 78.82889999999998,
+          "wallDurationMs": 90.51880000000028
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 1.0781999999999243,
+          "wallDurationMs": 12.501600000000053
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 138.42980000000034,
+          "wallDurationMs": 149.5101999999997
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.22080000000005384,
+          "wallDurationMs": 9.983799999999974
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 92.62830000000031,
+          "wallDurationMs": 104.63389999999981
+        }
+      ]
+    },
+    {
+      "repetition": 0,
+      "scanner": "after",
+      "suite": "regression",
+      "datasetSha256": "232e8bf5ba1e61425366331c164535840d3a1e3ab37e41f2ebe355dae1bf2122",
+      "sourceFingerprint": "227f0150c904f3e20a4e129f179987bec9296a94bda27ae7b287f2817526f1b7",
+      "rows": [
+        {
+          "id": "debug-4.4.2",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.5610999999998967,
+          "wallDurationMs": 11.241099999999733
+        },
+        {
+          "id": "debug-4.4.2",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 18.083799999999883,
+          "wallDurationMs": 32.69300000000021
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.44399999999996,
+          "wallDurationMs": 8.41820000000007
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.5808000000001812,
+          "wallDurationMs": 12.157900000000154
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.6977999999999156,
+          "wallDurationMs": 8.036499999999705
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 9.126999999999953,
+          "wallDurationMs": 20.546100000000024
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.7737999999999374,
+          "wallDurationMs": 9.735200000000077
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 2.698399999999765,
+          "wallDurationMs": 13.615899999999783
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.14199999999982538,
+          "wallDurationMs": 7.247400000000198
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 15.133100000000013,
+          "wallDurationMs": 26.7186999999999
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.13259999999991123,
+          "wallDurationMs": 6.412499999999909
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 3.797299999999723,
+          "wallDurationMs": 13.67009999999982
+        }
+      ]
+    },
+    {
+      "repetition": 1,
+      "scanner": "after",
+      "suite": "controls",
+      "datasetSha256": "96c9453c38682b29c81306ccd3baa82c8559b68465316307a47a48c2616c6e5d",
+      "sourceFingerprint": "227f0150c904f3e20a4e129f179987bec9296a94bda27ae7b287f2817526f1b7",
+      "rows": [
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.1253999999998996,
+          "wallDurationMs": 6.8926000000001295
+        },
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 8.98869999999988,
+          "wallDurationMs": 18.79950000000008
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.4774999999999636,
+          "wallDurationMs": 9.413700000000063
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 23.83829999999989,
+          "wallDurationMs": 34.28060000000005
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.21259999999983847,
+          "wallDurationMs": 7.76909999999998
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.268000000000029,
+          "wallDurationMs": 10.760699999999815
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.19849999999996726,
+          "wallDurationMs": 6.649800000000141
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 9.483200000000124,
+          "wallDurationMs": 19.646499999999833
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.32500000000027285,
+          "wallDurationMs": 11.217099999999846
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "deep",
+          "status": "partial",
+          "scanDurationMs": 25.1570999999999,
+          "wallDurationMs": 36.58129999999983
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.27080000000023574,
+          "wallDurationMs": 8.507500000000164
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 24.453700000000026,
+          "wallDurationMs": 35.052400000000034
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.9113999999999578,
+          "wallDurationMs": 9.106699999999819
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 64.74689999999964,
+          "wallDurationMs": 76.32369999999992
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.14490000000023429,
+          "wallDurationMs": 11.358200000000124
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 78.00080000000025,
+          "wallDurationMs": 91.95309999999972
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.9729000000002088,
+          "wallDurationMs": 11.003700000000208
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 144.81619999999975,
+          "wallDurationMs": 159.51680000000033
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.20760000000018408,
+          "wallDurationMs": 10.464100000000144
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 87.17820000000029,
+          "wallDurationMs": 100.79730000000018
+        }
+      ]
+    },
+    {
+      "repetition": 1,
+      "scanner": "after",
+      "suite": "regression",
+      "datasetSha256": "232e8bf5ba1e61425366331c164535840d3a1e3ab37e41f2ebe355dae1bf2122",
+      "sourceFingerprint": "227f0150c904f3e20a4e129f179987bec9296a94bda27ae7b287f2817526f1b7",
+      "rows": [
+        {
+          "id": "debug-4.4.2",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.529700000000048,
+          "wallDurationMs": 11.098500000000058
+        },
+        {
+          "id": "debug-4.4.2",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 13.833600000000388,
+          "wallDurationMs": 28.203899999999976
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.514100000000326,
+          "wallDurationMs": 10.16150000000016
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.8869999999997162,
+          "wallDurationMs": 16.145500000000084
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.7454000000002452,
+          "wallDurationMs": 12.373299999999745
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 9.053699999999935,
+          "wallDurationMs": 23.687600000000202
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.7976000000003296,
+          "wallDurationMs": 10.921100000000024
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 2.0647000000003572,
+          "wallDurationMs": 15.456000000000131
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.1285000000002583,
+          "wallDurationMs": 9.635699999999815
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 15.415600000000268,
+          "wallDurationMs": 29.836100000000442
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.18840000000000146,
+          "wallDurationMs": 9.705800000000181
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 3.2467000000001462,
+          "wallDurationMs": 15.889099999999871
+        }
+      ]
+    },
+    {
+      "repetition": 1,
+      "scanner": "before",
+      "suite": "controls",
+      "datasetSha256": "96c9453c38682b29c81306ccd3baa82c8559b68465316307a47a48c2616c6e5d",
+      "sourceFingerprint": "73e1e0d1087e9fb8c02775c411cf38c1b88b3733bf2dae6043beed6bc6a5650c",
+      "rows": [
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.18149999999968713,
+          "wallDurationMs": 10.146200000000135
+        },
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 2.8677999999999884,
+          "wallDurationMs": 17.13149999999996
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.3733999999999469,
+          "wallDurationMs": 9.646900000000187
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 23.13149999999996,
+          "wallDurationMs": 37.54260000000022
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.22550000000001091,
+          "wallDurationMs": 10.123399999999947
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 0.9125999999996566,
+          "wallDurationMs": 17.384599999999864
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.205000000000382,
+          "wallDurationMs": 11.545000000000073
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 6.386799999999766,
+          "wallDurationMs": 21.17280000000028
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.3290999999999258,
+          "wallDurationMs": 10.165500000000065
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "deep",
+          "status": "partial",
+          "scanDurationMs": 24.166099999999915,
+          "wallDurationMs": 39.279599999999846
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.26710000000002765,
+          "wallDurationMs": 14.515300000000025
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 10.596199999999953,
+          "wallDurationMs": 23.63020000000006
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.8696999999997388,
+          "wallDurationMs": 11.508800000000065
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 31.33939999999984,
+          "wallDurationMs": 45.39350000000013
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.13850000000002183,
+          "wallDurationMs": 11.979100000000017
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 36.09529999999995,
+          "wallDurationMs": 56.364900000000034
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 1.4014999999999418,
+          "wallDurationMs": 15.749900000000252
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 43.16319999999996,
+          "wallDurationMs": 61.034400000000005
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.22499999999990905,
+          "wallDurationMs": 10.26319999999987
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 50.39060000000063,
+          "wallDurationMs": 64.79199999999992
+        }
+      ]
+    },
+    {
+      "repetition": 1,
+      "scanner": "before",
+      "suite": "regression",
+      "datasetSha256": "232e8bf5ba1e61425366331c164535840d3a1e3ab37e41f2ebe355dae1bf2122",
+      "sourceFingerprint": "73e1e0d1087e9fb8c02775c411cf38c1b88b3733bf2dae6043beed6bc6a5650c",
+      "rows": [
+        {
+          "id": "debug-4.4.2",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.7228999999997541,
+          "wallDurationMs": 15.030899999999747
+        },
+        {
+          "id": "debug-4.4.2",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 4.221199999999953,
+          "wallDurationMs": 18.928600000000188
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.5443999999997686,
+          "wallDurationMs": 9.780000000000655
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.2709999999997308,
+          "wallDurationMs": 14.946200000000317
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.8176000000003114,
+          "wallDurationMs": 10.841699999999946
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 7.51680000000033,
+          "wallDurationMs": 23.052599999999984
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.880300000000716,
+          "wallDurationMs": 10.179699999999684
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.4200000000000728,
+          "wallDurationMs": 14.041799999999967
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.1517999999996391,
+          "wallDurationMs": 9.529999999999745
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 5.360899999999674,
+          "wallDurationMs": 19.375500000000102
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.17709999999988213,
+          "wallDurationMs": 10.216699999999946
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.6575000000002547,
+          "wallDurationMs": 14.113500000000386
+        }
+      ]
+    },
+    {
+      "repetition": 2,
+      "scanner": "before",
+      "suite": "controls",
+      "datasetSha256": "96c9453c38682b29c81306ccd3baa82c8559b68465316307a47a48c2616c6e5d",
+      "sourceFingerprint": "73e1e0d1087e9fb8c02775c411cf38c1b88b3733bf2dae6043beed6bc6a5650c",
+      "rows": [
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.2010999999993146,
+          "wallDurationMs": 9.189800000000105
+        },
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 2.6827000000002954,
+          "wallDurationMs": 16.006599999999708
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.3620999999993728,
+          "wallDurationMs": 9.881899999999405
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 22.35609999999997,
+          "wallDurationMs": 36.92609999999968
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.3251000000000204,
+          "wallDurationMs": 9.923499999999876
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 0.6113999999997759,
+          "wallDurationMs": 15.468399999999747
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.2175999999999476,
+          "wallDurationMs": 9.574099999999817
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 6.302799999999479,
+          "wallDurationMs": 18.3087000000005
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.30280000000038854,
+          "wallDurationMs": 11.666600000000471
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "deep",
+          "status": "partial",
+          "scanDurationMs": 28.05789999999979,
+          "wallDurationMs": 45.02099999999973
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.2995999999993728,
+          "wallDurationMs": 16.46469999999954
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 12.796000000000276,
+          "wallDurationMs": 31.826500000000124
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 1.135099999999511,
+          "wallDurationMs": 15.651699999999437
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 33.890300000000025,
+          "wallDurationMs": 53.61079999999947
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.12910000000010768,
+          "wallDurationMs": 13.534599999999955
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 38.542199999999866,
+          "wallDurationMs": 55.45249999999942
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 1.0615999999999985,
+          "wallDurationMs": 15.717200000000048
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 41.4945000000007,
+          "wallDurationMs": 54.299700000000485
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.21810000000004948,
+          "wallDurationMs": 11.839200000000346
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 48.6842000000006,
+          "wallDurationMs": 62.49459999999999
+        }
+      ]
+    },
+    {
+      "repetition": 2,
+      "scanner": "before",
+      "suite": "regression",
+      "datasetSha256": "232e8bf5ba1e61425366331c164535840d3a1e3ab37e41f2ebe355dae1bf2122",
+      "sourceFingerprint": "73e1e0d1087e9fb8c02775c411cf38c1b88b3733bf2dae6043beed6bc6a5650c",
+      "rows": [
+        {
+          "id": "debug-4.4.2",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.5410000000001673,
+          "wallDurationMs": 14.270700000000033
+        },
+        {
+          "id": "debug-4.4.2",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 4.304299999999785,
+          "wallDurationMs": 16.99449999999979
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.5532000000002881,
+          "wallDurationMs": 10.032000000000153
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.248199999999997,
+          "wallDurationMs": 15.887099999999919
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.7298000000000684,
+          "wallDurationMs": 9.7507999999998
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 7.660200000000259,
+          "wallDurationMs": 21.915600000000268
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.8483000000005632,
+          "wallDurationMs": 12.399099999999635
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.5850000000000364,
+          "wallDurationMs": 15.943000000000211
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.14639999999963038,
+          "wallDurationMs": 10.023200000000543
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 5.441599999999198,
+          "wallDurationMs": 17.989199999999983
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.16780000000017026,
+          "wallDurationMs": 9.869700000000194
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.738100000000486,
+          "wallDurationMs": 14.936800000000403
+        }
+      ]
+    },
+    {
+      "repetition": 2,
+      "scanner": "after",
+      "suite": "controls",
+      "datasetSha256": "96c9453c38682b29c81306ccd3baa82c8559b68465316307a47a48c2616c6e5d",
+      "sourceFingerprint": "227f0150c904f3e20a4e129f179987bec9296a94bda27ae7b287f2817526f1b7",
+      "rows": [
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.14570000000003347,
+          "wallDurationMs": 8.98489999999947
+        },
+        {
+          "id": "esbuild-0.25.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 8.894499999999425,
+          "wallDurationMs": 21.283699999999953
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.3440999999993437,
+          "wallDurationMs": 9.419200000000274
+        },
+        {
+          "id": "node-gyp-11.2.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 23.58259999999973,
+          "wallDurationMs": 38.39350000000013
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.20729999999912252,
+          "wallDurationMs": 13.907599999999547
+        },
+        {
+          "id": "cross-spawn-7.0.6",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.6322000000000116,
+          "wallDurationMs": 15.85990000000038
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.20619999999962602,
+          "wallDurationMs": 8.743099999999686
+        },
+        {
+          "id": "metamask--providers-22.1.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 8.61660000000029,
+          "wallDurationMs": 22.85820000000058
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.3518999999996595,
+          "wallDurationMs": 18.416599999999562
+        },
+        {
+          "id": "walletconnect--ethereum-provider-2.21.1",
+          "mode": "deep",
+          "status": "partial",
+          "scanDurationMs": 33.01730000000043,
+          "wallDurationMs": 56.974999999999454
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.40459999999984575,
+          "wallDurationMs": 20.89589999999953
+        },
+        {
+          "id": "sentry--browser-9.22.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 29.176800000000185,
+          "wallDurationMs": 53.29489999999987
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 1.185699999999997,
+          "wallDurationMs": 17.72069999999985
+        },
+        {
+          "id": "axios-1.9.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 54.91010000000006,
+          "wallDurationMs": 79.02040000000034
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.11570000000028813,
+          "wallDurationMs": 14.001500000000306
+        },
+        {
+          "id": "lodash-4.17.21",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 77.95470000000023,
+          "wallDurationMs": 92.08619999999974
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 1.002599999999802,
+          "wallDurationMs": 11.04110000000037
+        },
+        {
+          "id": "terser-5.39.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 130.77819999999974,
+          "wallDurationMs": 144.27340000000004
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.21749999999974534,
+          "wallDurationMs": 13.133600000000115
+        },
+        {
+          "id": "core-js-3.42.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 82.7521999999999,
+          "wallDurationMs": 97.71689999999944
+        }
+      ]
+    },
+    {
+      "repetition": 2,
+      "scanner": "after",
+      "suite": "regression",
+      "datasetSha256": "232e8bf5ba1e61425366331c164535840d3a1e3ab37e41f2ebe355dae1bf2122",
+      "sourceFingerprint": "227f0150c904f3e20a4e129f179987bec9296a94bda27ae7b287f2817526f1b7",
+      "rows": [
+        {
+          "id": "debug-4.4.2",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.5482999999994718,
+          "wallDurationMs": 9.872699999999895
+        },
+        {
+          "id": "debug-4.4.2",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 16.09639999999945,
+          "wallDurationMs": 30.52639999999974
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.4764000000004671,
+          "wallDurationMs": 10.003099999999904
+        },
+        {
+          "id": "debug-4.4.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 1.8890999999994165,
+          "wallDurationMs": 14.693199999999706
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.7991999999994732,
+          "wallDurationMs": 9.721999999999753
+        },
+        {
+          "id": "eslint-config-prettier-10.1.7",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 9.224999999999454,
+          "wallDurationMs": 22.950399999999718
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.7254000000002634,
+          "wallDurationMs": 10.666900000000169
+        },
+        {
+          "id": "eslint-config-prettier-10.1.5",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 3.530300000000352,
+          "wallDurationMs": 17.27480000000014
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.15399999999954161,
+          "wallDurationMs": 9.052099999999882
+        },
+        {
+          "id": "is-3.3.1",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 15.395399999999427,
+          "wallDurationMs": 29.87199999999939
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "metadata",
+          "status": "complete",
+          "scanDurationMs": 0.15539999999964493,
+          "wallDurationMs": 9.395900000000438
+        },
+        {
+          "id": "is-3.3.0",
+          "mode": "deep",
+          "status": "complete",
+          "scanDurationMs": 3.8702000000002954,
+          "wallDurationMs": 16.104600000000573
+        }
+      ]
+    }
+  ]
+}

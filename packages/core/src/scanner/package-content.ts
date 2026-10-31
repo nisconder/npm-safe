@@ -8,6 +8,11 @@
 
 import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
+import { scanBrowserContent } from './browser-signals.js';
+import { scanProcessContent } from './content-process-signals.js';
+import { findDynamicExecution } from './content-dynamic-signals.js';
+import { findNetworkExecution } from './content-network-signals.js';
+import { tokenizeSourceDetailed, type SourceToken } from './source-tokens.js';
 
 import {
   FindingCategory,
@@ -46,9 +51,11 @@ export const CONTENT_SCAN_RULES = [
   { id: 'content-native-binary', name: 'Bundled native or executable content', description: 'The published archive contains native, executable, or WebAssembly files.', severity: Severity.Low, category: FindingCategory.BinaryDownload },
   { id: 'content-remote-shell', name: 'Remote content piped to a shell', description: 'Published source downloads remote content and passes it to a command shell.', severity: Severity.Critical, category: FindingCategory.InstallScript },
   { id: 'content-obfuscated-exec', name: 'Obfuscated dynamic code execution', description: 'Published source combines encoded payloads with dynamic execution.', severity: Severity.High, category: FindingCategory.CodeObfuscation },
-  { id: 'content-network-exec', name: 'Network and process execution', description: 'The same published file performs network access and child-process execution.', severity: Severity.High, category: FindingCategory.BinaryDownload },
+  { id: 'content-network-exec', name: 'Network response used as a process command', description: 'A bounded local flow connects fetch response text to a child-process command or shell input.', severity: Severity.High, category: FindingCategory.BinaryDownload },
   { id: 'content-process-exec', name: 'Process execution capability', description: 'Published runtime source imports or invokes child-process functionality.', severity: Severity.Medium, category: FindingCategory.SuspiciousDep },
   { id: 'content-sensitive-network', name: 'Sensitive environment access with networking', description: 'Published source reads sensitive environment data and performs network access.', severity: Severity.High, category: FindingCategory.SensitiveExposure },
+  { id: 'content-concealed-native-exec', name: 'Concealed native-loader execution', description: 'Constant string fragments conceal a child-process call that launches a native loader with a DLL entry point.', severity: Severity.High, category: FindingCategory.CodeObfuscation },
+  { id: 'content-browser-interception', name: 'Browser response interception with payment-address matching', description: 'Source reconstructs fetch responses, replaces XMLHttpRequest methods, and matches multiple cryptocurrency address formats.', severity: Severity.Critical, category: FindingCategory.SuspiciousDep },
   { id: 'content-scan-incomplete', name: 'Incomplete package-content scan', description: 'Configured safety limits prevented the entire archive from being inspected.', severity: Severity.Medium, category: FindingCategory.Informational },
   { id: 'content-scan-unavailable', name: 'Package-content scan unavailable', description: 'The published tarball could not be downloaded or inspected.', severity: Severity.Medium, category: FindingCategory.Informational },
 ] as const;
@@ -70,6 +77,7 @@ const TEXT_EXTENSIONS = new Set([
 const NATIVE_EXTENSIONS = new Set([
   '.node', '.dll', '.so', '.dylib', '.exe', '.wasm', '.bin',
 ]);
+const JAVASCRIPT_EXTENSIONS = new Set(['.js', '.cjs', '.mjs', '.jsx', '.ts', '.cts', '.mts', '.tsx']);
 
 const REMOTE_SHELL_PATTERN =
   /(?:\b(?:curl|wget)\b[^\r\n]{0,400}(?:\||&&|;)\s*(?:sudo\s+)?(?:sh|bash|zsh|powershell|pwsh|cmd)\b|(?:Invoke-WebRequest|DownloadString|WebClient)[^\r\n]{0,500}(?:Invoke-Expression|\biex\b|Start-Process))/i;
@@ -77,7 +85,7 @@ const PROCESS_EXEC_PATTERN =
   /(?:require\s*\(\s*['"](?:node:)?child_process['"]\s*\)|from\s+['"](?:node:)?child_process['"]|\bchild_process\s*\.\s*(?:exec|execFile|spawn|fork|execSync|spawnSync)\s*\()/i;
 const NETWORK_PATTERN =
   /(?:\bfetch\s*\(|\bhttps?\.(?:get|request)\s*\(|\baxios(?:\.(?:get|post|put|patch|delete|request))?\s*\(|\brequest\s*\(|\b(?:curl|wget)\b)/i;
-const DYNAMIC_EXEC_PATTERN = /(?:\beval\s*\(|new\s+Function\s*\(|\bFunction\s*\()/i;
+const DYNAMIC_EXEC_PATTERN = /(?:\beval\s*\(|new\s+Function\s*\(|\bFunction\s*\()/;
 const ENCODED_PAYLOAD_PATTERN =
   /(?:[A-Za-z0-9+/]{160,}={0,2}|(?:\\x[0-9a-fA-F]{2}){12,}|(?:\\u[0-9a-fA-F]{4}){8,}|fromCharCode\s*\()/i;
 const SENSITIVE_ENV_PATTERN =
@@ -386,6 +394,25 @@ export function analyzePackageTarball(
       filesScanned++;
       scannedBytes += entry.data.length;
       const content = entry.data.toString('utf8');
+      const javascript = JAVASCRIPT_EXTENSIONS.has(extension);
+      const processCandidate = content.includes('require') && (content.includes('+') || content.includes('\\'));
+      const browserCandidate = content.includes('fetch') && content.includes('XMLHttpRequest') && content.includes('Response');
+      const dynamicCandidate = (content.includes('eval') || content.includes('Function')) && ENCODED_PAYLOAD_PATTERN.test(content);
+      const networkCandidate = content.includes('fetch') && (content.includes('require') || content.includes('import'));
+      let sourceTokens: readonly SourceToken[] | undefined;
+      // Each gate is a necessary condition of its lexical detector, not an allowlist.
+      if (javascript && (processCandidate || browserCandidate || dynamicCandidate || networkCandidate)) {
+        const lexical = tokenizeSourceDetailed(content);
+        sourceTokens = lexical.tokens;
+        if (lexical.truncated) {
+          truncated = true;
+          partialReason ??= 'Source token inspection reached its configured budget.';
+        }
+        for (const finding of [
+          ...(processCandidate ? scanProcessContent(content, entry.path, lexical.tokens) : []),
+          ...(browserCandidate ? scanBrowserContent(content, entry.path, lexical.tokens) : []),
+        ]) emit(finding);
+      }
       const remoteShell = lineForMatch(content, REMOTE_SHELL_PATTERN);
       if (remoteShell) {
         emit({
@@ -401,8 +428,10 @@ export function analyzePackageTarball(
         });
       }
 
-      const dynamic = lineForMatch(content, DYNAMIC_EXEC_PATTERN);
-      if (dynamic && ENCODED_PAYLOAD_PATTERN.test(content)) {
+      const dynamic = javascript
+        ? (dynamicCandidate && sourceTokens ? findDynamicExecution(content, sourceTokens) : null)
+        : lineForMatch(content, DYNAMIC_EXEC_PATTERN);
+      if (dynamic && (javascript || ENCODED_PAYLOAD_PATTERN.test(content))) {
         emit({
           ruleId: 'content-obfuscated-exec',
           ruleName: 'Obfuscated dynamic code execution',
@@ -417,16 +446,18 @@ export function analyzePackageTarball(
       }
 
       const processExec = lineForMatch(content, PROCESS_EXEC_PATTERN);
-      if (processExec && NETWORK_PATTERN.test(content)) {
+      const networkExecution = networkCandidate && sourceTokens ? findNetworkExecution(content, sourceTokens) : undefined;
+      if (networkExecution) {
+        const lineNumber = content.slice(0, networkExecution.start).split(/\r?\n/).length;
         emit({
           ruleId: 'content-network-exec',
-          ruleName: 'Network and process execution in published source',
+          ruleName: 'Network response used as a process command',
           severity: Severity.High,
-          message: `The same published file performs network access and process execution: ${entry.path}.`,
+          message: `A local fetch response flows into a child-process command or shell input in ${entry.path}.`,
           filePath: entry.path,
-          lineNumber: processExec.line,
-          codeSnippet: processExec.snippet,
-          recommendation: 'Review destination allowlists, integrity checks, and every spawned command.',
+          lineNumber,
+          codeSnippet: content.slice(networkExecution.start, networkExecution.end).slice(0, 240),
+          recommendation: 'Verify response provenance and avoid treating untrusted response text as executable commands.',
           category: FindingCategory.BinaryDownload,
         });
       } else if (processExec && !/(?:^|\/)(?:test|tests|__tests__|example|examples|docs?)\//i.test(entry.path)) {

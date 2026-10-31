@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "id": "npm-safe-six-fixed-versions-pilot-2026-10-31",
+  "kind": "real",
+  "limitations": [
+    "Tiny curated pilot, not a representative malware benchmark.",
+    "July phishing campaign and all corresponding controls stay in dev; September campaign and its control stay in test.",
+    "Malicious inputs are byte-preserving source repacks, not original npm tarballs; archive integrity and archive-structure detection cannot be evaluated for those.",
+    "Benign controls are provisionally labeled from preceding versions plus byte review, not certified safe.",
+    "No rule tuning performed on this pilot."
+  ],
+  "samples": [
+    {
+      "id": "debug-4.4.2",
+      "name": "debug",
+      "version": "4.4.2",
+      "label": "malicious",
+      "family": "september-2025-qix-phishing",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/3fc8a1ff23fadb612234526e31a60e24bbc0bb3e/samples/npm/compromised_lib/debug/4.4.2/2025-09-08-debug-v4.4.2.zip",
+        "labelEvidence": "https://github.com/debug-js/debug/security/advisories/GHSA-4x49-vf9v-38px; exact published version named malicious; original archived source retained by Datadog and manually triaged by its maintainers.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "repacked-source",
+        "originalArtifact": "debug-4.4.2.zip",
+        "originalArtifactSha256": "33d397a255c25dc8df1233ddc2531889c203835c35a287deed4511404b79a768",
+        "sourceRepositoryCommit": "3fc8a1ff23fadb612234526e31a60e24bbc0bb3e",
+        "archivedPackumentSha256": "c50745b44b5695eb74585c0e4893640f255a59049faa0abba86874f9c53ce09d",
+        "derivation": "Python 3.13.13 standard zipfile reads password-protected ZIP entirely in memory; strip temporary prefixes up to /package/; retain every non-directory package file byte-for-byte; separately preserve package_info metadata as archived-packument.json (not an npm package file); sort package names; deterministic USTAR entries (0644, uid/gid/mtime=0) plus gzip mtime=0. No source extraction or execution. Original npm tarball not available; no published SRI claimed.",
+        "fileHashesSha256": "7d277c006cb118402b37b74b7f598862c3af1106004ecd12f1c975e620d63599"
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "debug-4.4.2/manifest.json",
+          "sha256": "a8cd57f0087cb0dbffc71ab2b50e527037f2b86a43b263d43578e0a3f4b3e379"
+        },
+        "readme": {
+          "path": "debug-4.4.2/README.md",
+          "sha256": "486cb669048bd5014adf9ea117e27a45c4e61b0e668f464c724273beb8170797"
+        },
+        "tarball": {
+          "path": "debug-4.4.2/package.tgz",
+          "sha256": "f6117611b1567b19d0e93dc8124e25ec957097bd37a84f1e08876e7cdc1dbfc3"
+        }
+      }
+    },
+    {
+      "id": "debug-4.4.1",
+      "name": "debug",
+      "version": "4.4.1",
+      "label": "benign",
+      "family": "september-2025-qix-phishing",
+      "split": "test",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/debug/-/debug-4.4.1.tgz",
+        "labelEvidence": "https://github.com/debug-js/debug/security/advisories/GHSA-4x49-vf9v-38px; this preceding release lies outside the named malicious versions and is used as a provisional benign control. Static byte review of packaged entry points and lifecycle scripts performed; absence from an advisory is not proof of universal safety.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/debug/4.4.1",
+        "registryManifestSha256": "ee8799a4804b63c2e2cfef3693ef118d22727c3084260bcd1f0f691cb3358924",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged. Scanner manifest contains exact archive package.json plus original registry dist object solely to verify tarball SRI. README bytes come from this exact tarball, not mutable package-level registry README.",
+        "fileHashesSha256": "0e787e4861e46a6ee129840c164836275b1fae06760e450bafc2a8f480e6003e"
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "debug-4.4.1/manifest.json",
+          "sha256": "fe9e78cb5491f9548c29b1d8d31130d41a11ed79f6002569bae80e7c046c3c97"
+        },
+        "readme": {
+          "path": "debug-4.4.1/README.md",
+          "sha256": "486cb669048bd5014adf9ea117e27a45c4e61b0e668f464c724273beb8170797"
+        },
+        "tarball": {
+          "path": "debug-4.4.1/package.tgz",
+          "sha256": "265ca7c6f05089b9c148f849ca778f4af71ffa11172863644ed1ae6e1ed3dace"
+        }
+      }
+    },
+    {
+      "id": "eslint-config-prettier-10.1.7",
+      "name": "eslint-config-prettier",
+      "version": "10.1.7",
+      "label": "malicious",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/3fc8a1ff23fadb612234526e31a60e24bbc0bb3e/samples/npm/compromised_lib/eslint-config-prettier/10.1.7/2025-07-18-eslint-config-prettier-v10.1.7.zip",
+        "labelEvidence": "https://github.com/advisories/GHSA-f29h-pxvx-f335; exact published version named malicious; original archived source retained by Datadog and manually triaged by its maintainers.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "repacked-source",
+        "originalArtifact": "eslint-config-prettier-10.1.7.zip",
+        "originalArtifactSha256": "fa03cc25fde1f803352896261dd5aba09ff95882c920e68a40999968a749b096",
+        "sourceRepositoryCommit": "3fc8a1ff23fadb612234526e31a60e24bbc0bb3e",
+        "archivedPackumentSha256": "f3978c5335238c0f027477075617efec0f450106ed9b709b6b6159d1df8fe314",
+        "derivation": "Python 3.13.13 standard zipfile reads password-protected ZIP entirely in memory; strip temporary prefixes up to /package/; retain every non-directory package file byte-for-byte; separately preserve package_info metadata as archived-packument.json (not an npm package file); sort package names; deterministic USTAR entries (0644, uid/gid/mtime=0) plus gzip mtime=0. No source extraction or execution. Original npm tarball not available; no published SRI claimed.",
+        "fileHashesSha256": "38065295449d402b385bc3f6bfff80890d3a74c3d516f0bfec144318c6c23bc2"
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "eslint-config-prettier-10.1.7/manifest.json",
+          "sha256": "ec154b24e2894276780512e2279115f45a41400579066e63ce4178e8640483b7"
+        },
+        "readme": {
+          "path": "eslint-config-prettier-10.1.7/README.md",
+          "sha256": "769c4a162f9faf92db08ef114203c154810d95e182bec8e7ee650804c102b403"
+        },
+        "tarball": {
+          "path": "eslint-config-prettier-10.1.7/package.tgz",
+          "sha256": "d89d9bde1367b1eb70a5966f64ec05d2e229c74488051b7604838313660b887a"
+        }
+      }
+    },
+    {
+      "id": "eslint-config-prettier-10.1.5",
+      "name": "eslint-config-prettier",
+      "version": "10.1.5",
+      "label": "benign",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/eslint-config-prettier/-/eslint-config-prettier-10.1.5.tgz",
+        "labelEvidence": "https://github.com/advisories/GHSA-f29h-pxvx-f335; this preceding release lies outside the named malicious versions and is used as a provisional benign control. Static byte review of packaged entry points and lifecycle scripts performed; absence from an advisory is not proof of universal safety.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/eslint-config-prettier/10.1.5",
+        "registryManifestSha256": "108222318d9c3cfa9430db7c4dbbedc1cddf6fb2de7f8751ee78541aee76eb33",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged. Scanner manifest contains exact archive package.json plus original registry dist object solely to verify tarball SRI. README bytes come from this exact tarball, not mutable package-level registry README.",
+        "fileHashesSha256": "15c8daaa8744b35cc803fb5f8262c3241139b17ee926d319542308df1c7ead02"
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "eslint-config-prettier-10.1.5/manifest.json",
+          "sha256": "7fe7713e7012528082b1935c82d6086066053a0ca2911f25379cfaf0e3858f02"
+        },
+        "readme": {
+          "path": "eslint-config-prettier-10.1.5/README.md",
+          "sha256": "769c4a162f9faf92db08ef114203c154810d95e182bec8e7ee650804c102b403"
+        },
+        "tarball": {
+          "path": "eslint-config-prettier-10.1.5/package.tgz",
+          "sha256": "2cc93115af4bb62e3c26f55d6cd4c84a8307a908800b4ecfd754c78018dbcfa1"
+        }
+      }
+    },
+    {
+      "id": "is-3.3.1",
+      "name": "is",
+      "version": "3.3.1",
+      "label": "malicious",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/3fc8a1ff23fadb612234526e31a60e24bbc0bb3e/samples/npm/compromised_lib/is/3.3.1/2025-07-19-is-v3.3.1.zip",
+        "labelEvidence": "https://socket.dev/blog/npm-is-package-hijacked-in-expanding-supply-chain-attack; exact published version named malicious; original archived source retained by Datadog and manually triaged by its maintainers.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "repacked-source",
+        "originalArtifact": "is-3.3.1.zip",
+        "originalArtifactSha256": "4dbcc0ebb4d404f998745d48dceef81c4d52765f6b0f520c7eb55ba027dee322",
+        "sourceRepositoryCommit": "3fc8a1ff23fadb612234526e31a60e24bbc0bb3e",
+        "archivedPackumentSha256": "d7e65cf3dbb916377577850b22a55fe8c57ad6ec1b622e18f9fed5b5aa3c3a85",
+        "derivation": "Python 3.13.13 standard zipfile reads password-protected ZIP entirely in memory; strip temporary prefixes up to /package/; retain every non-directory package file byte-for-byte; separately preserve package_info metadata as archived-packument.json (not an npm package file); sort package names; deterministic USTAR entries (0644, uid/gid/mtime=0) plus gzip mtime=0. No source extraction or execution. Original npm tarball not available; no published SRI claimed.",
+        "fileHashesSha256": "4a4a1cb4eb4dd57dff350aa082887a1a71e3fbfd7a0b1b6760e7caf924541802"
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "is-3.3.1/manifest.json",
+          "sha256": "e98c4aec86cb6c29f4460b99101fc25a1c2df193c9de5131dd81ddce65e04e5d"
+        },
+        "readme": {
+          "path": "is-3.3.1/README.md",
+          "sha256": "6c70a35d693470511664cbe8d03034b5f3759991d2a90c7c44c2187bd18c7877"
+        },
+        "tarball": {
+          "path": "is-3.3.1/package.tgz",
+          "sha256": "971d87944024f27d6db3d8b800977ca17e4bdff41903064c8d65f0d78272e120"
+        }
+      }
+    },
+    {
+      "id": "is-3.3.0",
+      "name": "is",
+      "version": "3.3.0",
+      "label": "benign",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/is/-/is-3.3.0.tgz",
+        "labelEvidence": "https://socket.dev/blog/npm-is-package-hijacked-in-expanding-supply-chain-attack; this preceding release lies outside the named malicious versions and is used as a provisional benign control. Static byte review of packaged entry points and lifecycle scripts performed; absence from an advisory is not proof of universal safety.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/is/3.3.0",
+        "registryManifestSha256": "ba4150ab1a8fa8a35e3ec719305d147edf74663ccb8e83e6ea5dca2b63503845",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged. Scanner manifest contains exact archive package.json plus original registry dist object solely to verify tarball SRI. README bytes come from this exact tarball, not mutable package-level registry README.",
+        "fileHashesSha256": "cdc00d208ad0ea2c4d1c7bef1e50c821a823525c7e64b4ed46b665a0d2021b9b"
+      },
+      "artifacts": {
+        "manifest": {
+          "path": "is-3.3.0/manifest.json",
+          "sha256": "acbf1e08750bcd75bd367d4a39b11596c98402bc97b483b30c7349bd6ecaf43b"
+        },
+        "readme": {
+          "path": "is-3.3.0/README.md",
+          "sha256": "6d457dfbd23896a01e3f021a253619500b59f65e3331060af90dbd2a369fed62"
+        },
+        "tarball": {
+          "path": "is-3.3.0/package.tgz",
+          "sha256": "153c0e6de38b978a0f94e0adcfd923304501b44bd9600db3f6678c1cd753f50a"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,524 @@
+{
+  "schemaVersion": 1,
+  "scope": "regression",
+  "phase": "before",
+  "sanitization": "Published projection; no README/source text/finding messages/code snippets. Original raw report retained locally.",
+  "sourceReportSha256": "ddcda7adc763df0ef37ec4bcd1a553e162aea78c47dcf9fa74043b217c678093",
+  "generatedAt": "2026-10-31T08:39:05.300Z",
+  "dataset": {
+    "id": "npm-safe-six-fixed-versions-pilot-2026-10-31",
+    "kind": "real",
+    "sha256": "232e8bf5ba1e61425366331c164535840d3a1e3ab37e41f2ebe355dae1bf2122"
+  },
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "scanner": {
+    "entrypoint": "Frozen original TypeScript source; default built-in rules; no LLM/config/cache",
+    "sourceFiles": {
+      "packages/core/src/scanner/package-content.ts": "7c5384e8900c46884c6370b15c2fe41b2f703e85a0bdf9241df08eb03a984f8f",
+      "packages/core/src/scanner/rule-config.ts": "bf4e5da7cef1539dddd1a0955406363cb6047cc0c822cf5c5314701ba65c0b5c",
+      "packages/core/src/scanner/rule-loader.ts": "b34e1ed46dbeb9ed79a9d0b59e91be718efe23ee59a885923b46317894331d4c",
+      "packages/core/src/scanner/static-rules.ts": "1a79871d73d5b087ea1b7de3e7102e4e49529c05484ab8998205134a461adc1f",
+      "packages/core/src/scanner/types.ts": "42c4669d74dbe461387e6a8f09cab29c785dd85f59fb7ab416841d07909f112f"
+    },
+    "sourceFingerprint": "73e1e0d1087e9fb8c02775c411cf38c1b88b3733bf2dae6043beed6bc6a5650c",
+    "coreVersion": "1.1.1",
+    "tsxVersion": "4.23.13"
+  },
+  "summary": {
+    "dev": {
+      "metadata": {
+        "total": 4,
+        "complete": 4,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": 0,
+        "highCritical": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 2,
+          "fn": 2,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": 0,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": 0,
+          "coverage": 1
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 2,
+          "fn": 2,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": 0,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": 0,
+          "coverage": 1
+        },
+        "scannerTime": {
+          "count": 4,
+          "p50Ms": 0.19400000000001683,
+          "p95Ms": 0.9508999999999901
+        },
+        "wallTime": {
+          "count": 4,
+          "p50Ms": 6.244799999999998,
+          "p95Ms": 7.585500000000025
+        }
+      },
+      "deep": {
+        "total": 4,
+        "complete": 4,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": 0,
+        "highCritical": {
+          "tp": 1,
+          "fp": 0,
+          "tn": 2,
+          "fn": 1,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": 1,
+          "recallAmongEvaluable": 0.5,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": 0.5,
+          "coverage": 1
+        },
+        "productLevel": {
+          "tp": 1,
+          "fp": 0,
+          "tn": 2,
+          "fn": 1,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": 1,
+          "recallAmongEvaluable": 0.5,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": 0.5,
+          "coverage": 1
+        },
+        "scannerTime": {
+          "count": 4,
+          "p50Ms": 0.9060000000000059,
+          "p95Ms": 4.9173000000000116
+        },
+        "wallTime": {
+          "count": 4,
+          "p50Ms": 9.759200000000021,
+          "p95Ms": 15.006699999999995
+        }
+      },
+      "deepDelta": {
+        "highCritical": {
+          "pairedEvaluable": 4,
+          "excludedPairs": 0,
+          "addedTruePositives": 1,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        },
+        "productLevel": {
+          "pairedEvaluable": 4,
+          "excludedPairs": 0,
+          "addedTruePositives": 1,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        }
+      }
+    },
+    "test": {
+      "metadata": {
+        "total": 2,
+        "complete": 2,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": 0,
+        "highCritical": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 1,
+          "fn": 1,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": 0,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": 0,
+          "coverage": 1
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 1,
+          "fn": 1,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": 0,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": 0,
+          "coverage": 1
+        },
+        "scannerTime": {
+          "count": 2,
+          "p50Ms": 0.32389999999998054,
+          "p95Ms": 2.3788999999999874
+        },
+        "wallTime": {
+          "count": 2,
+          "p50Ms": 6.525600000000026,
+          "p95Ms": 11.95490000000001
+        }
+      },
+      "deep": {
+        "total": 2,
+        "complete": 2,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": 0,
+        "highCritical": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 1,
+          "fn": 1,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": 0,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": 0,
+          "coverage": 1
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 1,
+          "fn": 1,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": 0,
+          "falsePositiveRateAmongEvaluable": 0,
+          "endToEndRecall": 0,
+          "coverage": 1
+        },
+        "scannerTime": {
+          "count": 2,
+          "p50Ms": 1.0242000000000075,
+          "p95Ms": 3.8703000000000145
+        },
+        "wallTime": {
+          "count": 2,
+          "p50Ms": 10.43380000000002,
+          "p95Ms": 16.708699999999993
+        }
+      },
+      "deepDelta": {
+        "highCritical": {
+          "pairedEvaluable": 2,
+          "excludedPairs": 0,
+          "addedTruePositives": 0,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        },
+        "productLevel": {
+          "pairedEvaluable": 2,
+          "excludedPairs": 0,
+          "addedTruePositives": 0,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        }
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "debug-4.4.2",
+      "name": "debug",
+      "version": "4.4.2",
+      "label": "malicious",
+      "family": "september-2025-qix-phishing",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 2.3788999999999874,
+      "wallDurationMs": 11.95490000000001,
+      "rules": []
+    },
+    {
+      "id": "debug-4.4.2",
+      "name": "debug",
+      "version": "4.4.2",
+      "label": "malicious",
+      "family": "september-2025-qix-phishing",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 3.8703000000000145,
+      "wallDurationMs": 16.708699999999993,
+      "rules": [],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 40597,
+        "unpackedBytes": 119362,
+        "filesScanned": 5,
+        "filesSkipped": 2,
+        "integrityVerified": false,
+        "truncated": false
+      }
+    },
+    {
+      "id": "debug-4.4.1",
+      "name": "debug",
+      "version": "4.4.1",
+      "label": "benign",
+      "family": "september-2025-qix-phishing",
+      "split": "test",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.32389999999998054,
+      "wallDurationMs": 6.525600000000026,
+      "rules": []
+    },
+    {
+      "id": "debug-4.4.1",
+      "name": "debug",
+      "version": "4.4.1",
+      "label": "benign",
+      "family": "september-2025-qix-phishing",
+      "split": "test",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 1.0242000000000075,
+      "wallDurationMs": 10.43380000000002,
+      "rules": [],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 13448,
+        "unpackedBytes": 42793,
+        "filesScanned": 5,
+        "filesSkipped": 2,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    },
+    {
+      "id": "eslint-config-prettier-10.1.7",
+      "name": "eslint-config-prettier",
+      "version": "10.1.7",
+      "label": "malicious",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.9508999999999901,
+      "wallDurationMs": 7.585500000000025,
+      "rules": [
+        {
+          "ruleId": "install-script",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "id": "eslint-config-prettier-10.1.7",
+      "name": "eslint-config-prettier",
+      "version": "10.1.7",
+      "label": "malicious",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 89,
+      "highCriticalAlert": false,
+      "scanDurationMs": 4.9173000000000116,
+      "wallDurationMs": 15.006699999999995,
+      "rules": [
+        {
+          "ruleId": "install-script",
+          "severity": "medium"
+        },
+        {
+          "ruleId": "content-native-binary",
+          "severity": "low",
+          "filePath": "package/node-gyp.dll"
+        }
+      ],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 590535,
+        "unpackedBytes": 1356692,
+        "filesScanned": 10,
+        "filesSkipped": 3,
+        "integrityVerified": false,
+        "truncated": false
+      }
+    },
+    {
+      "id": "eslint-config-prettier-10.1.5",
+      "name": "eslint-config-prettier",
+      "version": "10.1.5",
+      "label": "benign",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.606899999999996,
+      "wallDurationMs": 7.332099999999997,
+      "rules": []
+    },
+    {
+      "id": "eslint-config-prettier-10.1.5",
+      "name": "eslint-config-prettier",
+      "version": "10.1.5",
+      "label": "benign",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.8560999999999694,
+      "wallDurationMs": 9.759200000000021,
+      "rules": [],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 15294,
+        "unpackedBytes": 59021,
+        "filesScanned": 9,
+        "filesSkipped": 2,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    },
+    {
+      "id": "is-3.3.1",
+      "name": "is",
+      "version": "3.3.1",
+      "label": "malicious",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.19400000000001683,
+      "wallDurationMs": 5.084299999999985,
+      "rules": [
+        {
+          "ruleId": "install-script",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "id": "is-3.3.1",
+      "name": "is",
+      "version": "3.3.1",
+      "label": "malicious",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "suspicious",
+      "score": 77,
+      "highCriticalAlert": true,
+      "scanDurationMs": 2.9786000000000286,
+      "wallDurationMs": 10.849899999999991,
+      "rules": [
+        {
+          "ruleId": "install-script",
+          "severity": "medium"
+        },
+        {
+          "ruleId": "content-obfuscated-exec",
+          "severity": "high",
+          "filePath": "package/test/check.js",
+          "lineNumber": 1
+        }
+      ],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 53807,
+        "unpackedBytes": 881848,
+        "filesScanned": 5,
+        "filesSkipped": 4,
+        "integrityVerified": false,
+        "truncated": false
+      }
+    },
+    {
+      "id": "is-3.3.0",
+      "name": "is",
+      "version": "3.3.0",
+      "label": "benign",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "mode": "metadata",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.10849999999999227,
+      "wallDurationMs": 6.244799999999998,
+      "rules": []
+    },
+    {
+      "id": "is-3.3.0",
+      "name": "is",
+      "version": "3.3.0",
+      "label": "benign",
+      "family": "july-2025-npm-phishing",
+      "split": "dev",
+      "mode": "deep",
+      "status": "complete",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "scanDurationMs": 0.9060000000000059,
+      "wallDurationMs": 8.967199999999991,
+      "rules": [],
+      "contentScan": {
+        "status": "complete",
+        "archiveBytes": 11979,
+        "unpackedBytes": 57468,
+        "filesScanned": 4,
+        "filesSkipped": 4,
+        "integrityVerified": true,
+        "truncated": false
+      }
+    }
+  ]
+}

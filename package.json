@@ -9,8 +9,10 @@
   "scripts": {
     "build": "pnpm --filter @npm-safe/core run build",
     "typecheck": "pnpm --filter @npm-safe/core exec tsc --noEmit",
-    "test": "pnpm --filter @npm-safe/core test",
+    "test": "pnpm --filter @npm-safe/core test && node --test scripts/evaluate-scanner.test.mjs",
     "verify": "pnpm typecheck && pnpm test && pnpm build",
-    "pack:check": "pnpm --filter @npm-safe/core exec npm pack --dry-run"
+    "pack:check": "pnpm --filter @npm-safe/core exec npm pack --dry-run",
+    "evaluate": "node scripts/evaluate-scanner.mjs",
+    "evaluate:test": "node --test scripts/evaluate-scanner.test.mjs"
   }
 }

@@ -16,7 +16,7 @@ package; see the [threat model](https://github.com/nisconder/npm-safe/blob/main/
   obfuscation, base64 shells, binary links, typosquatting, secret exposure,
   child_process in browser targets, suspicious build metadata, homograph
   attacks, registry mismatch) with severity-weighted scoring (0–100).
-- **Deep package-content scan** — 12 configurable rules, npm integrity
+- **Deep package-content scan** — 14 configurable rules, npm integrity
   verification, safe in-memory TAR parsing, and strict resource/origin limits.
 - **Visual DSH installation preflight** — resolve an npm package or public
   GitHub repository to an immutable source, check lifecycle scripts, DSH core

@@ -51,7 +51,7 @@ GitHub 插件仓库。它会检查 DSH bundle 声明、发布的 patch 文件、
 | 可视化审查 DSH 插件 | [桌面端](#桌面图形界面) | 安装风险卡、DSH 契约检查与固定来源命令 |
 | 给 AI 编程智能体增加安全检查 | `npm-safe skill install` | 支持 Codex、Claude Code、OpenCode、Gemini CLI 等 |
 
-扫描逻辑完全透明：10 条元数据规则与 12 条深度扫描规则都有文档且可配置，
+扫描逻辑完全透明：10 条元数据规则与 14 条深度扫描规则都有文档且可配置，
 元数据分析还支持本地规则插件扩展。
 
 ## 快速开始
@@ -487,6 +487,7 @@ npm-safe 是用于提前预警的启发式工具，不是安全认证。默认�
 
 - **[SECURITY.md](SECURITY.md)**：私密漏洞报告流程与版本支持策略。
 - **[THREAT_MODEL.md](docs/THREAT_MODEL.md)**：检查边界、信任假设、范围外威胁与评分解释。
+- **[扫描评测](docs/evaluation.md)**：[初次试评](docs/evaluation/pilot-2026-10-31.md)、[漏报修复](docs/evaluation/round2-2026-10-31.md)，以及[同十六版本的误报与性能修复](docs/evaluation/round3-2026-10-31.md)，记录覆盖代价、残余告警、部分完成和本轮串行耗时。
 - **[ROADMAP.md](ROADMAP.md)**：AST 分析、SARIF、策略、基准集和集成计划。
 - **[CHANGELOG.md](CHANGELOG.md)**：按版本整理的用户可见变更。
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)**：分层架构图、模块依赖关系图、数据流图（热路径与刷新路径）、数据库模式（ERD）、迁移系统、错误分类体系，以及带有注释的设计决策。
@@ -563,10 +564,10 @@ npm-safe/
 | **使用 better-sqlite3 的 SQLite** | 零配置嵌入式数据库。启用 WAL 模式、`busy_timeout=5000`、`synchronous=NORMAL` 和外键约束。 |
 | **纯静态分析（无网络请求）** | 扫描器仅检查注册表客户端已获取的元数据和 README 文本。分析过程中不发起外部 API 调用。 |
 | **TokenBucket 速率限制器（5 tokens/s, 10 burst）** | 防止触发注册表限流。令牌以每秒 5 个的速度恢复；突发容量允许立即处理最多 10 个请求。 |
-| **缓存优先的 `checkPackage`，基于 TTL 判断过期** | TTL 未过期时立即返回缓存结果。缓存过期则触发后台刷新。默认 TTL 为 1 小时。 |
+| **缓存优先的 `checkPackage`，基于 TTL 判断过期** | 复用新鲜元数据及当前扫描器/规则指纹下的报告；元数据过期会在返回前重新获取，规则变化会使报告失效。默认元数据 TTL 为 1 小时。 |
 | **`SecurityLevel` / `Severity` 使用字符串枚举** | 与数字枚举不同，字符串枚举可安全地记录、序列化，以及在 `switch` 语句中使用，无需担心反向映射问题。 |
 | **评分机制：100 减去严重性权重** | Critical = 25, High = 15, Medium = 8, Low = 3。从 100 分起算确保未评分的包默认为 100 分（安全）。 |
-| **等级阈值** | `>=80` 安全，`>=50` 可疑，`>=20` 危险，其余为未知。`StaticAnalyzer` 与 `CacheManager` 共享这些阈值以保持一致性。 |
+| **等级阈值** | 任一 Critical 发现或分数低于 50 时为危险；否则未完成或分数无效时为未知；其余 `>=80` 安全、50–79 可疑。实时扫描、缓存、引擎与 CI 使用共享策略，LLM 不能提高静态安全分数。 |
 
 ---
 

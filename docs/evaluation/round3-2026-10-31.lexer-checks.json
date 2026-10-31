@@ -1,0 +1,497 @@
+{
+  "schemaVersion": 1,
+  "interpretation": "Lexer equivalence and isolated lexer microtimings, not whole-scanner semantic equivalence or full-scan speedup. No source text or token value arrays published.",
+  "lexerBeforeSha256": "a911526c34541aee94f52ab2aa0b3fe0e53e2634f32d083aea260dbba591a0e5",
+  "lexerAfterSha256": "41a3e1ed7049c6214b125e433cd477f859c590d81b1b90f4e53cb15bb141ac2f",
+  "corpusEquivalence": {
+    "checkedAt": "2026-10-31T08:55:18.996Z",
+    "method": "One inert in-memory read of every eligible JS/TS archive entry from the frozen 6-regression and 10-control suites. Compared full token objects and truncated flags, including every known malicious JS entry. No source extraction/import/evaluation. Inputs >1MiB/NUL were skipped consistently with deep-scan gates; aggregate8MiB text cap was not used, so this checks additional eligible files too.",
+    "count": 5066,
+    "allIdentical": true
+  },
+  "differentialChecks": {
+    "checked": 4002,
+    "seed": 193017,
+    "method": "Deterministic inert token/escape/comment/regexp mixtures plus budget/oversized-literal edge cases. No strings executed.",
+    "allTokenStreamsAndTruncationIdentical": true
+  },
+  "microbenchmark": {
+    "protocol": "Same inert source strings, two warmups, seven serial lexer calls each, source/deep I/O excluded. Selected 16 largest eligible JS/TS entries across frozen pilot+10-control suites, no package code imported or executed.",
+    "allSixteenTokenStreamsIdentical": true,
+    "totalBeforeMedianMs": 82.70070000000044,
+    "totalAfterMedianMs": 27.867899999999793,
+    "rows": [
+      {
+        "id": "terser-5.39.0",
+        "path": "package/dist/bundle.min.js",
+        "bytes": 1041034,
+        "sourceSha256": "ac4c20a115313612e52b93153165861ec710d2ec0329f27b968110d53df9c116",
+        "tokenCount": 158815,
+        "truncated": false,
+        "tokenStreamSha256": "c1464d232201264c4c41df315884596c4c976699993becdbd7feaf848592b4c6",
+        "beforeTimesMs": [
+          52.79909999999995,
+          42.658300000000054,
+          39.79290000000003,
+          39.49189999999999,
+          35.446000000000026,
+          39.81569999999999,
+          70.71309999999994
+        ],
+        "afterTimesMs": [
+          19.354799999999955,
+          16.844899999999996,
+          7.572900000000004,
+          8.942900000000009,
+          9.182399999999973,
+          10.586400000000026,
+          10.411099999999976
+        ],
+        "beforeMedianMs": 39.81569999999999,
+        "afterMedianMs": 10.411099999999976
+      },
+      {
+        "id": "is-3.3.1",
+        "path": "package/test/check.js",
+        "bytes": 822345,
+        "sourceSha256": "4534c9d7a6ce12b7aad9911d9dea2bc37831d7af84e68bdb00b3b3f3ae3f7eab",
+        "tokenCount": 28,
+        "truncated": false,
+        "tokenStreamSha256": "30d25a71829534cde6b84b7557adcf3db258f0bb2ef6ca5912f68ce8d94272a1",
+        "beforeTimesMs": [
+          5.7195999999999,
+          6.637100000000032,
+          5.108200000000011,
+          5.039899999999989,
+          4.741699999999923,
+          4.396499999999946,
+          4.274999999999977
+        ],
+        "afterTimesMs": [
+          4.683499999999981,
+          3.9026999999999816,
+          3.8614000000000033,
+          3.469100000000026,
+          2.4051000000000045,
+          2.395500000000027,
+          2.843900000000019
+        ],
+        "beforeMedianMs": 5.039899999999989,
+        "afterMedianMs": 3.469100000000026
+      },
+      {
+        "id": "lodash-4.17.21",
+        "path": "package/lodash.js",
+        "bytes": 544098,
+        "sourceSha256": "4c04561befdf653aef017a42ac5addf68ea943cdfca6bdee5ce04e04e8139f54",
+        "tokenCount": 42821,
+        "truncated": false,
+        "tokenStreamSha256": "97d31c9b578670d55009c82cef010669eb9debad1b987159947122958400b567",
+        "beforeTimesMs": [
+          7.157499999999914,
+          6.819500000000062,
+          5.127500000000055,
+          5.1099999999999,
+          5.041999999999916,
+          8.538900000000012,
+          5.041300000000092
+        ],
+        "afterTimesMs": [
+          4.192899999999952,
+          4.314899999999966,
+          3.5030000000000427,
+          3.20089999999999,
+          3.5504999999999995,
+          2.958699999999965,
+          2.707899999999995
+        ],
+        "beforeMedianMs": 5.127500000000055,
+        "afterMedianMs": 3.5030000000000427
+      },
+      {
+        "id": "terser-5.39.0",
+        "path": "package/tools/domprops.js",
+        "bytes": 197919,
+        "sourceSha256": "014bf279ca57603f7d5df9182f08cf3bb46a3d84c7536fd70363cf4f9cac833d",
+        "tokenCount": 18055,
+        "truncated": false,
+        "tokenStreamSha256": "d8a8dc533cbe6e6031d332774c735b074051ce77baf28e33993349279f9d68d5",
+        "beforeTimesMs": [
+          2.7479000000000724,
+          2.6795999999999367,
+          2.643299999999954,
+          7.359399999999823,
+          2.7013999999999214,
+          2.7410999999999603,
+          2.745100000000093
+        ],
+        "afterTimesMs": [
+          1.014699999999948,
+          0.9469000000000278,
+          0.9440000000000737,
+          0.9271999999999707,
+          0.9348000000001093,
+          0.936800000000062,
+          0.9255000000000564
+        ],
+        "beforeMedianMs": 2.7410999999999603,
+        "afterMedianMs": 0.936800000000062
+      },
+      {
+        "id": "terser-5.39.0",
+        "path": "package/lib/compress/index.js",
+        "bytes": 152305,
+        "sourceSha256": "9351f398cf70f0cf1a136771a2e5a24c133c613278bad93aed0d726a45a90c5d",
+        "tokenCount": 25602,
+        "truncated": false,
+        "tokenStreamSha256": "b2cb5b3001ece8d9dcb0f344fca1f83f8e766bb71522664b3e98c8ddfb9b9fe6",
+        "beforeTimesMs": [
+          3.404299999999921,
+          7.498900000000049,
+          3.3348000000000866,
+          3.253600000000006,
+          3.332700000000159,
+          3.231499999999869,
+          3.29079999999999
+        ],
+        "afterTimesMs": [
+          4.116899999999987,
+          0.97849999999994,
+          0.9201000000000477,
+          0.9519999999999982,
+          0.9044000000000096,
+          1.3727999999999838,
+          0.9421999999999571
+        ],
+        "beforeMedianMs": 3.332700000000159,
+        "afterMedianMs": 0.9519999999999982
+      },
+      {
+        "id": "axios-1.9.0",
+        "path": "package/dist/axios.js",
+        "bytes": 144929,
+        "sourceSha256": "0fe84a06c57aa99b758e2cd45e6690c6b62615549b39c9561296c5540e205d2e",
+        "tokenCount": 25654,
+        "truncated": false,
+        "tokenStreamSha256": "649aeac929cb0e6132d811af64aabbd9889e292848af3f44cdbcbec12170d729",
+        "beforeTimesMs": [
+          3.0764999999998963,
+          3.0054000000000087,
+          6.517399999999952,
+          2.8989000000001397,
+          2.839999999999918,
+          3.0237999999999374,
+          2.9284999999999854
+        ],
+        "afterTimesMs": [
+          0.8836999999999762,
+          0.8632999999999811,
+          0.9085000000000036,
+          0.8808999999999969,
+          0.939200000000028,
+          0.9489000000000942,
+          0.8911000000000513
+        ],
+        "beforeMedianMs": 3.0054000000000087,
+        "afterMedianMs": 0.8911000000000513
+      },
+      {
+        "id": "axios-1.9.0",
+        "path": "package/dist/node/axios.cjs",
+        "bytes": 129390,
+        "sourceSha256": "09e0015de3f902ea8dc3f6176e58e4081a76de33cc2116dc015e7770d7f4dafd",
+        "tokenCount": 22122,
+        "truncated": false,
+        "tokenStreamSha256": "f9e5425a235da4a301dfa7506f327301376ca1569202627a02c57c6d16832a24",
+        "beforeTimesMs": [
+          3.7515999999998257,
+          3.4781000000000404,
+          3.533200000000079,
+          3.618600000000015,
+          2.5416000000000167,
+          6.461099999999988,
+          2.542500000000018
+        ],
+        "afterTimesMs": [
+          4.305500000000052,
+          2.5943000000000893,
+          1.522899999999936,
+          0.9402000000000044,
+          0.9410000000000309,
+          0.9364000000000487,
+          0.8852999999999156
+        ],
+        "beforeMedianMs": 3.533200000000079,
+        "afterMedianMs": 0.9410000000000309
+      },
+      {
+        "id": "terser-5.39.0",
+        "path": "package/lib/parse.js",
+        "bytes": 126463,
+        "sourceSha256": "dd5c42c42f421a85cfb08718f034ff46b879f604648613317ebf2c667220d95f",
+        "tokenCount": 18939,
+        "truncated": false,
+        "tokenStreamSha256": "06a906915de643ec8954f545923d9c4f563f4532d0c021010446068e7a08d0b5",
+        "beforeTimesMs": [
+          2.919200000000046,
+          2.9217000000001008,
+          2.8249000000000706,
+          2.7247999999999593,
+          2.61220000000003,
+          2.5809999999999036,
+          2.5480999999999767
+        ],
+        "afterTimesMs": [
+          1.0258999999999787,
+          0.9908000000000357,
+          0.9755000000000109,
+          1.1370000000000573,
+          0.7087999999999965,
+          0.7066999999999553,
+          0.7977999999999383
+        ],
+        "beforeMedianMs": 2.7247999999999593,
+        "afterMedianMs": 0.9755000000000109
+      },
+      {
+        "id": "lodash-4.17.21",
+        "path": "package/core.js",
+        "bytes": 115957,
+        "sourceSha256": "e7ace8c713f76cf458b9f90fb4735f52225cc8c69a0e7b319bd9b78764307add",
+        "tokenCount": 7858,
+        "truncated": false,
+        "tokenStreamSha256": "55654db78bdd698b2fe1770a7d5485b10d4c5f48a8f375c459e3e5d17b8aec02",
+        "beforeTimesMs": [
+          0.8942999999999302,
+          0.8911000000000513,
+          4.86220000000003,
+          0.863700000000108,
+          0.8497999999999593,
+          0.9262999999998556,
+          0.8709000000001197
+        ],
+        "afterTimesMs": [
+          0.31589999999994234,
+          0.3079999999999927,
+          0.3429999999999609,
+          0.3285999999999376,
+          0.34399999999993724,
+          0.30309999999997217,
+          0.29510000000004766
+        ],
+        "beforeMedianMs": 0.8911000000000513,
+        "afterMedianMs": 0.31589999999994234
+      },
+      {
+        "id": "terser-5.39.0",
+        "path": "package/lib/ast.js",
+        "bytes": 99357,
+        "sourceSha256": "17cbd4ed2f6ab1323539bcd34df941c2d1c2a839a8c274553ef4b0c9b5fda6dc",
+        "tokenCount": 17791,
+        "truncated": false,
+        "tokenStreamSha256": "c1557e191cf24e42a99e5c84bd172052d5696bfe717a45573e1213ad536b506b",
+        "beforeTimesMs": [
+          2.139699999999948,
+          2.1199000000001433,
+          2.116600000000062,
+          2.1443000000001575,
+          2.1539000000000215,
+          2.1556000000000495,
+          2.359899999999925
+        ],
+        "afterTimesMs": [
+          0.4800000000000182,
+          0.48119999999994434,
+          0.4756999999999607,
+          0.4876999999999043,
+          0.5132999999999583,
+          0.5176999999999907,
+          0.6490000000000009
+        ],
+        "beforeMedianMs": 2.1443000000001575,
+        "afterMedianMs": 0.4876999999999043
+      },
+      {
+        "id": "axios-1.9.0",
+        "path": "package/dist/esm/axios.js",
+        "bytes": 97929,
+        "sourceSha256": "603c5d69404b74f1b44717d62a5151378c9672cdf88bf9ee914b009bec258645",
+        "tokenCount": 16539,
+        "truncated": false,
+        "tokenStreamSha256": "597164be3f32b7f46f40da028d09eb374180baef91deecf770f3b2d739b88849",
+        "beforeTimesMs": [
+          2.129799999999932,
+          5.963199999999915,
+          2.111099999999851,
+          1.9266999999999825,
+          1.9296999999999116,
+          1.9487000000001444,
+          1.8758000000000266
+        ],
+        "afterTimesMs": [
+          0.7395999999999958,
+          0.7608999999999924,
+          0.8238000000000056,
+          0.7334999999999354,
+          0.7268000000000256,
+          0.7319999999999709,
+          0.6539999999999964
+        ],
+        "beforeMedianMs": 1.9487000000001444,
+        "afterMedianMs": 0.7334999999999354
+      },
+      {
+        "id": "axios-1.9.0",
+        "path": "package/dist/browser/axios.cjs",
+        "bytes": 97053,
+        "sourceSha256": "9298643d8e3851ed5f24fb77dca502fbd23c2e351fc514c1bea305e1dc56d11c",
+        "tokenCount": 16466,
+        "truncated": false,
+        "tokenStreamSha256": "a7ede0bae6071429c108e08ac4a243924ba08f704806a0027b5eb19187ed2144",
+        "beforeTimesMs": [
+          7.426099999999906,
+          2.8058999999998377,
+          2.511099999999942,
+          2.5253999999999905,
+          3.001499999999851,
+          2.8338999999998578,
+          2.541500000000042
+        ],
+        "afterTimesMs": [
+          0.6236000000000104,
+          0.6376000000000204,
+          0.6204999999999927,
+          0.6264999999999645,
+          0.6246999999999616,
+          0.6340999999999894,
+          0.6192999999999529
+        ],
+        "beforeMedianMs": 2.8058999999998377,
+        "afterMedianMs": 0.6246999999999616
+      },
+      {
+        "id": "esbuild-0.25.5",
+        "path": "package/lib/main.js",
+        "bytes": 88353,
+        "sourceSha256": "d88a0cfb7d46ab6b3930a219bf4ecb6d4f8337f0c61805b8d45627a0e011ef70",
+        "tokenCount": 16936,
+        "truncated": false,
+        "tokenStreamSha256": "7e488ce541cbaa461e320029f1570f738bc8de400618e5562212e1dabd1edd34",
+        "beforeTimesMs": [
+          3.008000000000038,
+          2.044300000000021,
+          2.476599999999962,
+          2.68730000000005,
+          2.452099999999973,
+          5.355099999999993,
+          2.6525000000001455
+        ],
+        "afterTimesMs": [
+          0.7345000000000255,
+          0.8141999999999143,
+          0.7364999999999782,
+          0.7464999999999691,
+          0.7338999999999487,
+          0.7393999999999323,
+          0.744899999999916
+        ],
+        "beforeMedianMs": 2.6525000000001455,
+        "afterMedianMs": 0.7393999999999323
+      },
+      {
+        "id": "terser-5.39.0",
+        "path": "package/lib/output.js",
+        "bytes": 83394,
+        "sourceSha256": "5c69a3a1b6176c5710e9f4869280e1929a1bdc557dae9d01bf1c9399ff64e5bf",
+        "tokenCount": 14592,
+        "truncated": false,
+        "tokenStreamSha256": "782e0768ba188ffe5c8742834d9c9ede83f4804514d8c0eade3929c68f906615",
+        "beforeTimesMs": [
+          2.386700000000019,
+          1.7082000000000335,
+          1.804600000000164,
+          1.7390999999997803,
+          1.8123999999997977,
+          2.182900000000018,
+          2.4469000000001415
+        ],
+        "afterTimesMs": [
+          0.6259999999999764,
+          0.5946999999999889,
+          0.5701999999999998,
+          0.5720999999999776,
+          0.584699999999998,
+          0.5738999999999805,
+          0.572400000000016
+        ],
+        "beforeMedianMs": 1.8123999999997977,
+        "afterMedianMs": 0.5738999999999805
+      },
+      {
+        "id": "debug-4.4.2",
+        "path": "package/src/index.js",
+        "bytes": 76754,
+        "sourceSha256": "487eb25ee3da4b0c4a908be416bba551745eae20a9330e24c90daed0da2e42fa",
+        "tokenCount": 20218,
+        "truncated": false,
+        "tokenStreamSha256": "65b70c13ceb92d8f802b77d9b618a1f80d0ba103a840352de7f1c0da40a66828",
+        "beforeTimesMs": [
+          1.947400000000016,
+          1.9735000000000582,
+          4.335100000000011,
+          1.7937999999999192,
+          1.9419000000000324,
+          1.776200000000017,
+          1.837400000000116
+        ],
+        "afterTimesMs": [
+          0.8392999999999802,
+          0.8881999999999834,
+          0.8174999999999955,
+          10.453399999999988,
+          0.6801999999998998,
+          0.6648999999999887,
+          0.6461000000000467
+        ],
+        "beforeMedianMs": 1.9419000000000324,
+        "afterMedianMs": 0.8174999999999955
+      },
+      {
+        "id": "lodash-4.17.21",
+        "path": "package/lodash.min.js",
+        "bytes": 73015,
+        "sourceSha256": "a9705dfc47c0763380d851ab1801be6f76019f6b67e40e9b873f8b4a0603f7a9",
+        "tokenCount": 40286,
+        "truncated": false,
+        "tokenStreamSha256": "28afba161e2f024e2eb1cde04f51d1f6551025933cc2533b39ca3ffd1eb0d804",
+        "beforeTimesMs": [
+          3.087099999999964,
+          3.2149000000001706,
+          3.1836000000000695,
+          3.2462000000000444,
+          3.149599999999964,
+          3.1562999999998738,
+          7.076000000000022
+        ],
+        "afterTimesMs": [
+          1.4956999999999425,
+          1.4906000000000859,
+          1.4735999999999194,
+          1.479600000000005,
+          1.5990000000000464,
+          1.670500000000061,
+          1.6592000000000553
+        ],
+        "beforeMedianMs": 3.1836000000000695,
+        "afterMedianMs": 1.4956999999999425
+      }
+    ]
+  },
+  "localOriginalReportHashes": {
+    "comparison-final.json": "8d91806560b7362f6a3a125359489785afcb1cad539958ba08f880c8931f6d00",
+    "all-files-equivalence.json": "b1815260508330b21cb9c83982f3b50c9a3b316c7e8e4e72b4af3ddeaf32e405",
+    "differential-checks.json": "e0ce600cb99ea46179bba8f76c8ea045c423c88e6b1eec2bcdc36a7d0fc290f7",
+    "before.json": "7019e1a54739b26b85e36600d15b5cb56ffe3fbe29fe58a0b793f93e5e226f33",
+    "after-final.json": "bf4ea0bb7062ca8f7520e0f06e2f53a00d2cfdd1bcd68a800ad37f032ddfd165"
+  }
+}

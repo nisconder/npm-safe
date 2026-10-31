@@ -57,7 +57,7 @@ metadata and supply-chain attack signals before or during installation.
 | Review DSH plugins visually | [Desktop app](#desktop-gui) | Installation risk card, DSH contract checks, and a pinned command |
 | Give coding agents a safety check | `npm-safe skill install` | A skill for Codex, Claude Code, OpenCode, Gemini CLI, and more |
 
-The scanner is transparent by design: the 10 metadata rules and 12 deep-scan
+The scanner is transparent by design: the 10 metadata rules and 14 deep-scan
 rules are documented and configurable, and metadata analysis is extensible
 with local rule plugins.
 
@@ -622,6 +622,7 @@ Detailed documentation is available under `packages/core/`:
 
 - **[SECURITY.md](SECURITY.md)**: private vulnerability reporting process and supported-version policy.
 - **[THREAT_MODEL.md](docs/THREAT_MODEL.md)**: inspection boundary, trust assumptions, out-of-scope threats, and score interpretation.
+- **[Scanner evaluation](docs/evaluation.md)**: [initial pilot](docs/evaluation/pilot-2026-10-31.md), [known-miss repairs](docs/evaluation/round2-2026-10-31.md), and [precision/performance fixes on the same sixteen versions](docs/evaluation/round3-2026-10-31.md), including coverage limits, remaining alerts, partial scans, and fresh serial timings.
 - **[ROADMAP.md](ROADMAP.md)**: AST analysis, SARIF, policy, benchmark, and integration priorities.
 - **[CHANGELOG.md](CHANGELOG.md)**: user-facing changes by release.
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)**: layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.

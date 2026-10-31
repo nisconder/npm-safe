@@ -136,7 +136,7 @@ checkPackage("lodash")
     ├─ cache.getSecurityReport("lodash", latestVersion)
     │      SELECT ... FROM security_reports
     │      WHERE package_name = ? AND version = ? AND scan_type = 'static'
-    │      ── row found, parse findings_json, reconstruct SecurityLevel via scoreToLevel()
+    │      ── row found, parse findings_json and summary, reconstruct level via classifySecurity()
     │      ──► StaticScanReport | null
     │
     ├─ when deep=true and the cached report has no contentScan
@@ -403,8 +403,10 @@ denormalized for cheap listing queries without JSON parsing.
 first). No foreign key cascade is defined here in the DDL, though
 `packages.name` is the logical parent.
 
-**`security_reports`** stores only the numeric `overall_score` (0-100). The
-`SecurityLevel` enum is reconstructed at read time via `scoreToLevel()`. The
+**`security_reports`** stores the numeric `overall_score` (0-100), findings,
+and summary metadata containing content-scan status and scanner fingerprint.
+The `SecurityLevel` enum is reconstructed at read time with the shared
+`classifySecurity(score, findings, complete)` policy. The
 `scan_type` CHECK constraint restricts values to `'static'` or `'llm'`. A
 UNIQUE constraint on `(package_name, version, scan_type)` prevents duplicate
 scans of the same type for the same version. Both `package_name` and
@@ -588,22 +590,24 @@ double cast through `unknown` is the idiomatic escape hatch. The spread itself
 is safe because `AbbreviatedVersion` contains only primitive and JSON-serializable
 nested types — no class instances or getters are copied.
 
-### 8.3. security_reports Stores Numeric Score Only
+### 8.3. SecurityLevel Is Reconstructed from Evidence
 
 The `security_reports` table persists `overall_score` as an `INTEGER CHECK(0-100)`.
-The `SecurityLevel` enum is not stored. On read, the `scoreToLevel()` function in
-`cache-manager.ts` reconstructs the level using the same thresholds as the
-analyzer:
+The `SecurityLevel` enum is not stored. On read, `cache-manager.ts` uses the
+shared `classifySecurity` function with score, findings and inspection
+completeness, matching the live analyzer, engine and CI:
 
-| Score Range | Level |
-|-------------|-------|
-| 80-100      | Safe |
-| 50-79       | Suspicious |
-| 20-49       | Dangerous |
-| 0-19        | Unknown |
+| Condition, evaluated in order | Level |
+|-------------------------------|-------|
+| Any Critical finding, or score below 50 | Dangerous |
+| Otherwise, incomplete inspection or a non-finite score | Unknown |
+| Otherwise, score 80–100 | Safe |
+| Otherwise, score 50–79 | Suspicious |
 
-This prevents the enum and the numeric score from drifting out of sync and
-keeps the DB schema independent of enum variant ordering.
+Danger remains established even if inspection is incomplete. The report
+fingerprint identifies the scanner revision and effective rules; changed
+identities trigger report re-evaluation. This keeps persisted evidence and
+current policy aligned without depending on enum variant ordering.
 
 ### 8.4. Sequential Refresh Rather Than Parallel
 

