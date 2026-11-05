@@ -15,6 +15,6 @@
     "@npm-safe/core": "workspace:*"
   },
   "devDependencies": {
-    "@neutralinojs/neu": "^11.0.0"
+    "@neutralinojs/neu": "^11.8.0"
   }
 }
