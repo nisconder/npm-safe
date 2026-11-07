@@ -89,4 +89,6 @@ try {
 `ReleaseDiffReport`, `ReleaseSnapshot`, `ManifestChange`,
 `compareReleaseSnapshots` and `diffReleaseManifests` are exported. The pure
 comparison function can also compare caller-supplied static snapshots, and
-marks missing/different scanner identities inconclusive.
+marks missing/different scanner fingerprints inconclusive. It rejects a
+missing/mismatched package name or version across the outer snapshots, static
+reports and version manifests, and requires exact versions for both sides.

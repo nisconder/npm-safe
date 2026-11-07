@@ -20,11 +20,13 @@ const finding: ScanFinding = { ruleId: 'example-rule', ruleName: 'Example', mess
 const snapshot = (version: string, findings: ScanFinding[], status: ContentScanSummary['status'] = 'complete') => ({
   version, report: new StaticAnalyzer().analyze('', { name: 'fixture', version }, findings, { ...summary, status }),
 });
+const compare = (name: string, before: ReturnType<typeof snapshot>, after: ReturnType<typeof snapshot>) =>
+  compareReleaseSnapshots(name, before, after, { name, version: before.version }, { name, version: after.version });
 
 test('matches repeated evidence as a multiset and ignores shifted line numbers', () => {
   const before = snapshot('1.0.0', [finding, finding]);
   const after = snapshot('1.1.0', [{ ...finding, lineNumber: 20 }, { ...finding, codeSnippet: 'new evidence' }]);
-  const result = compareReleaseSnapshots('fixture', before, after, {}, {});
+  const result = compare('fixture', before, after);
   assert.equal(result.status, 'complete');
   assert.equal(result.findings.persisting.length, 1);
   assert.equal(result.findings.persisting[0].before.lineNumber, 2);
@@ -35,8 +37,8 @@ test('matches repeated evidence as a multiset and ignores shifted line numbers',
 
 test('incomplete scans and mismatched scanner identities never assert additions or removals', () => {
   for (const status of ['partial', 'failed'] as const) {
-    const result = compareReleaseSnapshots('fixture', snapshot('1.0.0', [finding]),
-      snapshot('1.1.0', [{ ...finding, ruleId: 'other' }], status), {}, {});
+    const result = compare('fixture', snapshot('1.0.0', [finding]),
+      snapshot('1.1.0', [{ ...finding, ruleId: 'other' }], status));
     assert.equal(result.status, 'inconclusive');
     assert.deepEqual(result.findings.added, []);
     assert.deepEqual(result.findings.removed, []);
@@ -44,9 +46,26 @@ test('incomplete scans and mismatched scanner identities never assert additions 
     assert.equal(result.findings.unverifiedAfter.length, 1);
   }
   const after = snapshot('1.1.0', []);
-  const result = compareReleaseSnapshots('fixture', snapshot('1.0.0', [finding]),
-    { ...after, report: { ...after.report, scannerFingerprint: 'different' } }, {}, {});
+  const result = compare('fixture', snapshot('1.0.0', [finding]),
+    { ...after, report: { ...after.report, scannerFingerprint: 'different' } });
   assert.equal(result.status, 'inconclusive');
+});
+
+test('public snapshot comparison rejects missing or mismatched package/version identities', () => {
+  const before = snapshot('1.0.0', [finding]);
+  const after = snapshot('1.1.0', []);
+  const oldManifest = { name: 'fixture', version: '1.0.0' };
+  const newManifest = { name: 'fixture', version: '1.1.0' };
+  for (const manifest of [{}, { ...newManifest, name: 'other' }, { ...newManifest, version: '9.0.0' }]) {
+    assert.throws(() => compareReleaseSnapshots('fixture', before, after, oldManifest, manifest), /same package and exact version/);
+  }
+  for (const change of [{ packageName: 'other' }, { version: '9.0.0' }]) {
+    assert.throws(() => compareReleaseSnapshots('fixture', before,
+      { ...after, report: { ...after.report, ...change } }, oldManifest, newManifest), /same package and exact version/);
+  }
+  assert.throws(() => compareReleaseSnapshots('other', before, after, oldManifest, newManifest), /same package and exact version/);
+  assert.throws(() => compareReleaseSnapshots('fixture', before,
+    { ...after, version: 'latest' }, oldManifest, newManifest), /exact version/);
 });
 
 test('manifest changes preserve key-level evidence, array order and JSON Pointer escaping', () => {
@@ -70,9 +89,9 @@ test('only exact canonical semver releases are accepted', () => {
 });
 
 test('terminal rendering escapes untrusted control characters', () => {
-  const report = compareReleaseSnapshots('fixture\u001b[2J', snapshot('1.0.0', []),
-    snapshot('1.1.0', [{ ...finding, codeSnippet: 'new\u001b[31m\nline' }]), {}, {});
-  const output = formatReleaseDiff(report);
+  const report = compare('fixture', snapshot('1.0.0', []),
+    snapshot('1.1.0', [{ ...finding, codeSnippet: 'new\u001b[31m\nline' }]));
+  const output = formatReleaseDiff({ ...report, packageName: 'fixture\u001b[2J' });
   assert.ok(!output.includes('\u001b'));
   assert.ok(output.includes('\\u001b'));
 });
@@ -92,7 +111,7 @@ test('CLI keeps JSON and text exit semantics aligned and closes the engine on fa
       registerDiffCommand(program, async (db, proxy) => {
         assert.equal(db, ':memory:'); assert.equal(proxy, undefined);
         return { close() { closed = true; }, async comparePackageVersions(name, from, to) {
-          return compareReleaseSnapshots(name, snapshot(from, []), snapshot(to, [], status), {}, {});
+          return compare(name, snapshot(from, []), snapshot(to, [], status));
         } };
       });
       process.exitCode = 0;

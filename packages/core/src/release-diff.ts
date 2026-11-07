@@ -108,6 +108,16 @@ export function compareReleaseSnapshots(
   beforeManifest: Readonly<Record<string, unknown>>,
   afterManifest: Readonly<Record<string, unknown>>,
 ): ReleaseDiffReport {
+  // Public callers can supply reports without going through the engine's
+  // registry validation. Never infer a resolved/new signal across identities.
+  for (const [snapshot, manifest] of [[before, beforeManifest], [after, afterManifest]] as const) {
+    assertExactReleaseVersion(snapshot.version);
+    if (!packageName || snapshot.report.packageName !== packageName
+      || snapshot.report.version !== snapshot.version
+      || manifest.name !== packageName || manifest.version !== snapshot.version) {
+      throw new Error('Release snapshot, static report and manifest must identify the same package and exact version.');
+    }
+  }
   const complete = before.report.contentScan?.status === 'complete'
     && after.report.contentScan?.status === 'complete'
     && !!before.report.scannerFingerprint
