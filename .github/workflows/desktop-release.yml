@@ -68,7 +68,7 @@ jobs:
         run: pnpm run build
 
       - name: Save platform assets
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: desktop-${{ matrix.platform }}
           path: packages/desktop/dist/release/*
