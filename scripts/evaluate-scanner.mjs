@@ -30,6 +30,7 @@ export function validateDataset(dataset) {
   const ids = new Set();
   const families = new Map();
   const versions = new Map();
+  const tarballs = new Map();
   for (const sample of dataset.samples) {
     for (const field of ['id', 'name', 'version', 'family']) requireText(sample?.[field], field);
     if (ids.has(sample.id)) throw new Error(`duplicate sample id: ${sample.id}`);
@@ -58,6 +59,11 @@ export function validateDataset(dataset) {
         throw new Error(`${sample.id}.${artifact}: use a relative path with forward slashes`);
       }
     }
+    const tarballHash = sample.artifacts.tarball.sha256;
+    if (tarballs.has(tarballHash) && tarballs.get(tarballHash) !== sample.split) {
+      throw new Error(`identical tarball bytes cross dev/test splits: ${sample.id}`);
+    }
+    tarballs.set(tarballHash, sample.split);
   }
 }
 
@@ -113,13 +119,17 @@ export async function loadScanner() {
 }
 
 /** Dependency injection exists for accounting tests; CLI always uses real source. */
-export async function evaluateDataset(datasetPath, scanner) {
+export async function evaluateDataset(datasetPath, scanner, options = {}) {
   const datasetBytes = await readFile(datasetPath);
   const dataset = JSON.parse(datasetBytes.toString('utf8'));
   validateDataset(dataset);
+  const split = options.split ?? 'all';
+  if (!['all', 'dev', 'test'].includes(split)) throw new Error('split must be all, dev or test');
+  const selected = dataset.samples.filter(sample => split === 'all' || sample.split === split);
+  if (!selected.length) throw new Error(`dataset has no samples in requested split: ${split}`);
   scanner ??= await loadScanner();
   const rows = [];
-  for (const sample of dataset.samples) {
+  for (const sample of selected) {
     for (const mode of ['metadata', 'deep']) {
       const row = {
         id: sample.id, name: sample.name, version: sample.version, label: sample.label,
@@ -156,7 +166,9 @@ export async function evaluateDataset(datasetPath, scanner) {
     }
   }
   return {
-    schemaVersion: 1, dataset: { id: dataset.id, kind: dataset.kind, sha256: sha256(datasetBytes), samples: dataset.samples },
+    schemaVersion: 1, dataset: { id: dataset.id, kind: dataset.kind, sha256: sha256(datasetBytes), samples: dataset.samples,
+      ...(dataset.partition ? { partition: dataset.partition } : {}) },
+    selection: { split, selectedCount: selected.length, excludedCount: dataset.samples.length - selected.length },
     generatedAt: new Date().toISOString(), runtime: { node: process.version, platform: process.platform, arch: process.arch },
     scanner: scanner.identity,
     interpretation: dataset.kind === 'synthetic' ? 'Harness demonstration only; not measured real-world malware detection accuracy.' : 'Results apply only to these frozen, independently labeled artifacts.',
@@ -166,15 +178,15 @@ export async function evaluateDataset(datasetPath, scanner) {
 
 async function main() {
   const args = process.argv.slice(2);
-  if (args.length !== 3 || args[1] !== '--output') {
-    console.error('Usage: node scripts/evaluate-scanner.mjs DATASET.json --output RESULTS.json');
+  if (![3, 5].includes(args.length) || args[1] !== '--output' || (args.length === 5 && args[3] !== '--split')) {
+    console.error('Usage: node scripts/evaluate-scanner.mjs DATASET.json --output RESULTS.json [--split dev|test|all]');
     process.exitCode = 1;
     return;
   }
   const input = path.resolve(args[0]);
   const output = path.resolve(args[2]);
   if (input === output) throw new Error('output must differ from dataset');
-  const report = await evaluateDataset(input);
+  const report = await evaluateDataset(input, undefined, { split: args[4] ?? 'all' });
   // Never overwrite any declared artifact, including through symlinks.
   let outputResolved = output;
   try { outputResolved = await realpath(output); } catch { /* New result file. */ }

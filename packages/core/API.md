@@ -2,6 +2,11 @@
 
 This document describes every public export from `@npm-safe/core` in Phase 1. Signatures are copied from the source and reflect the exact runtime behaviour of the code at `packages/core/src/`.
 
+The current source additionally exports [release-comparison types and helpers](../../docs/release-diff.md#api).
+`NpmSafeEngine.comparePackageVersions(name, fromVersion, toVersion, { signal? })`
+returns `Promise<ReleaseDiffReport>` for two exact published versions. See that
+reference for evidence matching, manifest fields and incomplete comparisons.
+
 ---
 
 ## Table of Contents

@@ -112,6 +112,7 @@ npm-safe check <pkg1> <pkg2> ...    # Check multiple packages (batch)
 npm-safe check --file deps.txt      # Read package names from a file
 npm-safe check -r <package>         # Force re-fetch from registry (ignore cache)
 npm-safe check --deep <package>     # Verify and inspect the published tarball
+npm-safe diff <package> 1.0.0 1.1.0 # Compare two exact releases (deep scan + manifest changes)
 npm-safe search <query>            # Search the npm registry
 npm-safe search <query> -s 10      # Limit the number of results
 npm-safe watch list                # List watched packages
@@ -269,6 +270,15 @@ them, acting as a "check before you install" safety gate.
 ---
 
 ## Features
+
+### Release signal comparison
+
+`npm-safe diff <package> <from-version> <to-version> --json` compares two exact
+published releases using the same static rules. It retains added, removed and
+persisting evidence, registry-manifest changes, and both deep-scan reports.
+Incomplete scans produce an inconclusive comparison instead of claiming a
+finding disappeared. See [release diff and exit codes](docs/release-diff.md).
+This command is available when building the current source.
 
 ### Bounded package-content scanning
 
@@ -623,6 +633,7 @@ Detailed documentation is available under `packages/core/`:
 - **[SECURITY.md](SECURITY.md)**: private vulnerability reporting process and supported-version policy.
 - **[THREAT_MODEL.md](docs/THREAT_MODEL.md)**: inspection boundary, trust assumptions, out-of-scope threats, and score interpretation.
 - **[Scanner evaluation](docs/evaluation.md)**: [initial pilot](docs/evaluation/pilot-2026-10-31.md), [known-miss repairs](docs/evaluation/round2-2026-10-31.md), and [precision/performance fixes on the same sixteen versions](docs/evaluation/round3-2026-10-31.md), including coverage limits, remaining alerts, partial scans, and fresh serial timings.
+- **[New evaluation splits](docs/evaluation-splits.md)**: deterministic family partitioning, observed-data exclusions, split-only runs and a harmless synthetic workflow demonstration. These do not claim new real-world accuracy results.
 - **[ROADMAP.md](ROADMAP.md)**: AST analysis, SARIF, policy, benchmark, and integration priorities.
 - **[CHANGELOG.md](CHANGELOG.md)**: user-facing changes by release.
 - **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)**: layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.

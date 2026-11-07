@@ -38,6 +38,8 @@ import {
   parsePluginSource,
 } from './dsh/plugin-risk.js';
 import type { InstallRiskAssessment } from './dsh/plugin-risk.js';
+import { assertExactReleaseVersion, compareReleaseSnapshots } from './release-diff.js';
+import type { ReleaseDiffReport, ReleaseSnapshot } from './release-diff.js';
 
 // ============================================================================
 // Exported types
@@ -386,6 +388,41 @@ export class NpmSafeEngine {
       }
       throw err;
     }
+  }
+
+  /** Compare two exact releases using one registry snapshot and the same static rules. */
+  async comparePackageVersions(
+    name: string,
+    fromVersion: string,
+    toVersion: string,
+    options: { readonly signal?: AbortSignal } = {},
+  ): Promise<ReleaseDiffReport> {
+    assertExactReleaseVersion(fromVersion);
+    assertExactReleaseVersion(toVersion);
+    options.signal?.throwIfAborted();
+    await this.rulesReady;
+    const meta = await this.client.getPackageMetadata(name, { signal: options.signal });
+    const manifests = [fromVersion, toVersion].map(version => {
+      const manifest = Object.hasOwn(meta.versions, version) ? meta.versions[version] : undefined;
+      if (!manifest || manifest.name !== name || manifest.version !== version) {
+        throw new Error(`No matching published manifest for ${name}@${version}.`);
+      }
+      return manifest;
+    });
+    const snapshots: ReleaseSnapshot[] = [];
+    for (const manifest of manifests) {
+      const content = await this.scanPackageContent(manifest, options.signal);
+      options.signal?.throwIfAborted();
+      snapshots.push({
+        version: manifest.version,
+        integrity: manifest.dist?.integrity ?? manifest.integrity,
+        shasum: manifest.dist?.shasum ?? manifest.shasum,
+        // A package-level README can describe latest instead of either release.
+        report: this.analyzer.analyze('', { ...manifest }, content.findings, content.summary),
+      });
+    }
+    return compareReleaseSnapshots(name, snapshots[0], snapshots[1],
+      { ...manifests[0] }, { ...manifests[1] });
   }
 
   /**
@@ -1250,3 +1287,5 @@ export { readProjectDependencies } from './project-dependencies.js';
 export type { ProjectDependency } from './project-dependencies.js';
 export { classifySecurity, shouldFailCi, SECURITY_LEVEL_RANK } from './scanner/security-policy.js';
 export { SecurityLevel, Severity, FindingCategory } from './scanner/types.js';
+export { compareReleaseSnapshots, diffReleaseManifests, RELEASE_MANIFEST_FIELDS } from './release-diff.js';
+export type { ReleaseDiffReport, ReleaseSnapshot, ManifestChange } from './release-diff.js';
