@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { registerCheckCommand, runCheck } from "./check.js";
+import { registerDiffCommand } from "./diff.js";
 import { registerSearchCommand } from "./search.js";
 import { registerWatchCommand } from "./watch.js";
 import { registerRefreshCommand } from "./refresh.js";
@@ -42,6 +43,7 @@ program
   });
 
 registerCheckCommand(program);
+registerDiffCommand(program);
 registerSearchCommand(program);
 registerWatchCommand(program);
 registerRefreshCommand(program);

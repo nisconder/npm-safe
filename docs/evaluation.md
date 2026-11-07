@@ -1,5 +1,10 @@
 # Reproducible offline scanner evaluation
 
+For new data, use the [frozen split workflow](evaluation-splits.md) to partition
+families before tuning, exclude previously observed inputs from the test split,
+and run `--split dev` without opening test artifacts. A runnable harmless
+synthetic corpus exercises the workflow without claiming real-world accuracy.
+
 This repository has an evaluation harness, a
 [six-version real-source pilot](evaluation/pilot-2026-10-31.md), a
 [second-round repair and challenge report](evaluation/round2-2026-10-31.md), and a

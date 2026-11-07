@@ -19,6 +19,12 @@ semantic versioning for `@npm-safe/core`.
 
 ### Added
 
+- Compare two exact published versions with `npm-safe diff`: static finding
+  deltas, registry-manifest changes and complete scan evidence. Incomplete
+  inspection remains inconclusive instead of claiming signals were resolved.
+- Freeze reproducible family-level evaluation splits, exclude declared observed
+  inputs from test selection, and evaluate one split without opening the other.
+  A harmless synthetic corpus demonstrates the workflow without new accuracy claims.
 - Add regression and benign-behavior tests plus a fixed ten-version control
   challenge to compare detections, false positives, coverage and scan time.
 
