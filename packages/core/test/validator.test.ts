@@ -35,6 +35,30 @@ describe("validatePackageName", () => {
     assert.deepStrictEqual(validatePackageName("7zip"), { valid: true });
   });
 
+  it("accepts legal trailing punctuation in unscoped and scoped names", () => {
+    for (const name of [
+      "fixture-", "fixture_", "fixture.", "fixture-_.",
+      "@scope/fixture-", "@scope/fixture_", "@scope/fixture.",
+      "@scope-/fixture", "@scope_/fixture", "@scope./fixture",
+      "@scope-_/fixture._-",
+    ]) {
+      assert.deepStrictEqual(validatePackageName(name), { valid: true }, name);
+    }
+  });
+
+  it("rejects paths, Git sources and whitespace around punctuation-bearing names", () => {
+    for (const name of [
+      "./fixture-", "../fixture_", "/fixture.", "folder/fixture-", "folder\\fixture_",
+      "file:./fixture-", "git+https://example.invalid/fixture-", "github:owner/fixture_",
+      "https://example.invalid/fixture.", "@scope/../fixture-", "@scope/fixture-/child",
+      "fixture- other", "fixture_\t", "fixture.\n", "fixture-\r\n", "@scope/fixture_\n",
+      "@scope /fixture-", "@scope/fixture .", ".fixture-", "_fixture_",
+      "@.scope/fixture-", "@scope/_fixture_",
+    ]) {
+      assert.equal(validatePackageName(name).valid, false, JSON.stringify(name));
+    }
+  });
+
   // --- valid scoped names ---
   it("accepts a scoped package name", () => {
     assert.deepStrictEqual(validatePackageName("@babel/core"), {

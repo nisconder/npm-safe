@@ -46,7 +46,7 @@ function runCli(args: string[], packages: Record<string, Fixture> = {}) {
       const url = new URL(typeof input === 'string' ? input : input.url ?? String(input));
       if (url.origin !== 'https://registry.npmjs.org') throw new Error('Unexpected offline test request: ' + url);
       const name = decodeURIComponent(url.pathname.slice(1));
-      appendFileSync(process.env.NPM_SAFE_REQUEST_FILE, JSON.stringify(name) + '\\n');
+      appendFileSync(process.env.NPM_SAFE_REQUEST_FILE, JSON.stringify({ name, at: Date.now() }) + '\\n');
       if (!Object.hasOwn(fixtures, name)) return new Response('{}', { status: 404 });
       return new Response(JSON.stringify(fixtures[name]), { status: 200, headers: { 'content-type': 'application/json' } });
     };
@@ -61,9 +61,9 @@ function runCli(args: string[], packages: Record<string, Fixture> = {}) {
       },
     });
     if (result.error) throw result.error;
-    const requests: string[] = existsSync(requestFile)
-      ? readFileSync(requestFile, 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line) as string) : [];
-    return { stdout: result.stdout, stderr: result.stderr, status: result.status, requests };
+    const requestLog: Array<{ name: string; at: number }> = existsSync(requestFile)
+      ? readFileSync(requestFile, 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line) as { name: string; at: number }) : [];
+    return { stdout: result.stdout, stderr: result.stderr, status: result.status, requests: requestLog.map(({ name }) => name), requestLog };
   } finally { rmSync(home, { recursive: true, force: true }); }
 }
 
@@ -115,11 +115,77 @@ describe('CLI ci (offline registry fixtures)', () => {
 
   it('rejects an invalid rate limit before fetching', () => {
     project({}, (dir) => {
-      const result = runCi(dir, ['--rate-limit', 'abc']);
-      assert.equal(result.status, 1);
-      assert.ok(result.stderr.length > 0);
-      assert.deepEqual(result.requests, []);
+      for (const rate of ['abc', '1junk', '1.5', '0', '-1', 'Infinity', '9007199254740992']) {
+        const result = runCi(dir, ['--rate-limit', rate]);
+        assert.equal(result.status, 1, rate);
+        assert.ok(result.stderr.length > 0);
+        assert.deepEqual(result.requests, []);
+      }
     });
+  });
+
+  it('applies the configured rate to successive package checks', () => {
+    project({ dependencies: { a: '1.0.0', b: '2.0.0' } }, (dir) => {
+      const result = runCi(dir, ['--rate-limit', '1', '--json']);
+      assert.equal(result.status, 0, result.stderr);
+      assert.deepEqual(result.requests, ['a', 'b']);
+      assert.ok(result.requestLog[1].at - result.requestLog[0].at >= 900, JSON.stringify(result.requestLog));
+    });
+  });
+
+  it('scans the requested manifest version, range and tag instead of latest', () => {
+    const fixture = metadata('a', ['1.0.0', '1.1.0', '2.0.0'], { 'dist-tags': { latest: '2.0.0', previous: '1.0.0' } });
+    for (const [selector, expected] of [['1.0.0', '1.0.0'], ['^1', '1.1.0'], ['previous', '1.0.0']]) {
+      project({ dependencies: { a: selector } }, (dir) => {
+        const result = runCi(dir, ['--json'], { a: fixture });
+        assert.equal(result.status, 0, `${result.stderr}\n${result.stdout}`);
+        assert.equal((JSON.parse(result.stdout) as CiReport).packages[0].version, expected);
+      });
+    }
+  });
+
+  it('resolves an npm alias to the published package and requested version', () => {
+    project({ dependencies: { alias: 'npm:@scope/c@^3' } }, (dir) => {
+      const result = runCi(dir, ['--json']);
+      assert.equal(result.status, 0, result.stderr);
+      const report = JSON.parse(result.stdout) as CiReport;
+      assert.equal(report.packages[0].name, '@scope/c');
+      assert.equal(report.packages[0].version, '3.0.0');
+      assert.deepEqual(result.requests, ['@scope/c']);
+    });
+  });
+
+  it('fails a missing requested version rather than scanning latest', () => {
+    project({ dependencies: { a: '9.0.0' } }, (dir) => {
+      const result = runCi(dir, ['--json']);
+      assert.equal(result.status, 2, result.stderr);
+      const report = JSON.parse(result.stdout) as CiReport;
+      assert.equal(report.failed, true);
+      assert.match(report.packages[0].error ?? '', /no published version matching/);
+    });
+  });
+
+  it('fails closed on unsupported manifest sources before any registry request', () => {
+    for (const spec of ['file:../a', 'git+https://example.invalid/a', 'https://registry.npmjs.org/a/-/a-1.0.0.tgz', 'workspace:*']) {
+      project({ dependencies: { a: spec } }, (dir) => {
+        const result = runCi(dir, ['--json']);
+        assert.equal(result.status, 1, spec);
+        assert.match(result.stderr, /Cannot scan dependency a/);
+        assert.deepEqual(result.requests, []);
+      });
+    }
+  });
+
+  it('rejects conflicting manifest selectors before fetching and uses locks to resolve them', () => {
+    project({ dependencies: { a: '1.0.0' }, devDependencies: { a: '2.0.0' } }, (dir) => {
+      const result = runCi(dir, ['--json']);
+      assert.equal(result.status, 1, result.stderr);
+      assert.match(result.stderr, /Conflicting manifest selectors.*--lockfile/);
+      assert.deepEqual(result.requests, []);
+      const locked = runCi(dir, ['--json', '--lockfile'], { a: metadata('a', ['1.0.0', '2.0.0']) });
+      assert.equal(locked.status, 0, locked.stderr);
+      assert.equal((JSON.parse(locked.stdout) as CiReport).packages[0].version, '2.0.0');
+    }, { lockfileVersion: 3, packages: { '': {}, 'node_modules/a': { version: '2.0.0' } } });
   });
 
   it('scans safe fixture metadata through the actual engine and prints text results', () => {

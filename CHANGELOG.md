@@ -7,6 +7,13 @@ semantic versioning for `@npm-safe/core`.
 
 ### Fixed
 
+- Preserve failing exit codes in JSON package checks, batches, and saved details.
+- Scan the versions, ranges, tags, and npm aliases declared in package.json;
+  reject unsupported dependency sources before CI can report a clean result.
+- Apply the configured CI package-check rate limit and reject malformed limits.
+- Preserve valid npm names ending in punctuation while continuing to reject
+  whitespace and unsupported package sources.
+
 - Detect concealed native-loader invocations assembled from quoted string
   fragments and combined browser response interception/payment-address signals.
 - Exclude ordinary function syntax and JavaScript comments/string examples from

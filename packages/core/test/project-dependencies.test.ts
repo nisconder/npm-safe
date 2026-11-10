@@ -23,8 +23,62 @@ describe('project dependency identities', () => {
     project({ dependencies: { runtime: '^1' }, optionalDependencies: { optional: '^2' }, peerDependencies: { peer: '^3' }, devDependencies: { runtime: '^1', development: '^4' } }, undefined, (dir) => {
       assert.deepEqual(readProjectDependencies(dir).map((dep) => dep.name).sort(), ['development', 'optional', 'peer', 'runtime']);
       assert.deepEqual(readProjectDependencies(dir, { prod: true }).map((dep) => dep.name).sort(), ['optional', 'peer', 'runtime']);
-      assert.ok(readProjectDependencies(dir).every((dep) => dep.version === undefined));
+      assert.deepEqual(identities(readProjectDependencies(dir)), ['development@^4', 'optional@^2', 'peer@^3', 'runtime@^1']);
     });
+  });
+
+  it('preserves manifest exact versions, ranges, tags and npm alias targets', () => {
+    project({ dependencies: { exact: 'v1.2.3', range: '~2.0.0', tagged: 'next', alias: 'npm:@scope/actual@^3', unversioned: 'npm:actual' } }, undefined, (dir) => {
+      assert.deepEqual(identities(readProjectDependencies(dir)), ['@scope/actual@^3', 'actual@latest', 'exact@1.2.3', 'range@~2.0.0', 'tagged@next']);
+    });
+  });
+
+  it('accepts valid trailing punctuation in dependency names and npm alias targets', () => {
+    project({ dependencies: { 'fixture-': '1.0.0', fixture_: '2.0.0', 'fixture.': '3.0.0', alias: 'npm:fixture-@1.0.0' } }, undefined, (dir) => {
+      assert.deepEqual(identities(readProjectDependencies(dir)), ['fixture-@1.0.0', 'fixture-@1.0.0', 'fixture.@3.0.0', 'fixture_@2.0.0']);
+    });
+  });
+
+  it('rejects conflicting selectors across dependency kinds and requests a lockfile', () => {
+    const fields = ['dependencies', 'optionalDependencies', 'peerDependencies', 'devDependencies'];
+    for (let first = 0; first < fields.length; first++) {
+      for (const second of fields.slice(first + 1)) {
+        project({ [fields[first]]: { shared: '^1' }, [second]: { shared: '^2' } }, undefined, (dir) => {
+          assert.throws(() => readProjectDependencies(dir), /Conflicting manifest selectors for dependency shared; use --lockfile/);
+        });
+      }
+    }
+  });
+
+  it('deduplicates identical selectors across every dependency kind', () => {
+    project({ peerDependencies: { shared: '^1' }, devDependencies: { shared: '^1' }, dependencies: { shared: '^1' }, optionalDependencies: { shared: '^1' } }, undefined, (dir) => {
+      assert.deepEqual(identities(readProjectDependencies(dir)), ['shared@^1']);
+    });
+  });
+
+  it('ignores dev selectors with --prod but still rejects conflicting production selectors', () => {
+    project({ dependencies: { shared: '^1' }, devDependencies: { shared: '^2' } }, undefined, (dir) => {
+      assert.deepEqual(identities(readProjectDependencies(dir, { prod: true })), ['shared@^1']);
+    });
+    project({ dependencies: { shared: '^1' }, optionalDependencies: { shared: '^2' } }, undefined, (dir) => {
+      assert.throws(() => readProjectDependencies(dir, { prod: true }), /Conflicting manifest selectors/);
+    });
+  });
+
+  it('rejects unsupported manifest sources and malformed selectors before scanning', () => {
+    for (const spec of ['file:../local', '../local', 'local.tgz', 'local.tar.gz', 'git+https://example.invalid/pkg', 'github:owner/repo', 'owner/repo', 'https://registry.npmjs.org/a/-/a-1.0.0.tgz', 'workspace:*', 'npm:alias@file:../local', 'npm:alias@', '', 1, null, {}]) {
+      project({ dependencies: { package: spec } }, undefined, (dir) => {
+        assert.throws(() => readProjectDependencies(dir), /Cannot scan dependency package/, JSON.stringify(spec));
+      });
+    }
+  });
+
+  it('rejects malformed dependency maps rather than reporting an empty scan', () => {
+    for (const value of [null, [], 'package', 1]) {
+      project({ dependencies: value }, undefined, (dir) => {
+        assert.throws(() => readProjectDependencies(dir), /Invalid package.json dependencies/);
+      });
+    }
   });
 
   for (const lockfileVersion of [2, 3]) {

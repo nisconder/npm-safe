@@ -1,9 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { validatePackageName } from './registry/validator.js';
 
-const semver = createRequire(import.meta.url)('semver') as { valid(version: string): string | null };
+const semver = createRequire(import.meta.url)('semver') as {
+  valid(version: string): string | null;
+  validRange(range: string): string | null;
+};
 type Entry = Record<string, unknown>;
+/** `version` is a requested selector for manifests and an exact version for locks. */
 export interface ProjectDependency { readonly name: string; readonly version?: string }
 
 function object(value: unknown): Entry {
@@ -28,14 +33,49 @@ function dependencyNames(entry: Entry, dev = false): string[] {
   ])];
 }
 
-/** Read exact installed identities. Unsupported local/Git sources fail closed. */
+function manifestDependencies(manifest: Entry, prod: boolean): ProjectDependency[] {
+  const declarations = Object.create(null) as Entry;
+  // Do not guess which selector wins across dependency kinds. A lockfile is
+  // required when the manifest alone describes conflicting requested identities.
+  for (const field of ['peerDependencies', ...(!prod ? ['devDependencies'] : []), 'dependencies', 'optionalDependencies']) {
+    const section = manifest[field];
+    if (section !== undefined && (!section || typeof section !== 'object' || Array.isArray(section))) {
+      throw new Error(`Invalid package.json ${field}: expected a dependency map.`);
+    }
+    for (const [name, spec] of Object.entries(object(section))) {
+      if (Object.hasOwn(declarations, name) && declarations[name] !== spec) {
+        throw new Error(`Conflicting manifest selectors for dependency ${name}; use --lockfile to scan the resolved identity.`);
+      }
+      declarations[name] = spec;
+    }
+  }
+  return Object.entries(declarations).map(([installName, spec]) => {
+    if (typeof spec !== 'string' || !validatePackageName(installName).valid) {
+      throw new Error(`Cannot scan dependency ${installName}: invalid package name or version selector.`);
+    }
+    let name = installName;
+    let version = spec.trim();
+    if (version.startsWith('npm:')) {
+      const target = version.slice(4);
+      const separator = target.lastIndexOf('@');
+      name = separator > 0 ? target.slice(0, separator) : target;
+      version = separator > 0 ? target.slice(separator + 1) : 'latest';
+    }
+    if (!validatePackageName(name).valid || !version || /\.(?:tgz|tar\.gz)$/i.test(version) ||
+      (semver.validRange(version) === null && !/^[A-Za-z][A-Za-z0-9._-]*$/.test(version))) {
+      throw new Error(`Cannot scan dependency ${installName}: unsupported source or invalid registry version selector.`);
+    }
+    return { name, version: semver.valid(version) ?? version };
+  });
+}
+
+/** Read requested manifest identities or exact locked identities. Unsupported sources fail closed. */
 export function readProjectDependencies(
   dir: string,
   options: { lockfile?: boolean; prod?: boolean } = {},
 ): ProjectDependency[] {
   if (!options.lockfile) {
-    const manifest = readJson(dir, 'package.json');
-    return dependencyNames(manifest, !options.prod).map((name) => ({ name }));
+    return manifestDependencies(readJson(dir, 'package.json'), !!options.prod);
   }
   const lock = readJson(dir, 'package-lock.json');
   if (![1, 2, 3].includes(lock.lockfileVersion as number)) {

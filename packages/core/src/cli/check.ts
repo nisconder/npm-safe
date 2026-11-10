@@ -40,16 +40,18 @@ function formatFinding(result: CheckResult, idx: number): string {
   return lines.join("\n");
 }
 
-/**
- * Print the detailed single-package report.
- *
- * @returns `true` when the package passed, `false` when it is missing or
- *   reached the dangerous/unknown threshold (used to set the exit code).
- */
-function printSingleResult(result: CheckResult, packageName: string): boolean {
+/** Output format must not change whether a check fails. */
+function checkFailed(result: CheckResult): boolean {
+  return !result.exists ||
+    result.security.overallLevel === "dangerous" ||
+    result.security.overallLevel === "unknown";
+}
+
+/** Print the detailed single-package report. */
+function printSingleResult(result: CheckResult, packageName: string): void {
   if (!result.exists) {
     console.error(t("check.notFound", { name: packageName }));
-    return false;
+    return;
   }
 
   const report = result.security.staticScan;
@@ -92,11 +94,6 @@ function printSingleResult(result: CheckResult, packageName: string): boolean {
   }
 
   console.log(lines.join("\n"));
-
-  return (
-    result.security.overallLevel !== "dangerous" &&
-    result.security.overallLevel !== "unknown"
-  );
 }
 
 export async function runCheck(packageNames: string[], options: RunCheckOptions): Promise<void> {
@@ -118,11 +115,12 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
       const result = await engine.checkPackage(name, { deep: options.deep });
       await engine.recordCheckHistory(result);
       recordTelemetry("check", [{ name, ok: true, result }], startedAt);
+      if (checkFailed(result)) process.exitCode = 1;
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
         return;
       }
-      if (!printSingleResult(result, name)) process.exitCode = 1;
+      printSingleResult(result, name);
       return;
     }
 
@@ -137,22 +135,21 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
       }
     }
     recordTelemetry("check", results, startedAt);
+    const failed = results.some((entry) => !entry.ok || !entry.result || checkFailed(entry.result));
+    if (failed) process.exitCode = 2;
 
     if (options.json) {
       console.log(JSON.stringify(results, null, 2));
       return;
     }
 
-    let failed = false;
     for (const entry of results) {
       if (!entry.ok) {
-        failed = true;
         console.log(`  [error] ${entry.name} — ${entry.error}`);
         continue;
       }
       const r = entry.result!;
       if (!r.exists) {
-        failed = true;
         console.log(`  [${t("check.notFoundShort")}] ${entry.name}`);
         continue;
       }
@@ -160,17 +157,10 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
       console.log(
         `  [${r.security.overallLevel}] ${r.packageName}@${r.latestVersion} — ${r.security.overallScore}/100 (${count} ${t("check.findings")})`,
       );
-      if (
-        r.security.overallLevel === "dangerous" ||
-        r.security.overallLevel === "unknown"
-      ) {
-        failed = true;
-      }
     }
     console.log(
       `${t("check.batchSummary", { count: String(names.length) })}${failed ? ` — ${t("check.batchFailed")}` : ""}`,
     );
-    if (failed) process.exitCode = 2;
   } finally {
     engine.close();
   }
@@ -208,11 +198,12 @@ export async function runDetail(index: number, options: RunCheckOptions): Promis
     process.exitCode = 1;
     return;
   }
+  if (checkFailed(result)) process.exitCode = 1;
   if (options.json) {
     console.log(JSON.stringify(result, null, 2));
     return;
   }
-  if (!printSingleResult(result, entry.name)) process.exitCode = 1;
+  printSingleResult(result, entry.name);
 }
 
 export function registerCheckCommand(program: Command): void {

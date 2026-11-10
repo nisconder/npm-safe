@@ -26,9 +26,9 @@ const MAX_PACKAGE_NAME_LENGTH = 214;
  * (the part after an optional `@scope/` prefix). Per the registry naming
  * rules, segments must be lowercase, must not contain leading dots or
  * underscores, and may contain ASCII letters, digits, hyphens, underscores,
- * and dots — but no spaces or other special characters.
+ * and dots, including at the end — but no spaces or other special characters.
  */
-const PACKAGE_NAME_SEGMENT_PATTERN = /^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$/;
+const PACKAGE_NAME_SEGMENT_PATTERN = /^[a-z0-9][a-z0-9._-]*$/;
 
 /**
  * Regular expression matching a semver version string with optional
@@ -66,7 +66,7 @@ const KNOWN_REGISTRY_DOMAINS: ReadonlySet<string> = new Set<string>([
  * - Must be a non-empty string.
  * - Maximum length of 214 characters.
  * - Must be entirely lowercase (no uppercase letters).
- * - Must not contain spaces.
+ * - Must not contain whitespace.
  * - Must not begin with a dot (`.`) or underscore (`_`).
  * - Scoped names use the `@scope/name` syntax; both `scope` and `name`
  *   segments must independently satisfy the segment naming rules.
@@ -95,8 +95,8 @@ export function validatePackageName(name: string): ValidationResult {
     return { valid: false, reason: 'Package name must be lowercase.' };
   }
 
-  if (name.includes(' ')) {
-    return { valid: false, reason: 'Package name must not contain spaces.' };
+  if (/\s/.test(name)) {
+    return { valid: false, reason: 'Package name must not contain spaces or other whitespace.' };
   }
 
   // Scoped package: @scope/name

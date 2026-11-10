@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { readProjectDependencies, type ProjectDependency } from "../project-dependencies.js";
 import { SECURITY_LEVEL_RANK, shouldFailCi } from "../scanner/security-policy.js";
+import { TokenBucket } from "../scheduler/rate-limiter.js";
 
 import { SecurityLevel, Severity } from "../scanner/types.js";
 import { createEngine } from "./shared.js";
@@ -50,7 +51,7 @@ export function registerCiCommand(program: Command): void {
     .option("--lockfile", "Scan every dependency in package-lock.json (including transitive)")
     .option("--deep", "Download and inspect each published package tarball")
     .option("--fail-level <level>", `Fail when any dependency reaches this level (${LEVEL_ORDER.join(" / ")}, default: dangerous)`)
-    .option("--rate-limit <n>", "Registry requests per second (default: 20)")
+    .option("--rate-limit <n>", "Package checks per second (default: 20)")
     .action(async (options: { dir?: string; json?: boolean; prod?: boolean; lockfile?: boolean; deep?: boolean; failLevel?: string; rateLimit?: string }) => {
       const opts = program.opts<{ db?: string; proxy?: string; json?: boolean }>();
       const dir = options.dir ?? process.cwd();
@@ -60,8 +61,8 @@ export function registerCiCommand(program: Command): void {
         process.exitCode = 1;
         return;
       }
-      const rateLimit = options.rateLimit ? parseInt(options.rateLimit, 10) : 20;
-      if (Number.isNaN(rateLimit) || rateLimit < 1) {
+      const rateLimit = options.rateLimit === undefined ? 20 : Number(options.rateLimit);
+      if (!Number.isSafeInteger(rateLimit) || rateLimit < 1) {
         console.error(t("ci.invalidRateLimit", { value: options.rateLimit ?? "" }));
         process.exitCode = 1;
         return;
@@ -96,6 +97,7 @@ export function registerCiCommand(program: Command): void {
       }
 
       const engine = await createEngine(opts.db, opts.proxy, { rateLimit });
+      const limiter = new TokenBucket(rateLimit, 1);
       const results: PackageResult[] = [];
       let criticalDetected = false;
       const summary: Record<string, number> = {
@@ -110,6 +112,7 @@ export function registerCiCommand(program: Command): void {
       try {
         for (const dep of deps) {
           try {
+            await limiter.consume();
             const result = await engine.checkPackage(dep.name, { version: dep.version, deep: options.deep });
             if (!result.exists) {
               results.push({
@@ -124,7 +127,7 @@ export function registerCiCommand(program: Command): void {
               summary.unknown++;
               continue;
             }
-            if (dep.version && result.latestVersion !== dep.version) {
+            if (options.lockfile && dep.version && result.latestVersion !== dep.version) {
               throw new Error(`Version mismatch: requested ${dep.name}@${dep.version}, scanned ${result.latestVersion}.`);
             }
             const level = result.security.overallLevel;
@@ -159,6 +162,7 @@ export function registerCiCommand(program: Command): void {
           }
         }
       } finally {
+        limiter.dispose();
         engine.close();
       }
 
