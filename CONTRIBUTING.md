@@ -162,8 +162,9 @@ manual download; their old resource-only update endpoint is not published.
 `@npm-safe/core` is published to the npm registry from GitHub Actions with
 SLSA provenance attestation. To release a version:
 
-1. Create an npm automation token and store it as the `NPM_TOKEN` GitHub
-   secret on the repository.
+1. Configure an npm trusted publisher for `@npm-safe/core`, with GitHub owner
+   `nisconder`, repository `npm-safe`, and workflow filename `publish.yml`.
+   Allow direct publishing; this workflow does not use an npm token.
 2. Tag the release: `git tag vX.Y.Z && git push origin vX.Y.Z`.
 3. The `Publish` workflow (`.github/workflows/publish.yml`) runs tests and
    the build, then runs `npm publish --provenance --access public`.
