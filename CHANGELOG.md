@@ -3,10 +3,12 @@
 All notable user-facing changes are documented here. The project follows
 semantic versioning for `@npm-safe/core`.
 
-## Unreleased
+## 1.1.3 - 2026-11-10
 
 ### Fixed
 
+- Keep Commander on the Node.js 20-compatible 14.x line so installations honor
+  the documented Node.js 20.12 minimum.
 - Preserve failing exit codes in JSON package checks, batches, and saved details.
 - Scan the versions, ranges, tags, and npm aliases declared in package.json;
   reject unsupported dependency sources before CI can report a clean result.
