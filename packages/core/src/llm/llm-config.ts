@@ -43,6 +43,8 @@ const ENV_MODEL_MAP: Readonly<Record<LlmProviderType, string>> = {
 export interface LlmConfig {
   /** Whether LLM scanning is enabled. */
   readonly enabled: boolean;
+  /** Explicit opt-in to bounded source review during deep checks. Defaults to false. */
+  readonly sourceReview?: boolean;
   /** Backend provider. */
   readonly provider: LlmProviderType;
   /** API key (optional; environment variable fallback is supported). */
@@ -63,6 +65,7 @@ export interface LlmConfig {
 export interface LlmStatus {
   /** Whether LLM scanning is enabled. */
   readonly enabled: boolean;
+  readonly sourceReview: boolean;
   /** Backend provider. */
   readonly provider: LlmProviderType;
   /** Whether an API key is available (from config or env). */
@@ -139,7 +142,8 @@ export class LlmConfigManager {
         ? input.provider
         : LlmProviderType.OpenAi;
     return {
-      enabled: input.enabled ?? false,
+      enabled: input.enabled === true,
+      sourceReview: input.sourceReview === true,
       provider,
       apiKey: input.apiKey,
       baseUrl: input.baseUrl,
@@ -160,6 +164,7 @@ export class LlmConfigManager {
     const resolved = this.resolveApiKey();
     return {
       enabled: this.config.enabled,
+      sourceReview: this.config.sourceReview === true,
       provider: this.config.provider,
       configured: !!resolved,
       model: this.resolveModel(),
@@ -175,6 +180,7 @@ export class LlmConfigManager {
     const nextApiKey = update.apiKey !== undefined ? update.apiKey : this.config.apiKey;
     const next: LlmConfig = {
       enabled: update.enabled ?? this.config.enabled,
+      sourceReview: update.sourceReview === undefined ? this.config.sourceReview === true : update.sourceReview === true,
       provider: update.provider && Object.values(LlmProviderType).includes(update.provider)
         ? update.provider
         : this.config.provider,

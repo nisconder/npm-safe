@@ -497,11 +497,12 @@ interface NpmSafeEngineOptions {
 | `rateLimitBurst` | `number` | `10` | Maximum burst size for the token bucket. |
 | `cacheTtlMs` | `number` | `3600000` | Cache TTL for package metadata in milliseconds. |
 | `llm` | `LlmProviderOptions` | unset | Optional programmatic semantic security scan backed by any supported LLM provider. |
+| `sourceReview` | `boolean` | `false` (or persisted switch) | Opt into source review on deep checks using the configured LLM. |
 | `llmConfigPath` | `string` | `'~/.npm-safe/llm.json'` | Path to the LLM provider configuration JSON file. |
 | `rulesConfigPath` | `string` | `'~/.npm-safe/rules.json'` | Path to the per-rule configuration JSON file. |
 | `rulesDir` | `string` | `'~/.npm-safe/rules/'` | Directory scanned for third-party rule plugin files. |
 
-LLM scanning is optional. The engine loads configuration from `~/.npm-safe/llm.json` (or `llmConfigPath`). Each provider also falls back to its conventional environment variable (`OPENAI_API_KEY`, `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`) when no API key is persisted. When no key is configured, LLM scanning is silently disabled and static scanning remains available.
+LLM scanning is optional. The engine loads configuration from `~/.npm-safe/llm.json` (or `llmConfigPath`). Each provider also falls back to its conventional environment variable (`OPENAI_API_KEY`, `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`) when no API key is persisted. Without a key, legacy metadata LLM scanning is disabled and static scanning remains available. An explicitly requested source review instead reports skipped/unknown and cannot clear an otherwise safe combined result.
 
 ---
 
@@ -519,6 +520,7 @@ interface CheckResult {
     readonly overallScore: number;
     readonly staticScan: StaticScanReport | null;
     readonly llmScan?: LlmScanReport;
+    readonly sourceReview?: SourceReviewReport;
   };
   readonly registryInfo: {
     readonly description: string;
@@ -537,6 +539,7 @@ interface CheckResult {
 | `security.overallLevel` | Overall security level derived from the combined scan. |
 | `security.overallScore` | Numeric security score (0-100, higher is safer). |
 | `security.staticScan` | Full static scan report, or `null` if one is not available. |
+| `security.sourceReview` | Independent source verdict, exact citations, coverage and request accounting. See [source review](../../docs/source-review.md). |
 | `registryInfo.description` | Human-readable description of the package. |
 | `registryInfo.homepage` | URL to the package's homepage. |
 | `registryInfo.repository` | Repository descriptor as a string (e.g. `"github:user/repo"`). |
@@ -860,7 +863,7 @@ interface LlmProviderOptions {
 | `model` | `string` | provider default | Model identifier to use for completions. |
 | `timeoutMs` | `number` | `30000` | Request timeout in milliseconds. |
 | `maxInputChars` | `number` | `12000` | Maximum README characters to send to the model. |
-| `maxTokens` | `number` | `2000` | Anthropic-only maximum response tokens. Ignored by the other providers. |
+| `maxTokens` | `number` | `4096` | Maximum response tokens for source review on all three providers; also used by OpenAI/Anthropic metadata requests. |
 
 The deprecated alias `OpenAICompatibleLlmOptions` is kept for backward
 compatibility and is identical to `LlmProviderOptions`.
@@ -873,6 +876,7 @@ configured via `NpmSafeEngineOptions.llmConfigPath`).
 ```ts
 interface LlmConfig {
   readonly enabled: boolean;
+  readonly sourceReview?: boolean; // independent deep-check opt-in, default false
   readonly provider: LlmProviderType;
   readonly apiKey?: string;
   readonly baseUrl?: string;
@@ -891,6 +895,7 @@ Display-safe view of the LLM configuration. Returned by
 ```ts
 interface LlmStatus {
   readonly enabled: boolean;
+  readonly sourceReview: boolean;
   readonly provider: LlmProviderType;
   readonly configured: boolean;
   readonly model?: string;
@@ -908,7 +913,11 @@ function createLlmProvider(options?: LlmProviderOptions): LlmScanProvider
 Constructs an `LlmScanProvider` for the backend selected via
 `options.provider`, defaulting to the OpenAI-compatible provider when
 `provider` is omitted. The returned provider implements `scan(input)` and
-`testConnection()`.
+`testConnection()`, plus optional `reviewSource({systemPrompt, prompt, signal})`
+returning raw JSON. All built-in providers support it. Exported
+`reviewPackageSource(archive, manifest, provider, signal?)` validates evidence
+and coordinates one optional supplement, returning a `SourceReviewReport`
+independently of the legacy `LlmScanReport`.
 
 ### OpenAICompatibleLlmProvider
 
@@ -957,8 +966,9 @@ class LlmProviderError extends Error {
 
 The engine and CLI resolve LLM configuration from `~/.npm-safe/llm.json`
 first, then fall back to provider-specific environment variables. If neither a
-persisted key nor an environment variable is present, LLM scanning is
-silently disabled and static scanning continues normally.
+persisted key nor an environment variable is present, legacy metadata LLM
+scanning is disabled. An explicitly requested source review reports
+skipped/unknown; static scanning still runs.
 
 | Variable | Provider | Purpose |
 |---|---|---|

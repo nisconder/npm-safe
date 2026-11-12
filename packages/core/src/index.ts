@@ -28,6 +28,8 @@ import { createLlmProvider } from './llm/provider.js';
 import type { LlmProviderOptions, LlmScanProvider } from './llm/provider.js';
 import { LlmConfigManager } from './llm/llm-config.js';
 import type { LlmConfig, LlmStatus } from './llm/llm-config.js';
+import { reviewPackageSource, unavailableSourceReview } from './llm/source-review.js';
+import type { SourceReviewReport } from './llm/source-review.js';
 import { analyzePackageTarball, CONTENT_SCAN_RULES } from './scanner/package-content.js';
 import type { PackageContentScanResult } from './scanner/package-content.js';
 import {
@@ -88,6 +90,8 @@ export interface NpmSafeEngineOptions {
 
   /** Optional LLM security scanner configuration (OpenAI / Gemini / Anthropic). */
   readonly llm?: LlmProviderOptions;
+  /** Opt into source review on deep checks; false by default. Requires a configured LLM. */
+  readonly sourceReview?: boolean;
 
   /**
    * Path to the LLM provider configuration JSON file.
@@ -131,6 +135,8 @@ export interface CheckResult {
     readonly staticScan: StaticScanReport | null;
     /** Optional semantic analysis from the configured LLM provider. */
     readonly llmScan?: LlmScanReport;
+    /** Independent source evidence and verdict; never replaces the static report. */
+    readonly sourceReview?: SourceReviewReport;
   };
 
   /**
@@ -243,6 +249,7 @@ export class NpmSafeEngine {
   private readonly llmConfig: LlmConfigManager;
   /** Optional semantic security scanner. */
   private llmProvider?: LlmScanProvider;
+  private sourceReviewEnabled: boolean;
   private readonly rulesReady: Promise<number>;
   private autoRefreshGeneration = 0;
 
@@ -266,6 +273,7 @@ export class NpmSafeEngine {
     this.ruleConfig = new RuleConfigManager(options?.rulesConfigPath);
     this.analyzer = new StaticAnalyzer(undefined, this.ruleConfig);
     this.llmConfig = new LlmConfigManager(options?.llmConfigPath);
+    this.sourceReviewEnabled = (options?.sourceReview ?? this.llmConfig.getConfig().sourceReview) === true;
     this.llmProvider = options?.llm
       ? createLlmProvider(options.llm)
       : this.llmConfig.createProvider();
@@ -303,6 +311,11 @@ export class NpmSafeEngine {
     await this.rulesReady;
     options.signal?.throwIfAborted();
     // Try cached reports only under the current scanner/rule identity.
+    const sourceRequested = this.sourceReviewEnabled && options.deep === true;
+    // Keep authenticated archive bytes local to this check. Source reviews are
+    // never reused across models/config changes or stored in the metadata cache.
+    let sourceArchive: Buffer | undefined;
+    const captureArchive = sourceRequested ? (archive: Buffer) => { sourceArchive = archive; } : undefined;
     const cached = options.forceRefresh ? null : await this.cache.getPackage(name);
     let cachedVersion: string | undefined;
     if (cached !== null) {
@@ -318,13 +331,16 @@ export class NpmSafeEngine {
         name,
         latestVersion,
       );
-      if (!staticScan || !this.analyzer.canReuseReports() || staticScan.scannerFingerprint !== this.analyzer.getFingerprint() || (options.deep && !staticScan.contentScan)) {
-        staticScan = await this.createStaticReport(cached, latestVersion, !!options.deep || !!staticScan?.contentScan, options.signal);
+      if (sourceRequested || !staticScan || !this.analyzer.canReuseReports() || staticScan.scannerFingerprint !== this.analyzer.getFingerprint() || (options.deep && !staticScan.contentScan)) {
+        staticScan = await this.createStaticReport(cached, latestVersion, !!options.deep || !!staticScan?.contentScan, options.signal, captureArchive);
         await this.cache.setSecurityReport(staticScan);
       }
-      const llmScan = this.llmProvider
+      const llmScan = !sourceRequested && this.llmProvider
         ? (await this.cache.getLlmScanReport(name, latestVersion)) ??
           await this.scanWithLlm(cached, latestVersion, options.signal)
+        : undefined;
+      const sourceReview = sourceRequested
+        ? await this.scanSourceWithLlm(sourceArchive, cached.versions[latestVersion], options.signal)
         : undefined;
 
       return this.buildCheckResult(
@@ -339,6 +355,7 @@ export class NpmSafeEngine {
           repository: repositoryToString(cached.repository),
         },
         null, // cachedAt unknown when serving from cache
+        sourceReview,
       );
     }
 
@@ -352,11 +369,14 @@ export class NpmSafeEngine {
       // updated even if analysis fails downstream.
       await this.cache.setPackage(meta);
 
-      const report = await this.createStaticReport(meta, latestVersion, options.deep ?? false, options.signal);
+      const report = await this.createStaticReport(meta, latestVersion, options.deep ?? false, options.signal, captureArchive);
 
       await this.cache.setSecurityReport(report);
-      const llmScan = this.llmProvider
+      const llmScan = !sourceRequested && this.llmProvider
         ? await this.scanWithLlm(meta, latestVersion, options.signal)
+        : undefined;
+      const sourceReview = sourceRequested
+        ? await this.scanSourceWithLlm(sourceArchive, meta.versions[latestVersion], options.signal)
         : undefined;
 
       return this.buildCheckResult(
@@ -371,6 +391,7 @@ export class NpmSafeEngine {
           repository: repositoryToString(meta.repository),
         },
         new Date().toISOString(),
+        sourceReview,
       );
     } catch (err) {
       // A 404 from the registry means the package simply does not exist —
@@ -840,7 +861,7 @@ export class NpmSafeEngine {
    * @returns Status object safe to render in a UI.
    */
   getLlmStatus(): LlmStatus {
-    return this.llmConfig.getStatus();
+    return { ...this.llmConfig.getStatus(), sourceReview: this.sourceReviewEnabled };
   }
 
   /**
@@ -854,6 +875,7 @@ export class NpmSafeEngine {
    */
   setLlmConfig(update: Partial<LlmConfig>): void {
     this.llmConfig.setConfig(update);
+    if (update.sourceReview !== undefined) this.sourceReviewEnabled = update.sourceReview === true;
     this.llmProvider = this.llmConfig.createProvider();
     this.scheduler.setLlmProvider(this.llmProvider);
   }
@@ -950,21 +972,30 @@ export class NpmSafeEngine {
       repository: string;
     } | null,
     cachedAt: string | null,
+    sourceReview?: SourceReviewReport,
   ): CheckResult {
     const overallScore = combineScores(staticScan, llmScan);
+    const modelFindings = sourceReview?.status === 'complete' && sourceReview.verdict === 'malicious'
+      ? sourceReview.findings : [];
+    let overallLevel = staticScan ? classifySecurity(
+      overallScore,
+      [...staticScan.findings, ...(llmScan?.enabled ? llmScan.findings ?? [] : []), ...modelFindings],
+      !staticScan.contentScan || staticScan.contentScan.status === 'complete',
+    ) : SecurityLevel.Unknown;
+    // The union retains established rule alerts. An unavailable/uncertain
+    // requested model review cannot turn a negative into a completed clearance.
+    if (overallLevel === SecurityLevel.Safe && sourceReview &&
+      (sourceReview.status !== 'complete' || sourceReview.verdict === 'unknown')) overallLevel = SecurityLevel.Unknown;
     return {
       packageName,
       exists,
       latestVersion,
       security: {
-        overallLevel: staticScan ? classifySecurity(
-          overallScore,
-          [...staticScan.findings, ...(llmScan?.enabled ? llmScan.findings ?? [] : [])],
-          !staticScan.contentScan || staticScan.contentScan.status === 'complete',
-        ) : SecurityLevel.Unknown,
+        overallLevel,
         overallScore,
         staticScan,
         llmScan,
+        ...(sourceReview ? { sourceReview } : {}),
       },
       registryInfo,
       cachedAt,
@@ -977,12 +1008,13 @@ export class NpmSafeEngine {
     version: string,
     deep: boolean,
     signal?: AbortSignal,
+    captureArchive?: (archive: Buffer) => void,
   ): Promise<StaticScanReport> {
     const manifest = meta.versions[version];
     const packageJson: Record<string, unknown> | undefined = manifest
       ? ({ ...manifest } as unknown as Record<string, unknown>)
       : undefined;
-    const content = deep ? await this.scanPackageContent(manifest, signal) : undefined;
+    const content = deep ? await this.scanPackageContent(manifest, signal, captureArchive) : undefined;
     return this.analyzer.analyze(
       meta.readme ?? '',
       packageJson,
@@ -995,6 +1027,7 @@ export class NpmSafeEngine {
   private async scanPackageContent(
     manifest: AbbreviatedVersion | undefined,
     signal?: AbortSignal,
+    captureArchive?: (archive: Buffer) => void,
   ): Promise<PackageContentScanResult> {
     const unavailable = (reason: string): PackageContentScanResult => ({
       findings: [{
@@ -1024,6 +1057,7 @@ export class NpmSafeEngine {
     try {
       const archive = await this.client.downloadTarball(manifest.dist.tarball, undefined, signal);
       signal?.throwIfAborted();
+      captureArchive?.(archive);
       return analyzePackageTarball(archive, {
         integrity: manifest.dist.integrity ?? manifest.integrity,
         shasum: manifest.dist.shasum ?? manifest.shasum,
@@ -1032,6 +1066,20 @@ export class NpmSafeEngine {
       signal?.throwIfAborted();
       return unavailable('The tarball download failed or was refused by the deep-scan safety policy.');
     }
+  }
+
+  private async scanSourceWithLlm(
+    archive: Buffer | undefined,
+    manifest: AbbreviatedVersion | undefined,
+    signal?: AbortSignal,
+  ): Promise<SourceReviewReport> {
+    signal?.throwIfAborted();
+    if (!this.llmProvider) return unavailableSourceReview('Source review requires an enabled, configured LLM provider.', 'skipped');
+    if (!archive || !manifest) return unavailableSourceReview('Source review could not obtain the selected package archive.');
+    return reviewPackageSource(archive, {
+      ...manifest,
+      dist: { ...manifest.dist, integrity: manifest.dist?.integrity ?? manifest.integrity, shasum: manifest.dist?.shasum ?? manifest.shasum },
+    }, this.llmProvider, signal);
   }
 
   private async scanWithLlm(
@@ -1245,6 +1293,8 @@ export type {
 } from './llm/provider.js';
 export { LlmConfigManager, getDefaultLlmConfigPath } from './llm/llm-config.js';
 export type { LlmConfig, LlmStatus } from './llm/llm-config.js';
+export { reviewPackageSource } from './llm/source-review.js';
+export type { SourceReviewReport } from './llm/source-review.js';
 export { RuleConfigManager } from './scanner/rule-config.js';
 export type { RuleConfig, RuleConfigFile, RuleOptions } from './scanner/rule-config.js';
 export { loadRulesFromDirectory } from './scanner/rule-loader.js';

@@ -27,6 +27,7 @@ interface PackageResult {
   readonly score: number;
   readonly findingCount: number;
   readonly deepScanStatus?: "complete" | "partial" | "failed";
+  readonly sourceReview?: import('../llm/source-review.js').SourceReviewReport;
   readonly error?: string;
 }
 
@@ -134,6 +135,7 @@ export function registerCiCommand(program: Command): void {
             criticalDetected ||= [
               ...(result.security.staticScan?.findings ?? []),
               ...(result.security.llmScan?.enabled ? result.security.llmScan.findings ?? [] : []),
+              ...(result.security.sourceReview?.verdict === 'malicious' ? result.security.sourceReview.findings : []),
             ].some((finding) => finding.severity === Severity.Critical);
             const deepScanStatus = result.security.staticScan?.contentScan?.status;
             results.push({
@@ -142,8 +144,9 @@ export function registerCiCommand(program: Command): void {
               version: result.latestVersion,
               level,
               score: result.security.overallScore,
-              findingCount: result.security.staticScan?.findings.length ?? 0,
+              findingCount: (result.security.staticScan?.findings.length ?? 0) + (result.security.sourceReview?.findings.length ?? 0),
               deepScanStatus,
+              ...(result.security.sourceReview ? { sourceReview: result.security.sourceReview } : {}),
             });
             summary[level] = (summary[level] ?? 0) + 1;
             if (options.deep && deepScanStatus !== "complete") summary.deepIncomplete++;
@@ -217,6 +220,7 @@ export function registerCiCommand(program: Command): void {
             console.log(
               `  [${r.level}] ${r.name}@${r.version} — ${r.score}/100 (${r.findingCount} ${t("ci.findings")})${r.deepScanStatus ? ` [${t("ci.deepStatus", { status: r.deepScanStatus })}]` : ""}`,
             );
+            if (r.sourceReview) console.log(`    ${t('check.label.sourceReview')}: ${r.sourceReview.status} / ${r.sourceReview.verdict}. ${t('check.sourceScoreNote')}`);
           }
         }
         const summaryLine = Object.entries(summary)

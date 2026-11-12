@@ -9,7 +9,8 @@
  */
 
 import type { LlmScanReport } from "../scanner/types.js";
-import type { LlmScanInput, LlmScanProvider, LlmProviderOptions } from "./provider.js";
+import type { LlmScanInput, LlmScanProvider, LlmProviderOptions, LlmSourceReviewInput } from "./provider.js";
+import { readSourceResponse, assertSourcePrompt, assertSourceResponse } from "./source-transport.js";
 import {
   LlmProviderError,
   SYSTEM_PROMPT,
@@ -33,6 +34,7 @@ export class GeminiLlmProvider implements LlmScanProvider {
   private readonly model: string;
   private readonly timeoutMs: number;
   private readonly maxInputChars: number;
+  private readonly maxTokens: number;
 
   /**
    * @param options - Provider configuration. Env-var fallbacks:
@@ -44,6 +46,7 @@ export class GeminiLlmProvider implements LlmScanProvider {
     this.model = options.model ?? DEFAULT_MODEL;
     this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxInputChars = options.maxInputChars ?? DEFAULT_MAX_INPUT_CHARS;
+    this.maxTokens = options.maxTokens ?? 4096;
   }
 
   /** @inheritdoc */
@@ -87,6 +90,15 @@ export class GeminiLlmProvider implements LlmScanProvider {
     return true;
   }
 
+  async reviewSource(input: LlmSourceReviewInput): Promise<string> {
+    assertSourcePrompt(input);
+    return this.request({
+      contents: [{ role: "user", parts: [{ text: input.prompt }] }],
+      systemInstruction: { parts: [{ text: input.systemPrompt }] },
+      generationConfig: { temperature: 0, responseMimeType: "application/json", maxOutputTokens: this.maxTokens },
+    }, input.signal, true);
+  }
+
   /**
    * Issue a POST to `models/<model>:generateContent` with timeout and
    * error normalization.
@@ -103,6 +115,7 @@ export class GeminiLlmProvider implements LlmScanProvider {
   private async request(
     body: Record<string, unknown>,
     signal?: AbortSignal,
+    sourceReview = false,
   ): Promise<string> {
     if (signal?.aborted) {
       throw new DOMException("The operation was aborted.", "AbortError");
@@ -135,9 +148,10 @@ export class GeminiLlmProvider implements LlmScanProvider {
           response.status,
         );
       }
-      const json = (await response.json()) as unknown;
+      const json = sourceReview ? await readSourceResponse(response) : await response.json() as unknown;
       const content = readResponseContent(json);
       if (!content) throw new LlmProviderError("LLM response contained no content.");
+      if (sourceReview) assertSourceResponse(content);
       return content;
     } catch (error) {
       if (signal?.aborted) {

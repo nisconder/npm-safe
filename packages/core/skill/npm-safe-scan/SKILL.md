@@ -5,27 +5,29 @@ description: Automatically scan any npm package for supply-chain security risks 
 
 # npm-safe-scan
 
-This skill invokes the `npm-safe` CLI to statically and semantically analyze published npm metadata and README content for supply-chain security risks. The engine inspects suspicious install and lifecycle scripts, obfuscation signals, typosquatting and homograph lookalikes, exposed secrets, malicious binary links, and registry mismatches, then assigns a security score and severity level. Results are cached in a local SQLite database (default `~/.npm-safe/npm-safe.db`), requests are rate-limited to respect the registry, and everything runs locally with no external server required. The current engine does not inspect package tarball source, so never describe a clean result as proof that a package is safe.
+This skill invokes the `npm-safe` CLI to inspect npm packages for supply-chain risk signals. Default checks inspect published metadata and README; `--deep` also verifies and statically inspects the shipped tarball within resource limits, in memory, without extracting or executing package code. Static analysis runs locally, with registry requests and a local SQLite cache (default `~/.npm-safe/npm-safe.db`). Optional metadata LLM analysis sends bounded input to the configured provider. Since 2.0.0, source LLM review has a separate switch, disabled by default even for existing LLM configurations, and runs only on explicit deep checks. A clean result is not proof of runtime safety.
 
 ## Core rule: check before you install
 
 Whenever the user wants to install, add, or upgrade an npm package (including transitive dependencies of something they install), run a security check FIRST:
 
 1. Identify the package name and version.
-2. Run `npm-safe check <name>` (add `--refresh` if a cached result may be stale).
+2. Run `npm-safe check <name>` (add `--refresh` if a cached result may be stale). Use `--deep` when shipped-source inspection is needed or requested. Check existing LLM/source settings before running a deep check if source transmission matters to the user's scope.
 3. Interpret the result:
-   - **safe** — no configured signal was detected in the current metadata/README inspection boundary. Proceed only if the user's normal dependency policy permits it.
+   - **safe** — the selected scan completed without High/Critical findings and with a score of at least 80; Medium/Low findings can remain. Proceed only if the user's normal dependency policy permits it.
    - **suspicious** — mention the findings and recommendations; install only with user consent.
    - **dangerous** or **unknown** — do not install silently. Report the findings (rule, message, recommendation) and ask the user whether to continue.
 4. After installing a package the user picked, you may record it: `npm-safe watch add <name>` if they want ongoing monitoring.
 
-For a project-wide safety gate (e.g. before committing a lockfile change), run `npm-safe ci --lockfile` and act on the exit code (0 = pass, 2 = dependency reached the fail threshold).
+Existing explicit authorization and the user's dependency policy take precedence; do not ask again for an action already authorized within that scope. This skill does not authorize enabling a model service, transmitting source or installing a package beyond the user's request.
+
+For a project-wide safety gate (e.g. before committing a lockfile change), run `npm-safe ci --lockfile` and act on the exit code (0 = pass, 2 = findings, errors or inconclusive checks). Add `--deep` to inspect tarballs; use `--fail-level suspicious` when High findings should fail the gate.
 
 When the user runs the install themselves (or the gate is enabled), they can use `npm-safe install <pkg...>` — it checks every package and asks for manual confirmation when a package scores below the threshold (default 85, configurable via `npm-safe gate set-threshold`).
 
 ## Prerequisites
 
-- Node.js 20 or newer.
+- Node.js 20.12.0 or newer.
 - pnpm is required only when building the CLI from this repository.
 - Build the CLI first from the repository:
 
@@ -49,6 +51,7 @@ If the CLI is not found, locate the repository (or the global binary) before run
 | Command | Description | Example |
 | --- | --- | --- |
 | `npm-safe check <package>` | Check a package's security posture (cache-first). | `npm-safe check react` |
+| `npm-safe check <package> --deep` | Inspect the shipped tarball; also run source LLM review when separately enabled. | `npm-safe check react --deep` |
 | `npm-safe check <pkg1> <pkg2> ...` | Batch check multiple packages at once. | `npm-safe check lodash express axios` |
 | `npm-safe check --file deps.txt` | Read package names from a file (one per line, `#` comments). | `npm-safe check --file deps.txt` |
 | `npm-safe check detail <n>` | Re-render the full report of the n-th package of the last batch. | `npm-safe check detail 2` |
@@ -60,12 +63,16 @@ If the CLI is not found, locate the repository (or the global binary) before run
 | `npm-safe refresh [package]` | Refresh one watched package, or all watched packages when omitted. | `npm-safe refresh` |
 | `npm-safe ci` | Scan a project's direct dependencies; fail the build on severe findings. | `npm-safe ci --fail-level dangerous` |
 | `npm-safe ci --lockfile` | Scan every dependency (incl. transitive) in `package-lock.json`. | `npm-safe ci --lockfile` |
+| `npm-safe ci --lockfile --deep` | Deep-scan locked dependencies; fail on incomplete scans. | `npm-safe ci --lockfile --deep --fail-level suspicious` |
 | `npm-safe report <pkg...>` | Export reports as JSON/CSV (`--format`, `--output`, `--file`, `--batch`). | `npm-safe report lodash --format csv` |
 | `npm-safe rules list` | List scan rules with effective status. | `npm-safe rules list` |
 | `npm-safe rules enable/disable <rule-id>` | Enable or disable a rule (persisted). | `npm-safe rules disable install-script` |
 | `npm-safe rules severity <rule-id> <severity>` | Override a rule's severity. | `npm-safe rules severity typosquatting critical` |
 | `npm-safe llm status` | Show LLM provider status (optional semantic scan). | `npm-safe llm status` |
 | `npm-safe llm enable` | Enable optional LLM scanning. | `npm-safe llm enable` |
+| `npm-safe llm disable` | Disable the LLM provider entirely. | `npm-safe llm disable` |
+| `npm-safe llm enable-source` | Opt into source review on deep checks; sends selected source to the enabled provider. | `npm-safe llm enable-source` |
+| `npm-safe llm disable-source` | Disable source review; preserve other LLM configuration. | `npm-safe llm disable-source` |
 | `npm-safe llm set-provider <openai\|gemini\|anthropic>` | Select the LLM provider. | `npm-safe llm set-provider openai` |
 | `npm-safe llm set-key <api-key>` | Set the LLM API key. | `npm-safe llm set-key $OPENAI_API_KEY` |
 | `npm-safe llm set-model <model>` | Set the LLM model. | `npm-safe llm set-model gpt-4o-mini` |
@@ -113,7 +120,7 @@ Global options apply to every command: `-d/--db <path>` to override the database
   npm-safe ci --lockfile --fail-level dangerous
   ```
 
-  Exit code 2 means at least one dependency reached the fail level — report it and treat the change as blocked.
+  Exit code 2 means findings, errors or inconclusive checks failed the gate. Report the reason and follow the user's existing policy and authorization.
 
 - **Search the registry to find the right package name**
 
@@ -130,12 +137,26 @@ Global options apply to every command: `-d/--db <path>` to override the database
 
 - **Enable optional LLM semantic scanning** (requires an API key)
 
+  Configure or enable a provider when requested by the user or already authorized for the task. Existing configuration can be inspected with `npm-safe llm status`.
+
   ```
   npm-safe llm enable
   npm-safe llm set-provider openai
   npm-safe llm set-key <api-key>
   npm-safe llm test-connection
   ```
+
+- **Use optional source LLM review (2.0.0+)**
+
+  Keep the separate source switch off unless enabling source transmission is authorized or the user has already enabled it. Reuse that authorization without another confirmation. With an enabled/configured provider:
+
+  ```
+  npm-safe llm enable-source
+  npm-safe check <name> --deep --json
+  npm-safe llm disable-source
+  ```
+
+  The last command is available when the user wants source review disabled; it is not a required cleanup step. A deep source review replaces that check's metadata model call and may request one bounded source supplement (at most two model calls). Selected source goes to the configured endpoint, increasing latency and API use; embedded secrets are not automatically redacted. Source reviews are not cached. Neither scanning nor supplement collection installs, imports or executes the inspected package or fetches its payload endpoints.
 
 - **Export a report for an audit**
 
@@ -161,7 +182,7 @@ Global options apply to every command: `-d/--db <path>` to override the database
 A `check` result reports:
 
 - **Security level**: one of `safe`, `suspicious`, `dangerous`, or `unknown`.
-- **Score**: 0 to 100, where higher is safer.
+- **Score**: 0 to 100, a weighted signal score rather than a safety probability. Source LLM review can raise the combined risk level while retaining the static score.
 - **Findings count**: the number of issues raised against the package.
 
 In JSON mode (`-j`), the relevant fields are:
@@ -176,10 +197,14 @@ In JSON mode (`-j`), the relevant fields are:
   - `recommendation` — how to address it.
   - `category` — the finding category (for example, suspicious script, obfuscation, typosquatting, or secret).
 - `security.llmScan` — optional semantic analysis when an LLM provider is configured.
+- `security.staticScan.contentScan` — deep scan completeness, integrity status and any resource-limit reason.
+- `security.sourceReview` — separate source-review status, verdict (`malicious`, `benign`, `unknown`), exact source evidence, coverage/limitations and call/character accounting. It is present when the source switch and deep mode request this review.
 
-Present `safe` as "no configured signal detected," not as a guarantee. Flag `suspicious` and `dangerous` packages with their findings and recommendations, and treat `unknown` as an inconclusive result worth a closer look. Before installing a package, use the result as one input to the go/no-go decision: only `safe` (or explicit user consent for others) should proceed, and the user's existing security policy still applies.
+Complete scans with High findings are at least `suspicious`; Critical findings produce `dangerous`. Incomplete scans without established danger are `unknown`. Present `safe` as "no configured high-risk signal detected within the selected scan boundary," not as a guarantee, and still show any Medium/Low findings.
 
-Every check is persisted to the shared `~/.npm-safe/npm-safe.db` (check history + metadata + reports), so the desktop GUI and later CLI runs pick it up without re-fetching.
+Source-model `benign` cannot clear static alerts or raise the static score. A requested review that is unknown, skipped, invalid or failed makes an otherwise safe combined result `unknown`; established static alerts remain. Exact quote validation confirms source locations, not the correctness of model reasoning. Flag `suspicious` and `dangerous` findings, and never treat `unknown` as evidence of safety. Installation decisions still follow the user's policy and existing explicit authorization.
+
+Metadata, static reports and check history use the shared database. Source judgments are not reused: every enabled deep check makes a new review. Saved batch details can display the earlier report without making another model call.
 
 ## Error handling
 

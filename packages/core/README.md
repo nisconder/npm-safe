@@ -5,8 +5,10 @@ published metadata and README content. Opt-in deep mode also verifies and
 inspects the published tarball for unsafe archive structure, executable
 content, obfuscation, process/network combinations, and sensitive data access.
 
-Everything runs locally: metadata and scan reports are cached in a SQLite
-database, requests are rate-limited, and no external service is required.
+Default static analysis runs locally: metadata and scan reports are cached in
+a SQLite database, and registry requests are rate-limited. No LLM service is
+required for static scanning. Optional source review sends selected excerpts
+to the configured model service only after an explicit opt-in.
 Deep scanning is bounded, runs in memory, and never extracts or executes the
 package; see the [threat model](https://github.com/nisconder/npm-safe/blob/main/docs/THREAT_MODEL.md).
 
@@ -15,6 +17,11 @@ are `dangerous`. `safe` means no configured high-risk signal was detected.
 Review each finding: scores are not safety probabilities, and both false
 positives and missed detections are possible. Passing tests verifies tested
 behavior, not real-world detection accuracy.
+
+Version 2.0.0 adds optional source review with a separate switch that remains
+off for new installations and upgrades, including existing metadata LLM users.
+Read the [2.0.0 upgrade notes](https://github.com/nisconder/npm-safe/blob/main/CHANGELOG.md#200---2026-11-12)
+before relying on numeric scores or security levels in automation.
 
 ## Features
 
@@ -31,6 +38,9 @@ behavior, not real-world detection accuracy.
 - **Optional LLM semantic scan** — OpenAI / Gemini / Anthropic backends,
   disabled by default; falls back to environment variables when no API key
   is configured.
+- **Optional source review** — separately opt into `llm enable-source` for
+  deep checks; validates source citations, permits one bounded supplement,
+  preserves static alerts and reports unknown/failed reviews explicitly.
 - **CLI** — `check` (single / batch / from file / detail view), `search`,
   `watch`, `refresh`, `rules` (plugin system + per-rule config), `llm`,
   `ci` (dependency gate, incl. full-lockfile scans), `report` (JSON/CSV
@@ -62,6 +72,14 @@ npm-safe ci --lockfile --deep  # fail closed if a deep scan cannot complete
 npm-safe install axios         # install through the opt-in security gate
 npm-safe doctor                # diagnose the installation
 ```
+
+After configuring and enabling an LLM provider, opt in to source review with
+`npm-safe llm enable-source`, then run `npm-safe check <package> --deep`.
+Use `npm-safe llm disable-source` to turn it off. A requested source review that
+fails or remains unknown makes an otherwise safe result `unknown`; existing
+static alerts and scores are retained. See the
+[source-review guide](https://github.com/nisconder/npm-safe/blob/main/docs/source-review.md)
+for provider setup, evidence limits and data transmission.
 
 ## Documentation
 

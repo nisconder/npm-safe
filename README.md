@@ -39,6 +39,12 @@ Static analysis and caching run locally with no account or hosted backend.
 Optional LLM analysis is disabled by default and only runs when you configure
 a provider.
 
+**Version 2.0.0** adds optional source LLM review with a separate, default-off
+switch. Upgrades preserve that default, including for users who already enable
+metadata LLM analysis. Complete scans with High findings are now at least
+`suspicious`; review [2.0.0 upgrade notes](CHANGELOG.md#200---2026-11-12) if you
+consume scan levels in scripts or CI.
+
 > If npm-safe makes one dependency decision safer, please consider
 > [starring the repository](https://github.com/nisconder/npm-safe). It helps
 > other developers discover the project.
@@ -129,6 +135,8 @@ npm-safe rules severity <rule-id> <severity>  # Override a rule's severity
 npm-safe llm status                # Show LLM provider status
 npm-safe llm enable                # Enable LLM scanning
 npm-safe llm disable               # Disable LLM scanning
+npm-safe llm enable-source         # Opt into source review on deep checks
+npm-safe llm disable-source        # Disable source review (default)
 npm-safe llm set-provider <openai|gemini|anthropic>
 npm-safe llm set-key <api-key>     # Set the LLM API key
 npm-safe llm set-model <model>     # Set the LLM model identifier
@@ -175,11 +183,11 @@ and limits.
 
 **Known lodash example:** older scans can pair `safe`, 82/100 with a HIGH
 `content-obfuscated-exec` alert on the ordinary `Function('return this')`
-global-object probe. The current, unreleased source requires encoding evidence
-inside the execution argument. On the official lodash 4.17.21 and 4.18.1
-tarballs, verified complete deep scans now return 97/100 with only the existing
+global-object probe. Version 2.0.0 requires encoding evidence
+inside the execution argument. The recorded complete deep-scan regressions on
+official lodash 4.17.21 and 4.18.1 tarballs returned 97/100 with only the existing
 Low metadata finding. This targeted regression fix does not establish overall
-detection accuracy; see [Unreleased changes](CHANGELOG.md#unreleased).
+detection accuracy; see [2.0.0 changes](CHANGELOG.md#200---2026-11-12).
 
 > **Windows PATH note:** a global install places `npm-safe` in the npm global
 > bin directory (`%APPDATA%\npm`), which must be on your `PATH` for external
@@ -387,6 +395,23 @@ npm-safe llm set-model gpt-4o-mini
 npm-safe llm set-base-url <url>     # Custom API base URL (optional)
 npm-safe llm test-connection        # Verify the provider works
 ```
+
+Source review, added in 2.0.0, has a **separate switch, off by default**:
+
+```bash
+npm-safe llm enable-source
+npm-safe check lodash --deep
+npm-safe llm disable-source
+```
+
+With a configured, enabled provider, this reviews bounded source from the same
+tarball as the static scan, replacing the metadata-only model call for that deep
+check. It can request one source supplement (at most two API calls). Selected
+source goes to your configured endpoint; latency and model charges increase.
+Reports retain exact source evidence, omissions and `unknown` outcomes. Model
+results cannot clear static alerts or raise the static score. Requested review
+failures make an otherwise safe result `unknown`. Source reviews are not cached.
+See [source review behavior and limits](docs/source-review.md).
 
 ### CI/CD integration
 

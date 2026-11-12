@@ -5,6 +5,7 @@ import { t } from "./i18n.js";
 import { loadLastBatch, saveLastBatch } from "./batch-history.js";
 import { TelemetryManager } from "../telemetry/telemetry.js";
 import type { CheckResult, BatchPackageResult } from "../index.js";
+import { formatSourceReview } from './source-review-format.js';
 
 export interface RunCheckOptions {
   readonly json?: boolean;
@@ -94,6 +95,7 @@ function printSingleResult(result: CheckResult, packageName: string): void {
     }
   }
 
+  if (result.security.sourceReview) lines.push('', formatSourceReview(result.security.sourceReview));
   console.log(lines.join("\n"));
 }
 
@@ -154,10 +156,13 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
         console.log(`  [${t("check.notFoundShort")}] ${entry.name}`);
         continue;
       }
-      const count = r.security.staticScan?.findings.length ?? 0;
+      const count = (r.security.staticScan?.findings.length ?? 0) + (r.security.sourceReview?.findings.length ?? 0);
       console.log(
         `  [${r.security.overallLevel}] ${r.packageName}@${r.latestVersion} — ${r.security.overallScore}/100 (${count} ${t("check.findings")})`,
       );
+      if (r.security.sourceReview) {
+        console.log(`    ${t('check.label.sourceReview')}: ${r.security.sourceReview.status} / ${r.security.sourceReview.verdict}. ${t('check.sourceScoreNote')}`);
+      }
     }
     console.log(
       `${t("check.batchSummary", { count: String(names.length) })}${failed ? ` — ${t("check.batchFailed")}` : ""}`,

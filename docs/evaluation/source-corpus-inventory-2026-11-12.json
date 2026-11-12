@@ -1,0 +1,25 @@
+{
+  "generatedAt": "2026-11-12T12:42:06.659Z",
+  "frozenSourceCorpora": {
+    "versions": 75,
+    "projects": 69,
+    "malicious": 25,
+    "benign": 50
+  },
+  "llmReviewedUnique": {
+    "versions": 28,
+    "projects": 28,
+    "malicious": 9,
+    "benign": 19
+  },
+  "llmReviewRuns": 44,
+  "duplicateReviewRuns": 16,
+  "metadataOnlyAdditional": 208,
+  "modelParameterTrainingRuns": 0,
+  "initialAndSupplementCharactersAcrossAllReviewRuns": 1423016,
+  "notes": [
+    "Counts package versions, not independent families or randomly sampled registry data.",
+    "LLM review packets are bounded source excerpts. Character total includes repeated regression and overlapping supplemental text; it is not token usage or training data size.",
+    "75 includes observed ssh2 operation-only probe; it did not receive a model review."
+  ]
+}

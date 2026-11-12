@@ -22,10 +22,10 @@
 
 </div>
 
-当前源码新增 `npm-safe diff <包名> <旧的精确版本> <新的精确版本> --json`，
+`npm-safe diff <包名> <旧的精确版本> <新的精确版本> --json` 可以
 深扫两个版本并比较安全信号与 registry 中的版本清单。报告保留文件、行号与
 新增/消失/持续证据；部分扫描不会被当作风险已经消失。详见
-[版本差分及退出码](docs/release-diff.md)。此功能尚未随本次修改发布到 npm。
+[版本差分及退出码](docs/release-diff.md)。
 
 [新评测分集流程](docs/evaluation-splits.md)支持固定 family 分组、排除已观察样本、
 分别运行开发集与测试集，并提供可运行的无害合成示例；没有宣称新的真实检出率。
@@ -42,6 +42,11 @@ GitHub 插件仓库。它会检查 DSH bundle 声明、发布的 patch 文件、
 
 静态分析和缓存均在本地运行，无需账号或托管后端。可选的 LLM 分析默认
 关闭，只有在你主动配置提供商后才会运行。
+
+**2.0.0 新增可选的源码 LLM 复核，使用独立开关且默认关闭。** 升级不会自动开启，
+已有元数据 LLM 配置也不会自动发送源码。完整扫描中的 High 告警现在至少判为
+`suspicious`；如果脚本或 CI 依赖风险等级，请查看
+[2.0.0 升级说明](CHANGELOG.md#200---2026-11-12)。
 
 > 如果 npm-safe 帮你更安全地做出了一次依赖选择，欢迎
 > [为仓库点亮 Star](https://github.com/nisconder/npm-safe)。这会帮助更多开发者发现项目。
@@ -129,6 +134,8 @@ npm-safe rules severity <rule-id> <severity>  # 覆盖规则严重级别
 npm-safe llm status                # 查看 LLM 提供者状态
 npm-safe llm enable                # 启用 LLM 扫描
 npm-safe llm disable               # 禁用 LLM 扫描
+npm-safe llm enable-source         # 深度扫描时启用源码复核
+npm-safe llm disable-source        # 关闭源码复核（默认）
 npm-safe llm set-provider <openai|gemini|anthropic>
 npm-safe llm set-key <api-key>     # 设置 LLM API 密钥
 npm-safe llm set-model <model>     # 设置 LLM 模型
@@ -174,10 +181,10 @@ npm-safe check lodash
 
 **lodash 示例的已知问题：** 旧扫描结果可能同时显示 `safe`、82/100 和一条
 `content-obfuscated-exec` HIGH 告警，指向正常的 `Function('return this')`
-全局对象探测代码。当前尚未发布的源码改为要求执行参数内存在编码证据。
-对 lodash 4.17.21 和 4.18.1 的官方 tarball 完成完整性校验与深扫后，结果均为
+全局对象探测代码。2.0.0 改为要求执行参数内存在编码证据。
+此前对 lodash 4.17.21 和 4.18.1 的官方 tarball 完成完整性校验与深扫，记录结果均为
 97/100，仅保留原有的 Low 元数据提示。这项定向回归修复不代表总体检测准确率，
-详见[未发布变更](CHANGELOG.md#unreleased)。
+详见[2.0.0 变更](CHANGELOG.md#200---2026-11-12)。
 
 > **Windows PATH 说明：** 全局安装会把 `npm-safe` 放入 npm 全局 bin 目录（`%APPDATA%\npm`），外部终端需要该目录在 `PATH` 中才能找到它。官方 Node.js MSI 安装器会自动添加；自定义安装（如 Node 解压到自定义目录）需手动添加：`setx PATH "%APPDATA%\npm;%PATH%"`，然后重新打开终端。如有异常可运行 `npm-safe doctor` 诊断。
 
@@ -325,6 +332,20 @@ npm-safe llm set-model gpt-4o-mini
 npm-safe llm set-base-url <url>     # 自定义 API 基础 URL（可选）
 npm-safe llm test-connection        # 验证连接
 ```
+
+2.0.0 新增的源码复核有**独立开关，默认关闭**：
+
+```bash
+npm-safe llm enable-source
+npm-safe check lodash --deep
+npm-safe llm disable-source
+```
+
+配置并启用模型后，源码复核读取与静态扫描相同的 tarball；该次深扫不再另调
+元数据模型。模型可补取一次源码，最多两次 API 调用。选中的源码会发送给配置的
+服务，增加耗时和模型费用。报告保留源码位置、证据、遗漏范围及 `unknown`。
+模型不能消除静态告警或提高静态分数；请求的复核失败时，原本为 safe 的联合
+结果改为 unknown。源码复核结果不缓存。详见[源码复核说明](docs/source-review.md)。
 
 ### CI/CD 集成
 

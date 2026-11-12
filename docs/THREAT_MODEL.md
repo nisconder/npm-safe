@@ -47,7 +47,15 @@ Other text formats retain their broader same-file heuristic.
 
 Optional LLM analysis receives a bounded subset of the same README and manifest
 data. It is disabled by default and only runs after the user configures a
-provider.
+provider. A separate, default-off `sourceReview` switch opts deep checks into
+source review instead of the metadata model call. It sends selected source
+excerpts to that configured provider, with at most one bounded supplement.
+The model has no tools or package execution capability. Source and model output
+remain untrusted: exact quote validation checks evidence locations, not whether
+the model's reasoning is correct. Static findings and scores are retained;
+model positives can raise the combined level, and an unknown or failed requested
+review prevents an otherwise safe combined result. See [source review](source-review.md)
+for transmission budgets, limits and uncertainty handling.
 
 ## Trust Assumptions
 

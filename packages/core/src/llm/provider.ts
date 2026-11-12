@@ -23,6 +23,7 @@ import {
 } from "./parse.js";
 import { GeminiLlmProvider } from "./gemini.js";
 import { AnthropicLlmProvider } from "./anthropic.js";
+import { readSourceResponse, assertSourcePrompt, assertSourceResponse } from "./source-transport.js";
 
 // Re-export LlmProviderError for backward compatibility: index.ts and the
 // existing test suite import it from this module.
@@ -56,6 +57,15 @@ export interface LlmScanInput {
 export interface LlmScanProvider {
   scan(input: LlmScanInput): Promise<LlmScanReport>;
   testConnection(): Promise<boolean>;
+  /** Optional bounded source-review transport; legacy custom providers may omit it. */
+  reviewSource?(input: LlmSourceReviewInput): Promise<string>;
+}
+
+/** Source-review prompts are prepared and evidence-validated by the coordinator. */
+export interface LlmSourceReviewInput {
+  readonly systemPrompt: string;
+  readonly prompt: string;
+  readonly signal?: AbortSignal;
 }
 
 /**
@@ -196,6 +206,20 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
     return true;
   }
 
+  async reviewSource(input: LlmSourceReviewInput): Promise<string> {
+    assertSourcePrompt(input);
+    return this.request({
+      model: this.model,
+      temperature: 0,
+      max_tokens: this.maxTokens,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: input.systemPrompt },
+        { role: "user", content: input.prompt },
+      ],
+    }, input.signal, true);
+  }
+
   /**
    * Issue a POST to `/chat/completions` with timeout and error normalization.
    *
@@ -210,6 +234,7 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
   private async request(
     body: Record<string, unknown>,
     signal?: AbortSignal,
+    sourceReview = false,
   ): Promise<string> {
     if (signal?.aborted) {
       throw new DOMException("The operation was aborted.", "AbortError");
@@ -241,9 +266,10 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
           response.status,
         );
       }
-      const json = (await response.json()) as unknown;
+      const json = sourceReview ? await readSourceResponse(response) : await response.json() as unknown;
       const content = readResponseContent(json);
       if (!content) throw new LlmProviderError("LLM response contained no content.");
+      if (sourceReview) assertSourceResponse(content);
       return content;
     } catch (error) {
       if (signal?.aborted) {

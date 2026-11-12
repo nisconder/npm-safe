@@ -26,6 +26,7 @@ export function registerLlmCommand(program: Command): void {
         }
         const lines: string[] = [
           `${t("llm.status.enabled")}: ${status.enabled ? t("llm.yes") : t("llm.no")}`,
+          `${t("llm.status.sourceReview")}: ${status.sourceReview ? t("llm.yes") : t("llm.no")}`,
           `${t("llm.status.provider")}: ${status.provider}`,
           `${t("llm.status.configured")}: ${status.configured ? t("llm.yes") : t("llm.no")}`,
         ];
@@ -77,6 +78,19 @@ export function registerLlmCommand(program: Command): void {
         engine.close();
       }
     });
+
+  for (const enabled of [true, false]) {
+    llm.command(enabled ? "enable-source" : "disable-source")
+      .description(enabled ? "Opt into source review for deep checks (sends selected source to the configured LLM)" : "Disable source review")
+      .action(async () => {
+        const opts = program.opts<{ db?: string; proxy?: string }>();
+        const engine = await createEngine(opts.db, opts.proxy);
+        try {
+          engine.setLlmConfig({ sourceReview: enabled });
+          console.log(t(enabled ? "llm.sourceEnabled" : "llm.sourceDisabled"));
+        } finally { engine.close(); }
+      });
+  }
 
   llm
     .command("set-provider <provider>")

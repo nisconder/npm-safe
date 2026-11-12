@@ -1,0 +1,1692 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-12T15:13:09.245Z",
+  "mode": "new-session-review-product-validation",
+  "interpretation": "Previously observed packages, newly reviewed in isolated sessions using actual production source prompts. Not an unseen-package or paid API accuracy benchmark.",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "source": {
+    "sourceFiles": {
+      "packages/core/src/cli/agent-installer.ts": "f79476b80632d2f4a1906fda9e465078263ab9de409583779a2f8127ecbb448d",
+      "packages/core/src/cli/agent-registry.ts": "a87c985d42297e9ca46242d59a72cb57cdac958bbe1314ccccad7105df0a4fc6",
+      "packages/core/src/cli/batch-history.ts": "0605d6d87ffbe6d34b3cd54b3c40010ac54d9080238c391c8f2fa03b8fa80546",
+      "packages/core/src/cli/check.ts": "854f1c0c4a537164fe76154dbd5895aca560d84df51f5950edbc26b014a529ae",
+      "packages/core/src/cli/ci.ts": "532df8b33e1302c18ca5fcdadab967e69533ea2e36c02022e8b8c2955c49d799",
+      "packages/core/src/cli/cli.ts": "f9a221cb8804fac9a3cce7b10591029fade73a4ad4114bc281e3e4acbb3e531a",
+      "packages/core/src/cli/command-log.ts": "dd00c5277df0a3f0df501a4d848d3c285adfd3095e0652282b517181c8474b20",
+      "packages/core/src/cli/diff.ts": "3376e4475c4cae721cfe044fb159a2d13db0f8c80eb1c842df52844f0eeeea00",
+      "packages/core/src/cli/doctor.ts": "461d323abf1be03bb33731e40fc275986ac3d02cde487618a3044e084f76ffe8",
+      "packages/core/src/cli/i18n.ts": "eaf772eee6f0a254d283aee74749488b653b21beac51fb8cfa1b96d5501c69e3",
+      "packages/core/src/cli/install-arguments.ts": "3fdcf0be76fc2d27c60411dd2c3178f1a2bbf91b61d41f0701f524b28714460f",
+      "packages/core/src/cli/install-gate-shell.ts": "416812709478baa385ef63f618ee6a3fb474b74d0b51dcfb35400703b12251e8",
+      "packages/core/src/cli/install-gate.ts": "e1d348fe6d19f19ab2368ccb31287b2177046c8fcd9bb0d446288f0c96dc722f",
+      "packages/core/src/cli/install-registry.ts": "4149e1d08f840fbdde8055470519dd607f2e13160900a97204958f2a72ef05a1",
+      "packages/core/src/cli/lang.ts": "3e6a9a43d8d026522fb7f0b64ac7adc067ab8f96525174ba66f531baf8f3c89a",
+      "packages/core/src/cli/llm.ts": "aa79dfab6589a123c2012b9c3ac8f0020ac5ce850646c347f8c3554a1028a52c",
+      "packages/core/src/cli/refresh.ts": "8a7dd1d2ca8188a5d577dbe8d5d482e87ae50b62f56abf8123b32c01b42e80f5",
+      "packages/core/src/cli/report.ts": "00933790300ee72c321a83bcefdf0b1b1cc54c1bb6a4a14496e7c8e5872e43ec",
+      "packages/core/src/cli/rules.ts": "3343549183269eb42bd17da5294428624ce6cc5b5ffed599b44a6cc500591278",
+      "packages/core/src/cli/search.ts": "391ffb5f29cad7d2587f8452d22f5b632c6cbd60f73b486d5b1ec8875e6e5c10",
+      "packages/core/src/cli/settings.ts": "8540a3f4e10815857586a499d3c983379839b31349db7345db141863f2296108",
+      "packages/core/src/cli/shared.ts": "18d4c6eb6daef4f4fd54b175ecc4f5d2723e2e8700eb4587b5c7f9bded7a2e10",
+      "packages/core/src/cli/skill-install.ts": "69c42b1e14d797a31dfcf7e63d492187e7d2e3c8176747f534d7c42b4f4cdbba",
+      "packages/core/src/cli/skill-tui.ts": "6c18744a5ed16ffdb0f539a65689f101f8c506f28c8e5abf574d645485c32a86",
+      "packages/core/src/cli/skill.ts": "fef76f85b783ad2e3017cbd70ebeeb08ed58806eb6fcdebfbe5e1995fa038b95",
+      "packages/core/src/cli/source-review-format.ts": "59eba9386d052514311f9f86d86c1c9ab28f5326691cdef56a91c2035f7296c4",
+      "packages/core/src/cli/telemetry.ts": "c5cb19daeb75d3f53456ad80dbf507f8c6a16a4ff4e04bb161a4e9a38ddb647e",
+      "packages/core/src/cli/watch.ts": "ae54702e0e11f47171dd88523b11773b035641a5a7a5f7b025e4a82ca687ee62",
+      "packages/core/src/dsh/plugin-risk.ts": "2c6baf20d13ae5b0f59b66d78827fd0f044812b5c94c294468306a16e025f56f",
+      "packages/core/src/index.ts": "725dcedff753745ee2d479d16e7092dabdfc1bf433e83bf9e3aee6737945018b",
+      "packages/core/src/llm/anthropic.ts": "63993a50d69cdbef86b4cf3dd372e6c810c3cb3d10f4877e58c7d3ac2e24bf17",
+      "packages/core/src/llm/gemini.ts": "18b95abb96c32b557f0f08928f38d11584829f891f5a163f5c84be8b449c1db7",
+      "packages/core/src/llm/llm-config.ts": "ded50e380358198d61f9d0dda62c9d367d51890bb85d85b628bdae253e380658",
+      "packages/core/src/llm/parse.ts": "2a6c725772499607306e6d65f7855f17f7a0d1880d90859238348c00c0bb6cf8",
+      "packages/core/src/llm/provider.ts": "afd86087e094b146f646d2f0919287cf81f6028dbea269f774cf0d7b980bdc6b",
+      "packages/core/src/llm/source/archive-reader.ts": "7a338c599b295060c04c446c161ee2c056198b0666a629668caccaa8d25a4f53",
+      "packages/core/src/llm/source/review-contract.ts": "35694aa7dc2120a50a45e4c16a5bb17de7c5eb2c8e827aa672c2166b9fe91c5b",
+      "packages/core/src/llm/source/source-bundle.ts": "89daa275cbd614d03e03582a33ac36fe6c254bdd91c66260565f6ae72821f625",
+      "packages/core/src/llm/source/source-excerpts.ts": "d2b6bcbde2c51bd6a073769f976436c11e2cac758098f032c68d70a0f6162ecc",
+      "packages/core/src/llm/source/source-selection.ts": "ac2780e3a3326eea7af06b828ff1496305b0196c88675883eb8d8af07f3437c9",
+      "packages/core/src/llm/source/source-supplement.ts": "8784be192ab4971622a71b3841085f3b34aaeb0bc19a980f1d523e746c8d900a",
+      "packages/core/src/llm/source/types.ts": "9b489958cf224cc8e6598c330b1e16d539d0f258d8011533cd534a3dc60427f5",
+      "packages/core/src/llm/source-review.ts": "d514c80f3d9d771329d757e6ae93d7f1b1bd68c086e492e9dd01edb280bd49e7",
+      "packages/core/src/llm/source-transport.ts": "9599b49b58044c27046d3af379e6e7c94b65cf7a0d6b2c086bc714c2c5b1fb91",
+      "packages/core/src/project-dependencies.ts": "de6258bcf68296c3a56957c4c6490fb911843c78953ce0df43f993c5d0ef57b9",
+      "packages/core/src/registry/client.ts": "114b8136e6fc237c4e795a2ab457a05b0ef841f0edcd45e4504f3fa8974b5210",
+      "packages/core/src/registry/package-version.ts": "1ec3aa07cdc21985fd13dee76a3cccd9f704cd547604b15c061d9c5ad6cfa94d",
+      "packages/core/src/registry/types.ts": "5ea33e8601e56dbf406aff36efe51cf44193658571832eb936a57d48b6dd132c",
+      "packages/core/src/registry/validator.ts": "f3519dd9e664cc9f3645dc56dacbdb2c95530ee56443893c9fd4769091ff22e8",
+      "packages/core/src/release-diff.ts": "ee8bee005076127cbfa2e86550e2c64ac5fff8aa256fcacd961d318733506d24",
+      "packages/core/src/scanner/browser-signals.ts": "e77c9b0e53ebcfa7f38d8f952e874615aa07129edfcef28dcb71dae6ee6bafdf",
+      "packages/core/src/scanner/concealed-expression.ts": "749a1d0f4f5f88e18e53903a3c262091d73a4ed9f7af9f89dd8eb2c178e20f69",
+      "packages/core/src/scanner/concealed-string-table.ts": "563281c20f95203a5115cdcd42dd1e5569df3a2e296aa30299dc6c5e8de6f75a",
+      "packages/core/src/scanner/content-concealed-code.ts": "8e45a96a9c6e3ede37b010d85f880a28affe4346a71ee4f3c1848a46fcda6a77",
+      "packages/core/src/scanner/content-download-exec.ts": "b3963df268921c8520db768e69b007b8eaeb45205a0b2942728db1f33a50e9e1",
+      "packages/core/src/scanner/content-dynamic-signals.ts": "ee32eb6c96d967b7551e638da10234a1d4b3852a9c020d675c97fc92c1d2c7d9",
+      "packages/core/src/scanner/content-network-signals.ts": "da3039019bdff517863678fc684074e034f87820eff88637cda54e440614e169",
+      "packages/core/src/scanner/content-process-signals.ts": "eb6cde99996fb3ba3e8a435e3687bd1297b948b18582b65faf7bd421205ab1f8",
+      "packages/core/src/scanner/content-secret-flow.ts": "9283f2fd96d4ee1ee6f74cb624c4ba8f2f532504d26d5c679e3cee52b2a49870",
+      "packages/core/src/scanner/download-summaries.ts": "d1ce920d462f8e2073416d9790e8bc7ae641fff448bb77f914f7d992504466fa",
+      "packages/core/src/scanner/download-syntax.ts": "6f52bb59574a18c1b8cf0426e649b8b8e15b132f59ee9a77f79d0ad3b97977a8",
+      "packages/core/src/scanner/network-flow-expression.ts": "dc5f08cd9c5e3de54770f847301a0554a657ffcc7169f7d8c23fa5f131646029",
+      "packages/core/src/scanner/package-content.ts": "e40f7af6932424b30eb2f6eeeb86a3d9c3e8ec84bf8c83e57606e5828e0d8ee9",
+      "packages/core/src/scanner/readme-shell-signals.ts": "3e7079e9f4d4422298dbf839a72a93cb68d057edc402cbfb3f72db898abae039",
+      "packages/core/src/scanner/readme-url-signals.ts": "0e0271bbd73aa50163a888ad07178d6f4eb38b17b9dc15c7212b66b9d1dbbd4c",
+      "packages/core/src/scanner/rule-config.ts": "bf4e5da7cef1539dddd1a0955406363cb6047cc0c822cf5c5314701ba65c0b5c",
+      "packages/core/src/scanner/rule-loader.ts": "b34e1ed46dbeb9ed79a9d0b59e91be718efe23ee59a885923b46317894331d4c",
+      "packages/core/src/scanner/secret-flow-syntax.ts": "c88f34bd22fad369a6fe717b8cdf8380af8d8425ab92c8e3ad2a74e78743b1d9",
+      "packages/core/src/scanner/secret-flow-value.ts": "e6ff03ef5c7eae381e0e6af9d1dc2f232f0d000594613f41ffee891415c01914",
+      "packages/core/src/scanner/secret-flow-writes.ts": "89c9cc66e93711efd2eb3e1080af334f2b52fafe0a4e0829e4406f7fab26546a",
+      "packages/core/src/scanner/security-policy.ts": "e27174efdebda160b0b53d300af6ce2d08a31105097394e2839f6777d199e596",
+      "packages/core/src/scanner/source-binding-patterns.ts": "9b6abfe5b835ea5076a249e78e371c9b20bbee56b4999914f8fdac1ce02063b9",
+      "packages/core/src/scanner/source-bindings.ts": "8bce6d41845fe25a3785d0b00286848e3d3522fc052639bd404c96005b907d45",
+      "packages/core/src/scanner/source-tokens.ts": "51d29ffa1c4b7b12a37ecd04077714d97e24fa1526d3e15ea2b0c27a3e985c4a",
+      "packages/core/src/scanner/static-rules.ts": "f1f609ec576142bca3f4b20fcf7b3e651129afd9daf2960f252f3d142e79a961",
+      "packages/core/src/scanner/types.ts": "41b1daeaff7b9f76dcdf90c021b772fded81aa4e1b326e524708836a87672f3c",
+      "packages/core/src/scheduler/rate-limiter.ts": "0d52eff3e8ae50c5fd5af701c036a390d77dab13392266853f80f99bd92e2191",
+      "packages/core/src/scheduler/refresh-scheduler.ts": "cfa982c57d230fb59334b14ecbfb09c511091897f8bbc4e37028d9c5d517b544",
+      "packages/core/src/store/cache-manager.ts": "6ba20ddc622df9c861b03e0ccc74cb8ef50ffe25ccae583546e1e7a975f24046",
+      "packages/core/src/store/database.ts": "4506b9e9cfab076855c81f54cbcd850df3843a2f730caf695b62536a2f6adee6",
+      "packages/core/src/store/schema.ts": "60ddfbba78a0389970a2d05c043d8c44dc43ef607bbd338258ef2f837fe14a80",
+      "packages/core/src/telemetry/telemetry.ts": "18bf5b4a15c676e1bbe9fba896f42c0219a6983af80b9c4ad45c73a565bf61cf",
+      "packages/core/src/translator/provider.ts": "310feba3857543d1fc35840cb70dc7881ceca123362a18914a498fd415f17afe",
+      "packages/core/src/translator/types.ts": "8e60790edffdb760e536bc5742fcfb24242fa75bfb6e1c5741afe81776073d0c",
+      "scripts/evaluate-integrated-source.mjs": "b86b5538bb27945851cfd18353d3b503d889182c1c676ec6a1cb8d949a04a8b8",
+      "scripts/evaluate-scanner.mjs": "ee6d1c94702212bcda10ff710dd01481cea556689b80b51787c5b41237dd110b",
+      "scripts/llm-source/evaluation-io.mjs": "4b1d75187ece2e5ff3bcfce3911d2c2ab7604ad0747a9c7d8b7ff43302da605d",
+      "scripts/llm-source/review-contract.mjs": "9be65f8f9a7ed2c4c3ece5c7721885e07b0719c456eb7529bc99f2aac019bc24"
+    },
+    "fingerprint": "b5d8168c5df854e1134a587532fc5a2d6988a0e56ae27d4d1a56a054ff92f3aa"
+  },
+  "referenceSha256": "a7dc04248f72960096a45b1171095d5240591a2b8df2e2dbc15a09ff1e9928d5",
+  "inputs": [
+    {
+      "cohort": "fresh",
+      "privateRunSha256": "b3a18c3a923680d05d5b4bcccadbb4eafde84800caad37ec2dcfb2dcca9499c6",
+      "protocolSha256": "1e69089f953c429970f3a565c95c975a06430be584f9250a6e759a9dcaf1cf1e",
+      "datasetSha256": "70b9802fbf6937c8dab3a586f2ab3c2d414b65904220377875bc345fc343b8fc"
+    },
+    {
+      "cohort": "regression",
+      "privateRunSha256": "dfb7eb343d39c1eb5f0d55ac8d4c416357ee82690663e31e3e50aabeb435329b",
+      "protocolSha256": "17309d24443529cec266b79bfa6886da2a1bdc60962e35107dcfc6e9a416c8ee",
+      "datasetSha256": "e5b98fc8db0315ae9dd3e1609bcd9fc4535faa57926a47d48cc2067f1170e8bd"
+    }
+  ],
+  "rows": [
+    {
+      "cohort": "fresh",
+      "id": "jose-6.0.11",
+      "name": "jose",
+      "version": "6.0.11",
+      "label": "benign",
+      "replayStatus": "complete",
+      "rule": {
+        "status": "complete",
+        "positive": true,
+        "score": 85,
+        "level": "suspicious",
+        "findings": [
+          {
+            "ruleId": "typosquatting",
+            "severity": "high"
+          }
+        ]
+      },
+      "model": {
+        "status": "complete",
+        "verdict": "benign",
+        "findings": [
+          {
+            "ruleId": "llm-source-1",
+            "severity": "low",
+            "filePath": "package/dist/webapi/jwks/remote.js",
+            "lineNumber": 69
+          }
+        ],
+        "coverage": {
+          "archiveInspection": {
+            "status": "complete",
+            "entries": 102
+          },
+          "sourceCoverage": "partial",
+          "candidateFiles": 101,
+          "candidateBytes": 249852,
+          "decodedBytes": 249852,
+          "decodedChars": 249828,
+          "shownFiles": 16,
+          "shownChars": 32660,
+          "selectedDemandChars": 32660,
+          "allocatedChars": 32660,
+          "omittedCount": 85,
+          "omitted": [
+            {
+              "reason": "Model file-count budget",
+              "chars": 1455,
+              "path": "package/dist/webapi/jwt/sign.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1903,
+              "path": "package/dist/webapi/jwt/unsecured.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1754,
+              "path": "package/dist/webapi/lib/ecdhes.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 3581,
+              "path": "package/dist/webapi/lib/encrypt_key_management.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1055,
+              "path": "package/dist/webapi/jwe/compact/decrypt.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 6411,
+              "path": "package/dist/webapi/jwe/flattened/decrypt.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1125,
+              "path": "package/dist/webapi/jwe/general/decrypt.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 898,
+              "path": "package/dist/webapi/jws/compact/verify.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 4421,
+              "path": "package/dist/webapi/jws/flattened/verify.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 898,
+              "path": "package/dist/webapi/jws/general/verify.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 614,
+              "path": "package/dist/webapi/lib/aesgcmkw.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1189,
+              "path": "package/dist/webapi/lib/aeskw.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 7490,
+              "path": "package/dist/webapi/lib/asn1.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 673,
+              "path": "package/dist/webapi/lib/base64.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1010,
+              "path": "package/dist/webapi/lib/buffer_utils.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 575,
+              "path": "package/dist/webapi/lib/cek.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 4816,
+              "path": "package/dist/webapi/lib/crypto_key.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 3909,
+              "path": "package/dist/webapi/lib/decrypt.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 5580,
+              "path": "package/dist/webapi/lib/decrypt_key_management.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 2866,
+              "path": "package/dist/webapi/lib/encrypt.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 986,
+              "path": "package/dist/webapi/lib/invalid_key_input.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 419,
+              "path": "package/dist/webapi/lib/is_jwk.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 392,
+              "path": "package/dist/webapi/lib/is_key_like.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 497,
+              "path": "package/dist/webapi/lib/is_object.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 580,
+              "path": "package/dist/webapi/lib/iv.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 3778,
+              "path": "package/dist/webapi/lib/jwk_to_key.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 6690,
+              "path": "package/dist/webapi/lib/jwt_claims_set.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 879,
+              "path": "package/dist/webapi/lib/key_to_jwk.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 5359,
+              "path": "package/dist/webapi/lib/normalize_key.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1600,
+              "path": "package/dist/webapi/lib/pbes2kw.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 935,
+              "path": "package/dist/webapi/lib/rsaes.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1559,
+              "path": "package/dist/webapi/lib/secs.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 909,
+              "path": "package/dist/webapi/lib/subtle_dsa.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1066,
+              "path": "package/dist/webapi/util/base64url.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 3286,
+              "path": "package/dist/webapi/util/errors.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 897,
+              "path": "package/dist/webapi/jwe/compact/encrypt.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 6416,
+              "path": "package/dist/webapi/jwe/flattened/encrypt.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 7799,
+              "path": "package/dist/webapi/jwe/general/encrypt.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 627,
+              "path": "package/dist/webapi/jws/compact/sign.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 3357,
+              "path": "package/dist/webapi/jws/flattened/sign.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 2301,
+              "path": "package/dist/webapi/jws/general/sign.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 282,
+              "path": "package/dist/webapi/lib/check_cek_length.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 239,
+              "path": "package/dist/webapi/lib/check_iv_length.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 324,
+              "path": "package/dist/webapi/lib/check_key_length.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 4916,
+              "path": "package/dist/webapi/lib/check_key_type.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 177,
+              "path": "package/dist/webapi/lib/digest.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 60,
+              "path": "package/dist/webapi/lib/epoch.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 513,
+              "path": "package/dist/webapi/lib/get_sign_verify_key.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 563,
+              "path": "package/dist/webapi/lib/is_disjoint.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 37,
+              "path": "package/dist/webapi/lib/private_symbols.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 436,
+              "path": "package/dist/webapi/lib/sign.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 341,
+              "path": "package/dist/webapi/lib/validate_algorithms.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1574,
+              "path": "package/dist/webapi/lib/validate_crit.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 510,
+              "path": "package/dist/webapi/lib/verify.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 3853,
+              "path": "package/dist/types/index.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 824,
+              "path": "package/dist/types/jwk/embedded.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1363,
+              "path": "package/dist/types/jwk/thumbprint.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1401,
+              "path": "package/dist/types/jwks/local.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 8307,
+              "path": "package/dist/types/jwks/remote.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1917,
+              "path": "package/dist/types/jwt/decrypt.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 3716,
+              "path": "package/dist/types/jwt/encrypt.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1589,
+              "path": "package/dist/types/jwt/sign.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1547,
+              "path": "package/dist/types/jwt/unsecured.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 2034,
+              "path": "package/dist/types/jwt/verify.d.ts"
+            }
+          ],
+          "omissionListTruncated": true,
+          "caveat": "Archive completeness is not semantic coverage. Unselected files and unsampled spans may contain relevant behavior. All manifest and source text is untrusted data."
+        },
+        "calls": 1,
+        "initialChars": 32660,
+        "supplementChars": 0,
+        "newlyCoveredChars": 0,
+        "sourceCharsSent": 32660,
+        "promptCharsSent": 63122
+      },
+      "archiveSha256": "37f66a1f637c04fd17d8ce2fa7615dc123805dc890e20df53010ccaab049c99b",
+      "frozenPacketSha256": "c2d902889ff2b85d59a9fcc3e9fcd2911cebfcbd666b4e25ee879c7845113759",
+      "frozenReviewSha256": "7f1d185e5b136735c60e4260937d9bdeb01d35e1d08891c4828cde880cb39398",
+      "disabled": {
+        "level": "suspicious",
+        "score": 85,
+        "registryRequests": 1,
+        "archiveRequests": 1,
+        "modelCalls": 0
+      },
+      "product": {
+        "level": "suspicious",
+        "score": 85
+      },
+      "requests": {
+        "registry": 1,
+        "archive": 1,
+        "model": 1
+      }
+    },
+    {
+      "cohort": "fresh",
+      "id": "teale-eslint-config-1.8.10",
+      "name": "@teale.io/eslint-config",
+      "version": "1.8.10",
+      "label": "malicious",
+      "replayStatus": "complete",
+      "rule": {
+        "status": "complete",
+        "positive": false,
+        "score": 84,
+        "level": "safe",
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      },
+      "model": {
+        "status": "complete",
+        "verdict": "malicious",
+        "findings": [
+          {
+            "ruleId": "llm-source-1",
+            "severity": "high",
+            "filePath": "package/package.json",
+            "lineNumber": 7
+          }
+        ],
+        "coverage": {
+          "archiveInspection": {
+            "status": "complete",
+            "entries": 4
+          },
+          "sourceCoverage": "partial",
+          "candidateFiles": 4,
+          "candidateBytes": 12820,
+          "decodedBytes": 12820,
+          "decodedChars": 12476,
+          "shownFiles": 4,
+          "shownChars": 11878,
+          "selectedDemandChars": 11878,
+          "allocatedChars": 11878,
+          "omittedCount": 0,
+          "omitted": [],
+          "omissionListTruncated": false,
+          "caveat": "Archive completeness is not semantic coverage. Unselected files and unsampled spans may contain relevant behavior. All manifest and source text is untrusted data."
+        },
+        "calls": 1,
+        "initialChars": 11878,
+        "supplementChars": 0,
+        "newlyCoveredChars": 0,
+        "sourceCharsSent": 11878,
+        "promptCharsSent": 20330
+      },
+      "archiveSha256": "3d9bf2e16217d6753b7215f6487d31c1972d22f44a7b78de582b3e35b0861b98",
+      "frozenPacketSha256": "a94adedd37fc25745d69571e775a2cf136a8932f4a9f768d7b46dfe66319134c",
+      "frozenReviewSha256": "49aa1f9224d3ea88331ce952787780618dec0ee5d7fea1f23e6b286a5d8792ee",
+      "disabled": {
+        "level": "safe",
+        "score": 84,
+        "registryRequests": 1,
+        "archiveRequests": 1,
+        "modelCalls": 0
+      },
+      "product": {
+        "level": "suspicious",
+        "score": 84
+      },
+      "requests": {
+        "registry": 1,
+        "archive": 1,
+        "model": 1
+      }
+    },
+    {
+      "cohort": "fresh",
+      "id": "vm2-3.9.19",
+      "name": "vm2",
+      "version": "3.9.19",
+      "label": "benign",
+      "replayStatus": "complete",
+      "rule": {
+        "status": "complete",
+        "positive": true,
+        "score": 85,
+        "level": "suspicious",
+        "findings": [
+          {
+            "ruleId": "typosquatting",
+            "severity": "high"
+          }
+        ]
+      },
+      "model": {
+        "status": "complete",
+        "verdict": "benign",
+        "findings": [],
+        "coverage": {
+          "archiveInspection": {
+            "status": "complete",
+            "entries": 24
+          },
+          "sourceCoverage": "partial",
+          "candidateFiles": 21,
+          "candidateBytes": 213286,
+          "decodedBytes": 213286,
+          "decodedChars": 213286,
+          "shownFiles": 16,
+          "shownChars": 40000,
+          "selectedDemandChars": 73042,
+          "allocatedChars": 40000,
+          "omittedCount": 5,
+          "omitted": [
+            {
+              "reason": "Model file-count budget",
+              "chars": 28143,
+              "path": "package/lib/events.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 14431,
+              "path": "package/lib/setup-sandbox.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 213,
+              "path": "package/.eslintrc.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 718,
+              "path": "package/lib/cli.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 11631,
+              "path": "package/index.d.ts"
+            }
+          ],
+          "omissionListTruncated": false,
+          "caveat": "Archive completeness is not semantic coverage. Unselected files and unsampled spans may contain relevant behavior. All manifest and source text is untrusted data."
+        },
+        "calls": 1,
+        "initialChars": 40000,
+        "supplementChars": 0,
+        "newlyCoveredChars": 0,
+        "sourceCharsSent": 40000,
+        "promptCharsSent": 60791
+      },
+      "archiveSha256": "0779c867c4e750dacea4d5875005dcfe4dad3386a54dfd67c78a629268c820d4",
+      "frozenPacketSha256": "53e66a5c83b56b15e6b3af180325ce70d9e77a0cc0d7509b1611bca3d47cb9b1",
+      "frozenReviewSha256": "38a289faba8589efc7a40a197ca8b1d5c72773a94ff44db1709b54e7fab26edb",
+      "disabled": {
+        "level": "suspicious",
+        "score": 85,
+        "registryRequests": 1,
+        "archiveRequests": 1,
+        "modelCalls": 0
+      },
+      "product": {
+        "level": "suspicious",
+        "score": 85
+      },
+      "requests": {
+        "registry": 1,
+        "archive": 1,
+        "model": 1
+      }
+    },
+    {
+      "cohort": "fresh",
+      "id": "windows-confirm-1.0.0",
+      "name": "windows-confirm",
+      "version": "1.0.0",
+      "label": "malicious",
+      "replayStatus": "complete",
+      "rule": {
+        "status": "complete",
+        "positive": false,
+        "score": 84,
+        "level": "safe",
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      },
+      "model": {
+        "status": "complete",
+        "verdict": "unknown",
+        "findings": [
+          {
+            "ruleId": "llm-source-1",
+            "severity": "medium",
+            "filePath": "package/package.json",
+            "lineNumber": 10
+          }
+        ],
+        "coverage": {
+          "archiveInspection": {
+            "status": "complete",
+            "entries": 2
+          },
+          "sourceCoverage": "complete",
+          "candidateFiles": 2,
+          "candidateBytes": 2453,
+          "decodedBytes": 2453,
+          "decodedChars": 2453,
+          "shownFiles": 2,
+          "shownChars": 2453,
+          "selectedDemandChars": 2453,
+          "allocatedChars": 2453,
+          "omittedCount": 0,
+          "omitted": [],
+          "omissionListTruncated": false,
+          "caveat": "Archive completeness is not semantic coverage. Unselected files and unsampled spans may contain relevant behavior. All manifest and source text is untrusted data."
+        },
+        "calls": 1,
+        "initialChars": 2453,
+        "supplementChars": 0,
+        "newlyCoveredChars": 0,
+        "sourceCharsSent": 2453,
+        "promptCharsSent": 9773
+      },
+      "archiveSha256": "7b03841848293f89785fbaa652f3032fa88ccb38bf943ebb367bb7206207a39e",
+      "frozenPacketSha256": "155d995a3dd289924db763f6506e8c04cdd50a5aac99f61209a006ec7a7a44b7",
+      "frozenReviewSha256": "a17f02217ef1b35b106ee9fb7e65d1f146d6311b0feae6817426ff9395a7a0a4",
+      "disabled": {
+        "level": "safe",
+        "score": 84,
+        "registryRequests": 1,
+        "archiveRequests": 1,
+        "modelCalls": 0
+      },
+      "product": {
+        "level": "unknown",
+        "score": 84
+      },
+      "requests": {
+        "registry": 1,
+        "archive": 1,
+        "model": 1
+      }
+    },
+    {
+      "cohort": "fresh",
+      "id": "puppeteer-24.8.2",
+      "name": "puppeteer",
+      "version": "24.8.2",
+      "label": "benign",
+      "replayStatus": "complete",
+      "rule": {
+        "status": "complete",
+        "positive": false,
+        "score": 84,
+        "level": "safe",
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      },
+      "model": {
+        "status": "complete",
+        "verdict": "benign",
+        "findings": [],
+        "coverage": {
+          "archiveInspection": {
+            "status": "complete",
+            "entries": 43
+          },
+          "sourceCoverage": "partial",
+          "candidateFiles": 24,
+          "candidateBytes": 343653,
+          "decodedBytes": 343653,
+          "decodedChars": 343600,
+          "shownFiles": 16,
+          "shownChars": 40000,
+          "selectedDemandChars": 46034,
+          "allocatedChars": 40000,
+          "omittedCount": 8,
+          "omitted": [
+            {
+              "reason": "Model file-count budget",
+              "chars": 269,
+              "path": "package/lib/cjs/puppeteer/getConfiguration.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 153,
+              "path": "package/lib/cjs/puppeteer/node/cli.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 206,
+              "path": "package/lib/cjs/puppeteer/node/install.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 944,
+              "path": "package/lib/cjs/puppeteer/puppeteer.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 269,
+              "path": "package/lib/esm/puppeteer/getConfiguration.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 153,
+              "path": "package/lib/esm/puppeteer/node/cli.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 206,
+              "path": "package/lib/esm/puppeteer/node/install.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 944,
+              "path": "package/lib/esm/puppeteer/puppeteer.d.ts"
+            }
+          ],
+          "omissionListTruncated": false,
+          "caveat": "Archive completeness is not semantic coverage. Unselected files and unsampled spans may contain relevant behavior. All manifest and source text is untrusted data."
+        },
+        "calls": 1,
+        "initialChars": 40000,
+        "supplementChars": 0,
+        "newlyCoveredChars": 0,
+        "sourceCharsSent": 40000,
+        "promptCharsSent": 59245
+      },
+      "archiveSha256": "a91881bedb56ba6b8d188e2c2a1d163206ed27c9ee2fca298967625179ab8c78",
+      "frozenPacketSha256": "82da80045d2ba023e19787d6881315e0819da001b2f26944894c7a01772a9033",
+      "frozenReviewSha256": "f759b9a5e6aa0d74954d9224e06355d9502455171084c3b0d6b0b7ffb798f34a",
+      "disabled": {
+        "level": "safe",
+        "score": 84,
+        "registryRequests": 1,
+        "archiveRequests": 1,
+        "modelCalls": 0
+      },
+      "product": {
+        "level": "safe",
+        "score": 84
+      },
+      "requests": {
+        "registry": 1,
+        "archive": 1,
+        "model": 1
+      }
+    },
+    {
+      "cohort": "fresh",
+      "id": "ky-1.7.5",
+      "name": "ky",
+      "version": "1.7.5",
+      "label": "benign",
+      "replayStatus": "complete",
+      "rule": {
+        "status": "complete",
+        "positive": false,
+        "score": 100,
+        "level": "safe",
+        "findings": []
+      },
+      "model": {
+        "status": "complete",
+        "verdict": "benign",
+        "findings": [],
+        "coverage": {
+          "archiveInspection": {
+            "status": "complete",
+            "entries": 63
+          },
+          "sourceCoverage": "partial",
+          "candidateFiles": 42,
+          "candidateBytes": 82225,
+          "decodedBytes": 82225,
+          "decodedChars": 82181,
+          "shownFiles": 16,
+          "shownChars": 20409,
+          "selectedDemandChars": 20409,
+          "allocatedChars": 20409,
+          "omittedCount": 26,
+          "omitted": [
+            {
+              "reason": "Model file-count budget",
+              "chars": 47,
+              "path": "package/distribution/types/response.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 167,
+              "path": "package/distribution/utils/is.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1216,
+              "path": "package/distribution/utils/normalize.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 45,
+              "path": "package/distribution/types/common.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 44,
+              "path": "package/distribution/types/retry.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 44,
+              "path": "package/distribution/utils/types.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 733,
+              "path": "package/distribution/index.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 851,
+              "path": "package/distribution/core/Ky.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 861,
+              "path": "package/distribution/core/constants.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 402,
+              "path": "package/distribution/errors/HTTPError.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 165,
+              "path": "package/distribution/errors/TimeoutError.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1235,
+              "path": "package/distribution/types/ResponsePromise.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 306,
+              "path": "package/distribution/types/common.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 5326,
+              "path": "package/distribution/types/hooks.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 4727,
+              "path": "package/distribution/types/ky.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 10071,
+              "path": "package/distribution/types/options.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1356,
+              "path": "package/distribution/types/request.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 89,
+              "path": "package/distribution/types/response.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1301,
+              "path": "package/distribution/types/retry.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 216,
+              "path": "package/distribution/utils/delay.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 68,
+              "path": "package/distribution/utils/is.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 498,
+              "path": "package/distribution/utils/merge.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 230,
+              "path": "package/distribution/utils/normalize.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 122,
+              "path": "package/distribution/utils/options.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 240,
+              "path": "package/distribution/utils/timeout.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 201,
+              "path": "package/distribution/utils/types.d.ts"
+            }
+          ],
+          "omissionListTruncated": false,
+          "caveat": "Archive completeness is not semantic coverage. Unselected files and unsampled spans may contain relevant behavior. All manifest and source text is untrusted data."
+        },
+        "calls": 2,
+        "initialChars": 20409,
+        "supplementChars": 6508,
+        "newlyCoveredChars": 6508,
+        "sourceCharsSent": 47326,
+        "promptCharsSent": 89271
+      },
+      "archiveSha256": "5061a2f44d29f01efdd6a612d50762153c65d8c49af105e2245eb94e2880f50c",
+      "frozenPacketSha256": "15565dbe443b4df8fcfd0738ea0e1970fbc8ee9a2a908973a4246f986626843b",
+      "frozenReviewSha256": "89cc682d7aff4e6442b99a8c136fb99fce07818492e5b176b7ce71c5e78b2898",
+      "frozenRequestSha256": "ccc56ddaae211952ac41d60287ec2d7265ac6446f1ebeada27e5d224f70ecffe",
+      "frozenSupplementSha256": "da2b4f0f091c6eef01c6092fce5cdab8d227c3bbdb0f318e7f4d6f65920a85be",
+      "disabled": {
+        "level": "safe",
+        "score": 100,
+        "registryRequests": 1,
+        "archiveRequests": 1,
+        "modelCalls": 0
+      },
+      "product": {
+        "level": "safe",
+        "score": 100
+      },
+      "requests": {
+        "registry": 1,
+        "archive": 1,
+        "model": 2
+      }
+    },
+    {
+      "cohort": "fresh",
+      "id": "deezcord-js-1.0.0",
+      "name": "deezcord.js",
+      "version": "1.0.0",
+      "label": "malicious",
+      "replayStatus": "complete",
+      "rule": {
+        "status": "complete",
+        "positive": false,
+        "score": 84,
+        "level": "safe",
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      },
+      "model": {
+        "status": "complete",
+        "verdict": "unknown",
+        "findings": [
+          {
+            "ruleId": "llm-source-1",
+            "severity": "medium",
+            "filePath": "package/package.json",
+            "lineNumber": 6
+          }
+        ],
+        "coverage": {
+          "archiveInspection": {
+            "status": "complete",
+            "entries": 3
+          },
+          "sourceCoverage": "partial",
+          "candidateFiles": 3,
+          "candidateBytes": 38892,
+          "decodedBytes": 38892,
+          "decodedChars": 38892,
+          "shownFiles": 3,
+          "shownChars": 8710,
+          "selectedDemandChars": 8710,
+          "allocatedChars": 8710,
+          "omittedCount": 0,
+          "omitted": [],
+          "omissionListTruncated": false,
+          "caveat": "Archive completeness is not semantic coverage. Unselected files and unsampled spans may contain relevant behavior. All manifest and source text is untrusted data."
+        },
+        "calls": 2,
+        "initialChars": 8710,
+        "supplementChars": 24000,
+        "newlyCoveredChars": 24000,
+        "sourceCharsSent": 41420,
+        "promptCharsSent": 56824
+      },
+      "archiveSha256": "90b19c72fc0f5d31f69869d328f88553a8282750bce75cbfbfc9138bae8dbfb1",
+      "frozenPacketSha256": "c33e1dd1c0da5732dbee202abec1c553c52f9c61da371f2b76299b7ea11a59d6",
+      "frozenReviewSha256": "6dbe16a26c21873e776f2a23fcc5531b259e0b317c8d28c32199e400ef554685",
+      "frozenRequestSha256": "3605c85ab228913fe0d0e15a7374991854894ae593b93b5c96224a81f55366b9",
+      "frozenSupplementSha256": "2bd7dc776d79fb601c655a0ec4fc206b9202bab79eb8369c8c11d0e92e35e6c7",
+      "disabled": {
+        "level": "safe",
+        "score": 84,
+        "registryRequests": 1,
+        "archiveRequests": 1,
+        "modelCalls": 0
+      },
+      "product": {
+        "level": "unknown",
+        "score": 84
+      },
+      "requests": {
+        "registry": 1,
+        "archive": 1,
+        "model": 2
+      }
+    },
+    {
+      "cohort": "fresh",
+      "id": "nx-devkit-21.5.0",
+      "name": "@nx/devkit",
+      "version": "21.5.0",
+      "label": "malicious",
+      "replayStatus": "complete",
+      "rule": {
+        "status": "complete",
+        "positive": true,
+        "score": 69,
+        "level": "suspicious",
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-sensitive-network",
+            "severity": "high"
+          }
+        ]
+      },
+      "model": {
+        "status": "complete",
+        "verdict": "malicious",
+        "findings": [
+          {
+            "ruleId": "llm-source-1",
+            "severity": "critical",
+            "filePath": "package/package.json",
+            "lineNumber": 57
+          },
+          {
+            "ruleId": "llm-source-2",
+            "severity": "high",
+            "filePath": "package/package.json",
+            "lineNumber": 57
+          }
+        ],
+        "coverage": {
+          "archiveInspection": {
+            "status": "complete",
+            "entries": 156
+          },
+          "sourceCoverage": "partial",
+          "candidateFiles": 103,
+          "candidateBytes": 219816,
+          "decodedBytes": 219816,
+          "decodedChars": 219807,
+          "shownFiles": 16,
+          "shownChars": 40000,
+          "selectedDemandChars": 49908,
+          "allocatedChars": 40000,
+          "omittedCount": 87,
+          "omitted": [
+            {
+              "reason": "Model file-count budget",
+              "chars": 1330,
+              "path": "package/src/generators/visit-not-ignored-files.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 3752,
+              "path": "package/src/utils/convert-nx-executor.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1665,
+              "path": "package/src/utils/get-workspace-layout.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 5840,
+              "path": "package/src/utils/invoke-nx-generator.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 995,
+              "path": "package/src/utils/move-dir.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1694,
+              "path": "package/src/utils/names.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 748,
+              "path": "package/src/utils/offset-from-root.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 3311,
+              "path": "package/src/utils/string-change.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 151,
+              "path": "package/src/utils/versions.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 5674,
+              "path": "package/src/generators/project-name-and-root-utils.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 5557,
+              "path": "package/src/generators/artifact-name-and-directory-utils.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 3224,
+              "path": "package/src/generators/e2e-web-server-info-utils.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 23161,
+              "path": "package/src/generators/plugin-migrations/executor-to-plugin-migrator.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 558,
+              "path": "package/src/generators/prompt.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 12840,
+              "path": "package/src/utils/add-plugin.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 9397,
+              "path": "package/src/utils/rxjs-for-await.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 4385,
+              "path": "package/src/utils/string-utils.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 787,
+              "path": "package/ngcli-adapter.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1775,
+              "path": "package/src/generators/executor-options-utils.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 6697,
+              "path": "package/src/generators/plugin-migrations/plugin-migration-utils.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 2866,
+              "path": "package/src/generators/target-defaults-utils.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 142,
+              "path": "package/src/generators/typescript/insert-import.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 142,
+              "path": "package/src/generators/typescript/insert-statement.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 2006,
+              "path": "package/src/utils/async-iterable/combine-async-iterables.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 2266,
+              "path": "package/src/utils/async-iterable/create-async-iterable.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 590,
+              "path": "package/src/utils/async-iterable/map-async-iteratable.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 354,
+              "path": "package/src/utils/async-iterable/tap-async-iteratable.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1465,
+              "path": "package/src/utils/calculate-hash-for-create-nodes.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1295,
+              "path": "package/src/utils/find-plugin-for-config-file.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 919,
+              "path": "package/src/utils/get-named-inputs.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 453,
+              "path": "package/src/utils/log-show-project-command.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 5244,
+              "path": "package/src/utils/replace-package.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 6534,
+              "path": "package/src/utils/replace-project-configuration-with-plugin.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 637,
+              "path": "package/src/utils/semver.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1848,
+              "path": "package/src/generators/plugin-migrations/aggregate-log-util.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 379,
+              "path": "package/src/utils/async-iterable/index.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 253,
+              "path": "package/testing.js"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 580,
+              "path": "package/index.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 195,
+              "path": "package/ngcli-adapter.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 2525,
+              "path": "package/public-api.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1716,
+              "path": "package/src/executors/parse-target-string.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 396,
+              "path": "package/src/executors/read-target-options.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1708,
+              "path": "package/src/generators/artifact-name-and-directory-utils.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 909,
+              "path": "package/src/generators/e2e-web-server-info-utils.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 923,
+              "path": "package/src/generators/executor-options-utils.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 366,
+              "path": "package/src/generators/format-files.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1857,
+              "path": "package/src/generators/generate-files.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 709,
+              "path": "package/src/generators/plugin-migrations/aggregate-log-util.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 2044,
+              "path": "package/src/generators/plugin-migrations/executor-to-plugin-migrator.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 2661,
+              "path": "package/src/generators/plugin-migrations/plugin-migration-utils.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1545,
+              "path": "package/src/generators/project-name-and-root-utils.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 191,
+              "path": "package/src/generators/prompt.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 283,
+              "path": "package/src/generators/run-tasks-in-serial.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 360,
+              "path": "package/src/generators/target-defaults-utils.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 448,
+              "path": "package/src/generators/to-js.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 89,
+              "path": "package/src/generators/typescript/insert-import.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 92,
+              "path": "package/src/generators/typescript/insert-statement.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 201,
+              "path": "package/src/generators/update-ts-configs-to-js.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 296,
+              "path": "package/src/generators/visit-not-ignored-files.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 542,
+              "path": "package/src/tasks/install-packages-task.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 1097,
+              "path": "package/src/utils/add-plugin.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 194,
+              "path": "package/src/utils/async-iterable/combine-async-iterables.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 368,
+              "path": "package/src/utils/async-iterable/create-async-iterable.d.ts"
+            },
+            {
+              "reason": "Model file-count budget",
+              "chars": 199,
+              "path": "package/src/utils/async-iterable/index.d.ts"
+            }
+          ],
+          "omissionListTruncated": true,
+          "caveat": "Archive completeness is not semantic coverage. Unselected files and unsampled spans may contain relevant behavior. All manifest and source text is untrusted data."
+        },
+        "calls": 2,
+        "initialChars": 40000,
+        "supplementChars": 6855,
+        "newlyCoveredChars": 2745,
+        "sourceCharsSent": 86855,
+        "promptCharsSent": 148872
+      },
+      "archiveSha256": "a754727c54391d4a124d5a39842fa2b382fa2e4c824cc426dee9e559429b3d47",
+      "frozenPacketSha256": "f5264567b4aaef2fa567714dc94b7bfa17b8dfe688af3172864fe59257125213",
+      "frozenReviewSha256": "3c3e13a4839e89488e2e9029fe24d5957bbe960fa740c3a36318ee1031a833b5",
+      "frozenRequestSha256": "e83198c96c679eea7af43b5a4fd8147b4366540c32b1e72217ae1d7043dec9db",
+      "frozenSupplementSha256": "c1f2d0350f00ccfd17f08d170f4db5318d2aa53809da7a198a6b8095fb38a5ac",
+      "disabled": {
+        "level": "suspicious",
+        "score": 69,
+        "registryRequests": 1,
+        "archiveRequests": 1,
+        "modelCalls": 0
+      },
+      "product": {
+        "level": "dangerous",
+        "score": 69
+      },
+      "requests": {
+        "registry": 1,
+        "archive": 1,
+        "model": 2
+      }
+    }
+  ],
+  "transport": {
+    "registryRequests": 8,
+    "archiveRequests": 8,
+    "modelCalls": 11
+  },
+  "notes": [
+    "All network requests are intercepted without fallback; package code and payloads are never executed.",
+    "The fixture changes only manifest dist.tarball to a same-origin offline route; package archive bytes and evidence remain unchanged.",
+    "A replay succeeds only if the product sends the exact frozen source evidence and supplement, aside from the opaque case ID.",
+    "Quoted evidence remains validated by the production contract; matching quotes do not prove sound reasoning or runtime behavior.",
+    "New isolated-session responses are passed through the production engine/provider with a local transport. No paid API call, exact model identifier, tokens or monetary cost is available."
+  ],
+  "summary": {
+    "total": 8,
+    "rule": {
+      "tp": 1,
+      "fp": 2,
+      "tn": 2,
+      "fn": 3,
+      "abstainedMalicious": 0,
+      "abstainedBenign": 0,
+      "precision": 0.3333333333333333,
+      "recallAmongEvaluable": 0.25,
+      "falsePositiveRateAmongEvaluable": 0.5,
+      "endToEndRecall": 0.25,
+      "decisionCoverage": 1
+    },
+    "model": {
+      "tp": 2,
+      "fp": 0,
+      "tn": 4,
+      "fn": 0,
+      "abstainedMalicious": 2,
+      "abstainedBenign": 0,
+      "precision": 1,
+      "recallAmongEvaluable": 1,
+      "falsePositiveRateAmongEvaluable": 0,
+      "endToEndRecall": 0.5,
+      "decisionCoverage": 0.75
+    },
+    "union": {
+      "tp": 2,
+      "fp": 2,
+      "tn": 2,
+      "fn": 0,
+      "abstainedMalicious": 2,
+      "abstainedBenign": 0,
+      "precision": 0.5,
+      "recallAmongEvaluable": 1,
+      "falsePositiveRateAmongEvaluable": 0.5,
+      "endToEndRecall": 0.5,
+      "decisionCoverage": 0.75
+    },
+    "modelResponses": {
+      "complete": 8,
+      "unknown": 2,
+      "unavailableOrInvalid": 0
+    },
+    "unionDefinition": "Positive if either available decision is positive; negative only if both are available negatives; otherwise abstain. This does not remove false positives.",
+    "interpretation": "Counts describe these labeled attempts only. Confidence is not a probability; valid evidence references do not establish correct reasoning or complete source coverage."
+  },
+  "cohorts": {
+    "fresh": {
+      "total": 8,
+      "rule": {
+        "tp": 1,
+        "fp": 2,
+        "tn": 2,
+        "fn": 3,
+        "abstainedMalicious": 0,
+        "abstainedBenign": 0,
+        "precision": 0.3333333333333333,
+        "recallAmongEvaluable": 0.25,
+        "falsePositiveRateAmongEvaluable": 0.5,
+        "endToEndRecall": 0.25,
+        "decisionCoverage": 1
+      },
+      "model": {
+        "tp": 2,
+        "fp": 0,
+        "tn": 4,
+        "fn": 0,
+        "abstainedMalicious": 2,
+        "abstainedBenign": 0,
+        "precision": 1,
+        "recallAmongEvaluable": 1,
+        "falsePositiveRateAmongEvaluable": 0,
+        "endToEndRecall": 0.5,
+        "decisionCoverage": 0.75
+      },
+      "union": {
+        "tp": 2,
+        "fp": 2,
+        "tn": 2,
+        "fn": 0,
+        "abstainedMalicious": 2,
+        "abstainedBenign": 0,
+        "precision": 0.5,
+        "recallAmongEvaluable": 1,
+        "falsePositiveRateAmongEvaluable": 0.5,
+        "endToEndRecall": 0.5,
+        "decisionCoverage": 0.75
+      },
+      "modelResponses": {
+        "complete": 8,
+        "unknown": 2,
+        "unavailableOrInvalid": 0
+      },
+      "unionDefinition": "Positive if either available decision is positive; negative only if both are available negatives; otherwise abstain. This does not remove false positives.",
+      "interpretation": "Counts describe these labeled attempts only. Confidence is not a probability; valid evidence references do not establish correct reasoning or complete source coverage."
+    }
+  },
+  "failures": 0
+}

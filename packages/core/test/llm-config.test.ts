@@ -47,6 +47,8 @@ describe('LlmConfigManager', () => {
     const manager = new LlmConfigManager(path.join(tmpDir, 'llm.json'));
     const config = manager.getConfig();
     assert.strictEqual(config.enabled, false);
+    assert.strictEqual(config.sourceReview, false);
+    assert.strictEqual(manager.getStatus().sourceReview, false);
     assert.strictEqual(config.provider, LlmProviderType.OpenAi);
     assert.strictEqual(config.apiKey, undefined);
     assert.strictEqual(config.maxTokens, 4096);
@@ -110,11 +112,12 @@ describe('LlmConfigManager', () => {
   it('persists and reloads configuration', () => {
     const file = path.join(tmpDir, 'llm.json');
     const first = new LlmConfigManager(file);
-    first.setConfig({ enabled: true, provider: LlmProviderType.Gemini, apiKey: 'gemini-key' });
+    first.setConfig({ enabled: true, sourceReview: true, provider: LlmProviderType.Gemini, apiKey: 'gemini-key' });
 
     const second = new LlmConfigManager(file);
     const config = second.getConfig();
     assert.strictEqual(config.enabled, true);
+    assert.strictEqual(config.sourceReview, true);
     assert.strictEqual(config.provider, LlmProviderType.Gemini);
     assert.strictEqual(config.apiKey, 'gemini-key');
   });

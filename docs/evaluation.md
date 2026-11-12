@@ -195,3 +195,29 @@ both mode matrices and coverage, and explain each FP/FN with the triggered or
 missing behavior. Record which malicious behaviors metadata cannot see, what
 deep scanning adds, and why each failure/partial scan occurred. Compare rules,
 AST or LLM approaches only after fixing this protocol and labeling process.
+
+## Independent source-LLM experiment
+
+The [source-review prototype](../scripts/llm-source/README.md) prepares bounded,
+position-preserving source packets for independent model judgments without
+changing production decisions. Its [first fresh-cohort report](evaluation/source-llm-2026-11-12.md)
+compares the frozen rule baseline, fresh-session model reviews and their
+union, retaining preparation failures and unknown responses. This session-model
+experiment has no built-in API client and is not a trained classifier or a
+registry-wide accuracy benchmark.
+
+The [v2 report](evaluation/source-llm-v2-2026-11-12.md) evaluates improved source
+selection, budget refill, and one bounded reviewer-requested supplement.
+Previously observed development regressions and a new cohort are reported
+separately. Original v1 results and a source snapshot are retained; optional
+additional evidence changes the model's budget and is accounted for explicitly.
+
+## Optional production source review
+
+The [source-review integration report](evaluation/source-integration-2026-11-12.md)
+separates 28 frozen-response product replays from eight new isolated-session
+judgments on previously observed packages. It checks the default-off behavior,
+shared archive, exact source evidence, bounded supplement, preserved static
+alerts and unknown outcomes. Requests are validated through the real engine
+and provider using an offline transport; no paid model API was called. These
+regression results are not an unseen-package accuracy benchmark.

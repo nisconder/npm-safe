@@ -3,7 +3,16 @@
 All notable user-facing changes are documented here. The project follows
 semantic versioning for `@npm-safe/core`.
 
-## Unreleased
+## 2.0.0 - 2026-11-12
+
+### Added
+
+- Default-off LLM source review for deep checks, enabled separately with
+  `llm enable-source`. OpenAI-compatible, Gemini and Anthropic providers can
+  inspect bounded source excerpts and request one supplement. Reports preserve
+  exact evidence, coverage and uncertainty without clearing static findings or
+  changing static scores. Source reviews are not cached; failures cannot count
+  as a completed clean result. Selected source is sent to the configured model.
 
 ### Fixed
 
@@ -21,6 +30,28 @@ semantic versioning for `@npm-safe/core`.
   nested serialized payloads and accessor/method overrides.
 - Inspect text files up to 4 MiB with a 1,600,000-token lexical budget. Retain
   the 8 MiB aggregate text limit and visible partial results on exhaustion.
+
+### Upgrade notes
+
+- Review consumers of the security level: a complete scan with a High finding
+  is now at least `suspicious`, even when its numeric score is 80 or above.
+  Severity weights are unchanged. CI still defaults to failing on `dangerous`;
+  use `--fail-level suspicious` when High findings should fail the gate.
+- Upgrading does not enable LLM source review. New and existing configurations
+  default to `sourceReview: false`; an enabled metadata LLM does not opt in to
+  source transmission. Enable/configure the provider, then use
+  `llm enable-source` and an explicit deep check to opt in.
+- Deep checks with source review enabled return an independent
+  `security.sourceReview` report. A missing provider, failed request, invalid
+  response or unknown model verdict makes an otherwise safe result `unknown`.
+  Model findings can raise the combined level but cannot clear static alerts
+  or change the static score. Clients should inspect the level and evidence,
+  not infer the combined decision from the numeric score alone.
+- Source review sends bounded excerpts to the configured model service and
+  may make two API calls. Reviews are not cached. See
+  [source review](docs/source-review.md) for data transmission, limits and
+  [the integration evaluation](docs/evaluation/source-integration-2026-11-12.md)
+  for observed results and remaining misses/false positives.
 
 ## 1.1.3 - 2026-11-10
 

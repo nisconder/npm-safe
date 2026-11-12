@@ -10,7 +10,8 @@
  */
 
 import type { LlmScanReport } from "../scanner/types.js";
-import type { LlmScanInput, LlmScanProvider, LlmProviderOptions } from "./provider.js";
+import type { LlmScanInput, LlmScanProvider, LlmProviderOptions, LlmSourceReviewInput } from "./provider.js";
+import { readSourceResponse, assertSourcePrompt, assertSourceResponse } from "./source-transport.js";
 import {
   LlmProviderError,
   SYSTEM_PROMPT,
@@ -95,6 +96,17 @@ export class AnthropicLlmProvider implements LlmScanProvider {
     return true;
   }
 
+  async reviewSource(input: LlmSourceReviewInput): Promise<string> {
+    assertSourcePrompt(input);
+    return this.request({
+      model: this.model,
+      max_tokens: this.maxTokens,
+      temperature: 0,
+      system: input.systemPrompt,
+      messages: [{ role: "user", content: input.prompt }],
+    }, input.signal, true);
+  }
+
   /**
    * Issue a POST to `/v1/messages` with timeout and error normalization.
    *
@@ -109,6 +121,7 @@ export class AnthropicLlmProvider implements LlmScanProvider {
   private async request(
     body: Record<string, unknown>,
     signal?: AbortSignal,
+    sourceReview = false,
   ): Promise<string> {
     if (signal?.aborted) {
       throw new DOMException("The operation was aborted.", "AbortError");
@@ -141,9 +154,10 @@ export class AnthropicLlmProvider implements LlmScanProvider {
           response.status,
         );
       }
-      const json = (await response.json()) as unknown;
+      const json = sourceReview ? await readSourceResponse(response) : await response.json() as unknown;
       const content = readResponseContent(json);
       if (!content) throw new LlmProviderError("LLM response contained no content.");
+      if (sourceReview) assertSourceResponse(content);
       return content;
     } catch (error) {
       if (signal?.aborted) {
