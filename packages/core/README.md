@@ -10,13 +10,19 @@ database, requests are rate-limited, and no external service is required.
 Deep scanning is bounded, runs in memory, and never extracts or executes the
 package; see the [threat model](https://github.com/nisconder/npm-safe/blob/main/docs/THREAT_MODEL.md).
 
+Complete scans with HIGH findings are at least `suspicious`; CRITICAL findings
+are `dangerous`. `safe` means no configured high-risk signal was detected.
+Review each finding: scores are not safety probabilities, and both false
+positives and missed detections are possible. Passing tests verifies tested
+behavior, not real-world detection accuracy.
+
 ## Features
 
 - **Static analysis engine** — 10 built-in rules (install scripts, eval
   obfuscation, base64 shells, binary links, typosquatting, secret exposure,
   child_process in browser targets, suspicious build metadata, homograph
   attacks, registry mismatch) with severity-weighted scoring (0–100).
-- **Deep package-content scan** — 14 configurable rules, npm integrity
+- **Deep package-content scan** — 17 configurable rules, npm integrity
   verification, safe in-memory TAR parsing, and strict resource/origin limits.
 - **Visual DSH installation preflight** — resolve an npm package or public
   GitHub repository to an immutable source, check lifecycle scripts, DSH core

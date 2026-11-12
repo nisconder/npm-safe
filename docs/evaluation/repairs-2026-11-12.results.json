@@ -1,0 +1,2481 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-12T09:11:06.617Z",
+  "interpretation": "Observed development regression data; not an independent accuracy or zero-false-positive claim. No sample code executed.",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "beforeSource": {
+    "entrypoint": "TypeScript source via existing core-local tsx; default built-in rules; no LLM/config/cache",
+    "sourceFiles": {
+      "packages/core/src/scanner/browser-signals.ts": "e77c9b0e53ebcfa7f38d8f952e874615aa07129edfcef28dcb71dae6ee6bafdf",
+      "packages/core/src/scanner/content-dynamic-signals.ts": "3d78b1fd461e1a26af1403e7446d8ba03304d3701a2c58395d862598cf3f084e",
+      "packages/core/src/scanner/content-network-signals.ts": "da3039019bdff517863678fc684074e034f87820eff88637cda54e440614e169",
+      "packages/core/src/scanner/content-process-signals.ts": "eb6cde99996fb3ba3e8a435e3687bd1297b948b18582b65faf7bd421205ab1f8",
+      "packages/core/src/scanner/network-flow-expression.ts": "dc5f08cd9c5e3de54770f847301a0554a657ffcc7169f7d8c23fa5f131646029",
+      "packages/core/src/scanner/package-content.ts": "c4aba6d167aa38391b6ef5ed1c7dbec8b75e37908ead0c2af2771742c51d2653",
+      "packages/core/src/scanner/readme-shell-signals.ts": "3e7079e9f4d4422298dbf839a72a93cb68d057edc402cbfb3f72db898abae039",
+      "packages/core/src/scanner/readme-url-signals.ts": "0e0271bbd73aa50163a888ad07178d6f4eb38b17b9dc15c7212b66b9d1dbbd4c",
+      "packages/core/src/scanner/rule-config.ts": "bf4e5da7cef1539dddd1a0955406363cb6047cc0c822cf5c5314701ba65c0b5c",
+      "packages/core/src/scanner/rule-loader.ts": "b34e1ed46dbeb9ed79a9d0b59e91be718efe23ee59a885923b46317894331d4c",
+      "packages/core/src/scanner/security-policy.ts": "08b6c1000088a98c1332dfc0d9bb098e0071b288250469ea92f3b1f16a240a6b",
+      "packages/core/src/scanner/source-binding-patterns.ts": "9b6abfe5b835ea5076a249e78e371c9b20bbee56b4999914f8fdac1ce02063b9",
+      "packages/core/src/scanner/source-bindings.ts": "8bce6d41845fe25a3785d0b00286848e3d3522fc052639bd404c96005b907d45",
+      "packages/core/src/scanner/source-tokens.ts": "f398398311b06d8e6344c480cb0404bb07d7c3c4072c61e31ba25fc9038ea2ef",
+      "packages/core/src/scanner/static-rules.ts": "8af4104c2ccd4652d3cee7162ad26a370830a5be11d0bf99770f806d5ab43fe8",
+      "packages/core/src/scanner/types.ts": "41b1daeaff7b9f76dcdf90c021b772fded81aa4e1b326e524708836a87672f3c"
+    },
+    "sourceFingerprint": "a12ab8a1dcfe4d483413a25e2269b5cd4bbf8a69e569884cd92b7e9c73ab49d9",
+    "coreVersion": "1.1.3",
+    "tsxVersion": "4.23.13"
+  },
+  "afterSource": {
+    "entrypoint": "TypeScript source via existing core-local tsx; default built-in rules; no LLM/config/cache",
+    "sourceFiles": {
+      "packages/core/src/scanner/browser-signals.ts": "e77c9b0e53ebcfa7f38d8f952e874615aa07129edfcef28dcb71dae6ee6bafdf",
+      "packages/core/src/scanner/concealed-expression.ts": "749a1d0f4f5f88e18e53903a3c262091d73a4ed9f7af9f89dd8eb2c178e20f69",
+      "packages/core/src/scanner/concealed-string-table.ts": "563281c20f95203a5115cdcd42dd1e5569df3a2e296aa30299dc6c5e8de6f75a",
+      "packages/core/src/scanner/content-concealed-code.ts": "8e45a96a9c6e3ede37b010d85f880a28affe4346a71ee4f3c1848a46fcda6a77",
+      "packages/core/src/scanner/content-download-exec.ts": "b3963df268921c8520db768e69b007b8eaeb45205a0b2942728db1f33a50e9e1",
+      "packages/core/src/scanner/content-dynamic-signals.ts": "ee32eb6c96d967b7551e638da10234a1d4b3852a9c020d675c97fc92c1d2c7d9",
+      "packages/core/src/scanner/content-network-signals.ts": "da3039019bdff517863678fc684074e034f87820eff88637cda54e440614e169",
+      "packages/core/src/scanner/content-process-signals.ts": "eb6cde99996fb3ba3e8a435e3687bd1297b948b18582b65faf7bd421205ab1f8",
+      "packages/core/src/scanner/content-secret-flow.ts": "9283f2fd96d4ee1ee6f74cb624c4ba8f2f532504d26d5c679e3cee52b2a49870",
+      "packages/core/src/scanner/download-summaries.ts": "d1c5aa497fe4a2b9e2550fc38580814dfdcb9a26e78d8f14fee28d1f405b3e9d",
+      "packages/core/src/scanner/download-syntax.ts": "6f52bb59574a18c1b8cf0426e649b8b8e15b132f59ee9a77f79d0ad3b97977a8",
+      "packages/core/src/scanner/network-flow-expression.ts": "dc5f08cd9c5e3de54770f847301a0554a657ffcc7169f7d8c23fa5f131646029",
+      "packages/core/src/scanner/package-content.ts": "e40f7af6932424b30eb2f6eeeb86a3d9c3e8ec84bf8c83e57606e5828e0d8ee9",
+      "packages/core/src/scanner/readme-shell-signals.ts": "3e7079e9f4d4422298dbf839a72a93cb68d057edc402cbfb3f72db898abae039",
+      "packages/core/src/scanner/readme-url-signals.ts": "0e0271bbd73aa50163a888ad07178d6f4eb38b17b9dc15c7212b66b9d1dbbd4c",
+      "packages/core/src/scanner/rule-config.ts": "bf4e5da7cef1539dddd1a0955406363cb6047cc0c822cf5c5314701ba65c0b5c",
+      "packages/core/src/scanner/rule-loader.ts": "b34e1ed46dbeb9ed79a9d0b59e91be718efe23ee59a885923b46317894331d4c",
+      "packages/core/src/scanner/secret-flow-syntax.ts": "c88f34bd22fad369a6fe717b8cdf8380af8d8425ab92c8e3ad2a74e78743b1d9",
+      "packages/core/src/scanner/secret-flow-value.ts": "45c783c51d32998280369f478972f9ffce4989b9ea48305a6a744f8568f74d3a",
+      "packages/core/src/scanner/secret-flow-writes.ts": "89c9cc66e93711efd2eb3e1080af334f2b52fafe0a4e0829e4406f7fab26546a",
+      "packages/core/src/scanner/security-policy.ts": "e27174efdebda160b0b53d300af6ce2d08a31105097394e2839f6777d199e596",
+      "packages/core/src/scanner/source-binding-patterns.ts": "9b6abfe5b835ea5076a249e78e371c9b20bbee56b4999914f8fdac1ce02063b9",
+      "packages/core/src/scanner/source-bindings.ts": "8bce6d41845fe25a3785d0b00286848e3d3522fc052639bd404c96005b907d45",
+      "packages/core/src/scanner/source-tokens.ts": "51d29ffa1c4b7b12a37ecd04077714d97e24fa1526d3e15ea2b0c27a3e985c4a",
+      "packages/core/src/scanner/static-rules.ts": "f1f609ec576142bca3f4b20fcf7b3e651129afd9daf2960f252f3d142e79a961",
+      "packages/core/src/scanner/types.ts": "41b1daeaff7b9f76dcdf90c021b772fded81aa4e1b326e524708836a87672f3c"
+    },
+    "sourceFingerprint": "0e0d3b94b25cb9478af18c9524928dc2ed631d7e336f62ca5c1a8ecbe06f067f",
+    "coreVersion": "1.1.3",
+    "tsxVersion": "4.23.13"
+  },
+  "datasets": [
+    {
+      "name": "new-malicious",
+      "sha256": "5dab576da25ecbade3b4631fc448e33e47061b55293c0bc21c38f179ca6522a3"
+    },
+    {
+      "name": "regression",
+      "sha256": "232e8bf5ba1e61425366331c164535840d3a1e3ab37e41f2ebe355dae1bf2122"
+    },
+    {
+      "name": "controls",
+      "sha256": "96c9453c38682b29c81306ccd3baa82c8559b68465316307a47a48c2616c6e5d"
+    },
+    {
+      "name": "matched-controls",
+      "sha256": "43d146928751401f34f6fe8c79a6e00320d7b9c974b12fc6bbbc03100b340cd0"
+    }
+  ],
+  "samples": [
+    {
+      "id": "xrpl-4.2.1",
+      "name": "xrpl",
+      "version": "4.2.1",
+      "label": "malicious",
+      "family": "xrpl-private-key-theft-2025",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/xrpl/4.2.1/2025-04-21-xrpl-v4.2.1.zip",
+        "labelEvidence": "https://github.com/XRPLF/xrpl.js/security/advisories/GHSA-33qr-m49q-rxfx — Compromised release exfiltrates wallet private keys.",
+        "capturedAt": "2026-11-12T08:36:59.417Z",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "42770982668a889f95b51cbafc8f3034147008f98fd1231f35874e9d171c2650",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "00a0457f3169089fff59abeb933e950cba378c39",
+        "selectionSha256": "c701c3dd71eb1147c97ac5a947ef0243bfadcce158d9a905e34d897f345a3ea8",
+        "fileHashesSha256": "f4967147f0c2748972fb8686f9404e6a7b5a51d00dc0b2550dd13a0960d77410",
+        "derivation": "Encrypted ZIP read in memory with documented password. Only package/ source files retained byte-for-byte, path prefix normalized; deterministic USTAR plus gzip. Registry capture outside package/ excluded. No original npm integrity claimed, no package code extracted/imported/executed."
+      },
+      "artifactSha256": {
+        "manifest": "ac1ba631c9a1458b21eb6937c32002ad044fcef36b17f440c6524bbffb8c7a3f",
+        "readme": "c6a5d663d0e2514fa229bfae2bfd600c1bfcab2aca6a2c5d15b746635391b7b3",
+        "tarball": "589228b776690f5477032817667dee665d7b6632d52ebe28ae9b7e595b258955"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 4.765800000000013,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.7604000000000042,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 276.76950000000005,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 2199120,
+            "unpackedBytes": 9604991,
+            "filesScanned": 942,
+            "filesSkipped": 758,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 75,
+          "level": "dangerous",
+          "highCriticalAlert": true,
+          "scanDurationMs": 531.8105,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 2199120,
+            "unpackedBytes": 9604991,
+            "filesScanned": 942,
+            "filesSkipped": 758,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "content-secret-exfiltration",
+              "severity": "critical",
+              "filePath": "package/build/xrpl-latest-min.js",
+              "lineNumber": 17953,
+              "message": "A bounded local flow connects private-key material to fetch headers or body at a literal HTTP(S) endpoint in package/build/xrpl-latest-min.js."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "solana-web3-1.95.7",
+      "name": "@solana/web3.js",
+      "version": "1.95.7",
+      "label": "malicious",
+      "family": "solana-private-key-theft-2024",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/@solana@web3.js/1.95.7/2024-12-03-@solana_web3.js-v1.95.7.zip",
+        "labelEvidence": "https://github.com/solana-foundation/solana-web3.js/security/advisories/GHSA-jcxm-7wvp-g6p5 — Compromised release exfiltrates wallet private key material.",
+        "capturedAt": "2026-11-12T08:37:01.865Z",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "9059d6e4265a83aa89f47b6254947ae147889c2bada930f67c9cc7c0521a46bb",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "fee554638593fdc881c446d34afae9fffb9a109a",
+        "selectionSha256": "c701c3dd71eb1147c97ac5a947ef0243bfadcce158d9a905e34d897f345a3ea8",
+        "fileHashesSha256": "0233969ce808cb09cf0a13905aebc28fee877dcae9a83d353d48c3baefc9e696",
+        "derivation": "Encrypted ZIP read in memory with documented password. Only package/ source files retained byte-for-byte, path prefix normalized; deterministic USTAR plus gzip. Registry capture outside package/ excluded. No original npm integrity claimed, no package code extracted/imported/executed."
+      },
+      "artifactSha256": {
+        "manifest": "a55a8190a524416dfb1846d115fa4f064bff59ff236ae5be1f854b794c17543c",
+        "readme": "1fd85a328cfaddf93c6de28224a66fad7c4f1f8ec31ed5889532be643470dcac",
+        "tarball": "020fd2af9d1f2cd222b869ccb5c743c6028af26cd0298ea2cc442eebd0b742db"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.7856000000000449,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.0077999999999747,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 264.4288,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 2142852,
+            "unpackedBytes": 10881310,
+            "filesScanned": 69,
+            "filesSkipped": 9,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 75,
+          "level": "dangerous",
+          "highCriticalAlert": true,
+          "scanDurationMs": 583.6631000000001,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 2142852,
+            "unpackedBytes": 10881310,
+            "filesScanned": 69,
+            "filesSkipped": 9,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "content-secret-exfiltration",
+              "severity": "critical",
+              "filePath": "package/lib/index.browser.cjs.js",
+              "lineNumber": 3353,
+              "message": "A bounded local flow connects private-key material to fetch headers or body at a literal HTTP(S) endpoint in package/lib/index.browser.cjs.js."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ctrl-tinycolor-4.1.1",
+      "name": "@ctrl/tinycolor",
+      "version": "4.1.1",
+      "label": "malicious",
+      "family": "shai-hulud-september-2025",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/compromised_lib/@ctrl@tinycolor/4.1.1/2025-09-15-@ctrl_tinycolor-v4.1.1.zip",
+        "labelEvidence": "https://github.com/scttcper/tinycolor/issues/257 — Compromised release associated with the Shai-Hulud credential-stealing npm worm.",
+        "capturedAt": "2026-11-12T08:37:02.350Z",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "71a3fd4f9a5f3269652757ae20530ca34fd1ca75a97c2f8d1c0374bfe57a1144",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "880551a6fe3b44d92422d87a5f84c0be2346a184",
+        "selectionSha256": "c701c3dd71eb1147c97ac5a947ef0243bfadcce158d9a905e34d897f345a3ea8",
+        "fileHashesSha256": "f5049eee6a4aca1b6667301ec7406cc87240690b558e0b2d5fab76c9edfe6b00",
+        "derivation": "Encrypted ZIP read in memory with documented password. Only package/ source files retained byte-for-byte, path prefix normalized; deterministic USTAR plus gzip. Registry capture outside package/ excluded. No original npm integrity claimed, no package code extracted/imported/executed."
+      },
+      "artifactSha256": {
+        "manifest": "4fa533ceab3a2a192500a6b1f275184d4a91490afb0aff3f7327e909786b0e81",
+        "readme": "e5e85089fe738e78cbeac6a12907ddb4c414166f04009f03f6bc0f585b1c3189",
+        "tarball": "e85c4404468e37a352e8102fe05742f4ae529bf2334f5ac59eb9292d138045aa"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.9810999999999694,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.6005999999999858,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "partial",
+          "score": 84,
+          "level": "unknown",
+          "highCriticalAlert": false,
+          "scanDurationMs": 15.006799999999998,
+          "contentScan": {
+            "status": "partial",
+            "archiveBytes": 873295,
+            "unpackedBytes": 3978776,
+            "filesScanned": 38,
+            "filesSkipped": 4,
+            "integrityVerified": false,
+            "truncated": true,
+            "reason": "Text scanning stopped at the configured byte limit."
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            },
+            {
+              "ruleId": "content-scan-incomplete",
+              "severity": "medium",
+              "message": "Text scanning stopped at the configured byte limit."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 77,
+          "level": "suspicious",
+          "highCriticalAlert": true,
+          "scanDurationMs": 3562.8251999999998,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 873295,
+            "unpackedBytes": 3978776,
+            "filesScanned": 39,
+            "filesSkipped": 3,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            },
+            {
+              "ruleId": "content-sensitive-network",
+              "severity": "high",
+              "filePath": "package/bundle.js",
+              "lineNumber": 2,
+              "message": "Published source reads sensitive environment data and performs network access in package/bundle.js."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "custom-tg-bot-plan-1.0.1",
+      "name": "custom-tg-bot-plan",
+      "version": "1.0.1",
+      "label": "malicious",
+      "family": "mut-4831-vidar-2025",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/custom-tg-bot-plan/1.0.1/2025-10-20-custom-tg-bot-plan-v1.0.1.zip",
+        "labelEvidence": "https://securitylabs.datadoghq.com/articles/mut-4831-trojanized-npm-packages-vidar/ — Postinstall downloader fetches an encrypted archive and executes a Windows Vidar infostealer.",
+        "capturedAt": "2026-11-12T08:37:02.711Z",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "9b857e817b13ee676e67d4672a99b192d0b699f116e06d44f04942141a2142d6",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "ae2ab416761add76b36955ee92264e869aefca38",
+        "selectionSha256": "c701c3dd71eb1147c97ac5a947ef0243bfadcce158d9a905e34d897f345a3ea8",
+        "fileHashesSha256": "5b941174dc0ee2e804fa7072e1c46bc6ad3357ad99d588c2c3a6617f632f6352",
+        "derivation": "Encrypted ZIP read in memory with documented password. Only package/ source files retained byte-for-byte, path prefix normalized; deterministic USTAR plus gzip. Registry capture outside package/ excluded. No original npm integrity claimed, no package code extracted/imported/executed."
+      },
+      "artifactSha256": {
+        "manifest": "5de091d1d1505775f6962e8020ce7782558b880456d5d2963330d3e5f1836ec5",
+        "readme": "7c2552f445e197d5b52ae00643c0f524c42967cd1a34a2fa07cd3f2352957be5",
+        "tarball": "d9270785546042acbeac7d3b68742184bc30b66b8d01ea5323f1ae66fd6b285f"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.7122000000000526,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.9215000000003783,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 84,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 19.838199999999915,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 114502,
+            "unpackedBytes": 674226,
+            "filesScanned": 17,
+            "filesSkipped": 19,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            },
+            {
+              "ruleId": "content-process-exec",
+              "severity": "medium",
+              "filePath": "package/lib/dependencies.js",
+              "lineNumber": 7,
+              "message": "Published runtime source can execute child processes: package/lib/dependencies.js."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 69,
+          "level": "suspicious",
+          "highCriticalAlert": true,
+          "scanDurationMs": 72.3783999999996,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 114502,
+            "unpackedBytes": 674226,
+            "filesScanned": 17,
+            "filesSkipped": 19,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            },
+            {
+              "ruleId": "content-process-exec",
+              "severity": "medium",
+              "filePath": "package/lib/dependencies.js",
+              "lineNumber": 7,
+              "message": "Published runtime source can execute child processes: package/lib/dependencies.js."
+            },
+            {
+              "ruleId": "content-download-exec",
+              "severity": "high",
+              "filePath": "package/src/dependencies.js",
+              "lineNumber": 188,
+              "message": "A local HTTP download is connected to a detached process with ignored stdio after archive extraction in package/src/dependencies.js."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "passports-js-0.7.0",
+      "name": "passports-js",
+      "version": "0.7.0",
+      "label": "malicious",
+      "family": "tenacious-pungsan-beavertail-2024",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/72c723be547033c558244520524b117c8d71663b/samples/npm/malicious_intent/passports-js/0.7.0/2024-09-09-passports-js-v0.7.0.zip",
+        "labelEvidence": "https://securitylabs.datadoghq.com/articles/tenacious-pungsan-dprk-threat-actor-contagious-interview/ — Typosquatted passport clone containing obfuscated BeaverTail infostealer/downloader.",
+        "capturedAt": "2026-11-12T08:37:03.098Z",
+        "archiveKind": "repacked-source",
+        "originalArtifactSha256": "f3796ef3ff376bf7ecaccdbe723a4841c9e372c17b955f6c9bc4a493e1185743",
+        "sourceRepositoryCommit": "72c723be547033c558244520524b117c8d71663b",
+        "sourceGitBlob": "db5fee00dba8ede19596797de278613212041734",
+        "selectionSha256": "c701c3dd71eb1147c97ac5a947ef0243bfadcce158d9a905e34d897f345a3ea8",
+        "fileHashesSha256": "afbcd2b69686bdaa808a99baf868b486a5635413fb00583d8fd2c95fb515368f",
+        "derivation": "Encrypted ZIP read in memory with documented password. Only package/ source files retained byte-for-byte, path prefix normalized; deterministic USTAR plus gzip. Registry capture outside package/ excluded. No original npm integrity claimed, no package code extracted/imported/executed."
+      },
+      "artifactSha256": {
+        "manifest": "4e51c56fcc211f4f0104ee51632eb087afcba7c5968d42d8a7d7295a6d0b655c",
+        "readme": "208825a5981bca896e706f881b26c2cb2c7d16ff7cabb94ec0d8aa7998e5977a",
+        "tarball": "85cdc4040c06be5ab999c53350099606b0069707f9900b94f35de1bff7d837a2"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.5393000000000256,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.1765000000004875,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 20.64140000000009,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 376678,
+            "unpackedBytes": 589073,
+            "filesScanned": 11,
+            "filesSkipped": 14,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 85,
+          "level": "suspicious",
+          "highCriticalAlert": true,
+          "scanDurationMs": 129.85769999999957,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 376678,
+            "unpackedBytes": 589073,
+            "filesScanned": 11,
+            "filesSkipped": 14,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "content-concealed-capabilities",
+              "severity": "high",
+              "filePath": "package/lib/authenticator.js",
+              "lineNumber": 482,
+              "message": "A statically resolved string table conceals child_process.exec alongside fs.createReadStream and request.post calls in package/lib/authenticator.js."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "debug-4.4.2",
+      "name": "debug",
+      "version": "4.4.2",
+      "label": "malicious",
+      "family": "september-2025-qix-phishing",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/3fc8a1ff23fadb612234526e31a60e24bbc0bb3e/samples/npm/compromised_lib/debug/4.4.2/2025-09-08-debug-v4.4.2.zip",
+        "labelEvidence": "https://github.com/debug-js/debug/security/advisories/GHSA-4x49-vf9v-38px; exact published version named malicious; original archived source retained by Datadog and manually triaged by its maintainers.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "repacked-source",
+        "originalArtifact": "debug-4.4.2.zip",
+        "originalArtifactSha256": "33d397a255c25dc8df1233ddc2531889c203835c35a287deed4511404b79a768",
+        "sourceRepositoryCommit": "3fc8a1ff23fadb612234526e31a60e24bbc0bb3e",
+        "archivedPackumentSha256": "c50745b44b5695eb74585c0e4893640f255a59049faa0abba86874f9c53ce09d",
+        "derivation": "Python 3.13.13 standard zipfile reads password-protected ZIP entirely in memory; strip temporary prefixes up to /package/; retain every non-directory package file byte-for-byte; separately preserve package_info metadata as archived-packument.json (not an npm package file); sort package names; deterministic USTAR entries (0644, uid/gid/mtime=0) plus gzip mtime=0. No source extraction or execution. Original npm tarball not available; no published SRI claimed.",
+        "fileHashesSha256": "7d277c006cb118402b37b74b7f598862c3af1106004ecd12f1c975e620d63599"
+      },
+      "artifactSha256": {
+        "manifest": "a8cd57f0087cb0dbffc71ab2b50e527037f2b86a43b263d43578e0a3f4b3e379",
+        "readme": "486cb669048bd5014adf9ea117e27a45c4e61b0e668f464c724273beb8170797",
+        "tarball": "f6117611b1567b19d0e93dc8124e25ec957097bd37a84f1e08876e7cdc1dbfc3"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 3.1902000000000044,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.1368000000002212,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 75,
+          "level": "dangerous",
+          "highCriticalAlert": true,
+          "scanDurationMs": 17.912599999999998,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 40597,
+            "unpackedBytes": 119362,
+            "filesScanned": 5,
+            "filesSkipped": 2,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "content-browser-interception",
+              "severity": "critical",
+              "filePath": "package/src/index.js",
+              "lineNumber": 7,
+              "message": "Source replaces fetch with a response-reconstructing function, replaces XMLHttpRequest methods, and matches multiple cryptocurrency address formats in package/src/index.js."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 75,
+          "level": "dangerous",
+          "highCriticalAlert": true,
+          "scanDurationMs": 42.30079999999998,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 40597,
+            "unpackedBytes": 119362,
+            "filesScanned": 5,
+            "filesSkipped": 2,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "content-browser-interception",
+              "severity": "critical",
+              "filePath": "package/src/index.js",
+              "lineNumber": 7,
+              "message": "Source replaces fetch with a response-reconstructing function, replaces XMLHttpRequest methods, and matches multiple cryptocurrency address formats in package/src/index.js."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "debug-4.4.1",
+      "name": "debug",
+      "version": "4.4.1",
+      "label": "benign",
+      "family": "september-2025-qix-phishing",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/debug/-/debug-4.4.1.tgz",
+        "labelEvidence": "https://github.com/debug-js/debug/security/advisories/GHSA-4x49-vf9v-38px; this preceding release lies outside the named malicious versions and is used as a provisional benign control. Static byte review of packaged entry points and lifecycle scripts performed; absence from an advisory is not proof of universal safety.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/debug/4.4.1",
+        "registryManifestSha256": "ee8799a4804b63c2e2cfef3693ef118d22727c3084260bcd1f0f691cb3358924",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged. Scanner manifest contains exact archive package.json plus original registry dist object solely to verify tarball SRI. README bytes come from this exact tarball, not mutable package-level registry README.",
+        "fileHashesSha256": "0e787e4861e46a6ee129840c164836275b1fae06760e450bafc2a8f480e6003e"
+      },
+      "artifactSha256": {
+        "manifest": "fe9e78cb5491f9548c29b1d8d31130d41a11ed79f6002569bae80e7c046c3c97",
+        "readme": "486cb669048bd5014adf9ea117e27a45c4e61b0e668f464c724273beb8170797",
+        "tarball": "265ca7c6f05089b9c148f849ca778f4af71ffa11172863644ed1ae6e1ed3dace"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.6260000000000048,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.3627000000005864,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 2.3083000000000027,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 13448,
+            "unpackedBytes": 42793,
+            "filesScanned": 5,
+            "filesSkipped": 2,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 5.790399999999863,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 13448,
+            "unpackedBytes": 42793,
+            "filesScanned": 5,
+            "filesSkipped": 2,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "eslint-config-prettier-10.1.7",
+      "name": "eslint-config-prettier",
+      "version": "10.1.7",
+      "label": "malicious",
+      "family": "july-2025-npm-phishing",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/3fc8a1ff23fadb612234526e31a60e24bbc0bb3e/samples/npm/compromised_lib/eslint-config-prettier/10.1.7/2025-07-18-eslint-config-prettier-v10.1.7.zip",
+        "labelEvidence": "https://github.com/advisories/GHSA-f29h-pxvx-f335; exact published version named malicious; original archived source retained by Datadog and manually triaged by its maintainers.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "repacked-source",
+        "originalArtifact": "eslint-config-prettier-10.1.7.zip",
+        "originalArtifactSha256": "fa03cc25fde1f803352896261dd5aba09ff95882c920e68a40999968a749b096",
+        "sourceRepositoryCommit": "3fc8a1ff23fadb612234526e31a60e24bbc0bb3e",
+        "archivedPackumentSha256": "f3978c5335238c0f027477075617efec0f450106ed9b709b6b6159d1df8fe314",
+        "derivation": "Python 3.13.13 standard zipfile reads password-protected ZIP entirely in memory; strip temporary prefixes up to /package/; retain every non-directory package file byte-for-byte; separately preserve package_info metadata as archived-packument.json (not an npm package file); sort package names; deterministic USTAR entries (0644, uid/gid/mtime=0) plus gzip mtime=0. No source extraction or execution. Original npm tarball not available; no published SRI claimed.",
+        "fileHashesSha256": "38065295449d402b385bc3f6bfff80890d3a74c3d516f0bfec144318c6c23bc2"
+      },
+      "artifactSha256": {
+        "manifest": "ec154b24e2894276780512e2279115f45a41400579066e63ce4178e8640483b7",
+        "readme": "769c4a162f9faf92db08ef114203c154810d95e182bec8e7ee650804c102b403",
+        "tarball": "d89d9bde1367b1eb70a5966f64ec05d2e229c74488051b7604838313660b887a"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.7553000000000054,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"install\" runs automatically during package installation."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.1875,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"install\" runs automatically during package installation."
+            }
+          ]
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 74,
+          "level": "suspicious",
+          "highCriticalAlert": true,
+          "scanDurationMs": 6.319299999999998,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 590535,
+            "unpackedBytes": 1356692,
+            "filesScanned": 10,
+            "filesSkipped": 3,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"install\" runs automatically during package installation."
+            },
+            {
+              "ruleId": "content-concealed-native-exec",
+              "severity": "high",
+              "filePath": "package/install.js",
+              "lineNumber": 156,
+              "message": "Published source conceals a child-process native-loader invocation with a DLL entrypoint in package/install.js."
+            },
+            {
+              "ruleId": "content-native-binary",
+              "severity": "low",
+              "filePath": "package/node-gyp.dll",
+              "message": "Published package contains native or executable content: package/node-gyp.dll"
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 74,
+          "level": "suspicious",
+          "highCriticalAlert": true,
+          "scanDurationMs": 14.657400000000052,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 590535,
+            "unpackedBytes": 1356692,
+            "filesScanned": 10,
+            "filesSkipped": 3,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"install\" runs automatically during package installation."
+            },
+            {
+              "ruleId": "content-concealed-native-exec",
+              "severity": "high",
+              "filePath": "package/install.js",
+              "lineNumber": 156,
+              "message": "Published source conceals a child-process native-loader invocation with a DLL entrypoint in package/install.js."
+            },
+            {
+              "ruleId": "content-native-binary",
+              "severity": "low",
+              "filePath": "package/node-gyp.dll",
+              "message": "Published package contains native or executable content: package/node-gyp.dll"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "eslint-config-prettier-10.1.5",
+      "name": "eslint-config-prettier",
+      "version": "10.1.5",
+      "label": "benign",
+      "family": "july-2025-npm-phishing",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/eslint-config-prettier/-/eslint-config-prettier-10.1.5.tgz",
+        "labelEvidence": "https://github.com/advisories/GHSA-f29h-pxvx-f335; this preceding release lies outside the named malicious versions and is used as a provisional benign control. Static byte review of packaged entry points and lifecycle scripts performed; absence from an advisory is not proof of universal safety.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/eslint-config-prettier/10.1.5",
+        "registryManifestSha256": "108222318d9c3cfa9430db7c4dbbedc1cddf6fb2de7f8751ee78541aee76eb33",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged. Scanner manifest contains exact archive package.json plus original registry dist object solely to verify tarball SRI. README bytes come from this exact tarball, not mutable package-level registry README.",
+        "fileHashesSha256": "15c8daaa8744b35cc803fb5f8262c3241139b17ee926d319542308df1c7ead02"
+      },
+      "artifactSha256": {
+        "manifest": "7fe7713e7012528082b1935c82d6086066053a0ca2911f25379cfaf0e3858f02",
+        "readme": "769c4a162f9faf92db08ef114203c154810d95e182bec8e7ee650804c102b403",
+        "tarball": "2cc93115af4bb62e3c26f55d6cd4c84a8307a908800b4ecfd754c78018dbcfa1"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.4147000000000105,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.2335999999995693,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.9408999999999992,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 15294,
+            "unpackedBytes": 59021,
+            "filesScanned": 9,
+            "filesSkipped": 2,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 2.392800000000534,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 15294,
+            "unpackedBytes": 59021,
+            "filesScanned": 9,
+            "filesSkipped": 2,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "is-3.3.1",
+      "name": "is",
+      "version": "3.3.1",
+      "label": "malicious",
+      "family": "july-2025-npm-phishing",
+      "provenance": {
+        "sourceUrl": "https://raw.githubusercontent.com/DataDog/malicious-software-packages-dataset/3fc8a1ff23fadb612234526e31a60e24bbc0bb3e/samples/npm/compromised_lib/is/3.3.1/2025-07-19-is-v3.3.1.zip",
+        "labelEvidence": "https://socket.dev/blog/npm-is-package-hijacked-in-expanding-supply-chain-attack; exact published version named malicious; original archived source retained by Datadog and manually triaged by its maintainers.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "repacked-source",
+        "originalArtifact": "is-3.3.1.zip",
+        "originalArtifactSha256": "4dbcc0ebb4d404f998745d48dceef81c4d52765f6b0f520c7eb55ba027dee322",
+        "sourceRepositoryCommit": "3fc8a1ff23fadb612234526e31a60e24bbc0bb3e",
+        "archivedPackumentSha256": "d7e65cf3dbb916377577850b22a55fe8c57ad6ec1b622e18f9fed5b5aa3c3a85",
+        "derivation": "Python 3.13.13 standard zipfile reads password-protected ZIP entirely in memory; strip temporary prefixes up to /package/; retain every non-directory package file byte-for-byte; separately preserve package_info metadata as archived-packument.json (not an npm package file); sort package names; deterministic USTAR entries (0644, uid/gid/mtime=0) plus gzip mtime=0. No source extraction or execution. Original npm tarball not available; no published SRI claimed.",
+        "fileHashesSha256": "4a4a1cb4eb4dd57dff350aa082887a1a71e3fbfd7a0b1b6760e7caf924541802"
+      },
+      "artifactSha256": {
+        "manifest": "e98c4aec86cb6c29f4460b99101fc25a1c2df193c9de5131dd81ddce65e04e5d",
+        "readme": "6c70a35d693470511664cbe8d03034b5f3759991d2a90c7c44c2187bd18c7877",
+        "tarball": "971d87944024f27d6db3d8b800977ca17e4bdff41903064c8d65f0d78272e120"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.4177999999999997,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 3.5981000000001586,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 77,
+          "level": "suspicious",
+          "highCriticalAlert": true,
+          "scanDurationMs": 12.245499999999993,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 53807,
+            "unpackedBytes": 881848,
+            "filesScanned": 5,
+            "filesSkipped": 4,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            },
+            {
+              "ruleId": "content-obfuscated-exec",
+              "severity": "high",
+              "filePath": "package/test/check.js",
+              "lineNumber": 1,
+              "message": "Published source contains encoded data or decoding operations in dynamic-execution arguments in package/test/check.js."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 77,
+          "level": "suspicious",
+          "highCriticalAlert": true,
+          "scanDurationMs": 294.22479999999996,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 53807,
+            "unpackedBytes": 881848,
+            "filesScanned": 5,
+            "filesSkipped": 4,
+            "integrityVerified": false,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            },
+            {
+              "ruleId": "content-obfuscated-exec",
+              "severity": "high",
+              "filePath": "package/test/check.js",
+              "lineNumber": 1,
+              "message": "Published source contains encoded data or decoding operations in dynamic-execution arguments in package/test/check.js."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "is-3.3.0",
+      "name": "is",
+      "version": "3.3.0",
+      "label": "benign",
+      "family": "july-2025-npm-phishing",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/is/-/is-3.3.0.tgz",
+        "labelEvidence": "https://socket.dev/blog/npm-is-package-hijacked-in-expanding-supply-chain-attack; this preceding release lies outside the named malicious versions and is used as a provisional benign control. Static byte review of packaged entry points and lifecycle scripts performed; absence from an advisory is not proof of universal safety.",
+        "capturedAt": "2026-10-31T08:30:23.552110+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/is/3.3.0",
+        "registryManifestSha256": "ba4150ab1a8fa8a35e3ec719305d147edf74663ccb8e83e6ea5dca2b63503845",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged. Scanner manifest contains exact archive package.json plus original registry dist object solely to verify tarball SRI. README bytes come from this exact tarball, not mutable package-level registry README.",
+        "fileHashesSha256": "cdc00d208ad0ea2c4d1c7bef1e50c821a823525c7e64b4ed46b665a0d2021b9b"
+      },
+      "artifactSha256": {
+        "manifest": "acbf1e08750bcd75bd367d4a39b11596c98402bc97b483b30c7349bd6ecaf43b",
+        "readme": "6d457dfbd23896a01e3f021a253619500b59f65e3331060af90dbd2a369fed62",
+        "tarball": "153c0e6de38b978a0f94e0adcfd923304501b44bd9600db3f6678c1cd753f50a"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.5630999999999915,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.0137999999997191,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 3.496299999999991,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 11979,
+            "unpackedBytes": 57468,
+            "filesScanned": 4,
+            "filesSkipped": 4,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 93.6239999999998,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 11979,
+            "unpackedBytes": 57468,
+            "filesScanned": 4,
+            "filesSkipped": 4,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "esbuild-0.25.5",
+      "name": "esbuild",
+      "version": "0.25.5",
+      "label": "benign",
+      "family": "challenge-native-installer-downloader",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/esbuild/-/esbuild-0.25.5.tgz",
+        "labelEvidence": "https://esbuild.github.io/getting-started/; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Legitimate postinstall, platform binary selection, download fallback and process invocation; exercises behavior shared with installers. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:46.8856976Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/esbuild/0.25.5",
+        "registryManifestSha256": "77c732c067585e4583fc08f55fc1341cae4d5f9bde7afc8029fc6a14aa3468d8",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://esbuild.github.io/getting-started/",
+        "selectionRationale": "Legitimate postinstall, platform binary selection, download fallback and process invocation; exercises behavior shared with installers.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "e39a6861bf66a39575d5fb6c28dbe7900feae0f31ad0d779c6c08c60b2bb9555",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifactSha256": {
+        "manifest": "4ae4279cd0e269c69d5a054bcd7451b6b524070e470ed562ba183dbc8e9e0996",
+        "readme": "6d481cd60ec3c679e5e395f547ab4221147f35642894f6b95a8df38fd25c87bd",
+        "tarball": "7b72463848bbdb5da3385fb9dfffae3c1f0bbb14141b635294877789d0ec28b1"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 2.341799999999992,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.5363999999999578,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 84,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 13.894300000000001,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 30770,
+            "unpackedBytes": 134494,
+            "filesScanned": 5,
+            "filesSkipped": 2,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            },
+            {
+              "ruleId": "content-process-exec",
+              "severity": "medium",
+              "filePath": "package/bin/esbuild",
+              "lineNumber": 219,
+              "message": "Published runtime source can execute child processes: package/bin/esbuild."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 84,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 34.77130000000034,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 30770,
+            "unpackedBytes": 134494,
+            "filesScanned": 5,
+            "filesSkipped": 2,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            },
+            {
+              "ruleId": "content-process-exec",
+              "severity": "medium",
+              "filePath": "package/bin/esbuild",
+              "lineNumber": 219,
+              "message": "Published runtime source can execute child processes: package/bin/esbuild."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-gyp-11.2.0",
+      "name": "node-gyp",
+      "version": "11.2.0",
+      "label": "benign",
+      "family": "challenge-native-installer-downloader",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/node-gyp/-/node-gyp-11.2.0.tgz",
+        "labelEvidence": "https://github.com/nodejs/node-gyp; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Native addon build tool; legitimate header download, toolchain discovery and child-process use. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:48.8736255Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/node-gyp/11.2.0",
+        "registryManifestSha256": "08e69b3e80a4e6e916002d244f91aeb827516555984b747af0d2cfbf08066d29",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/nodejs/node-gyp",
+        "selectionRationale": "Native addon build tool; legitimate header download, toolchain discovery and child-process use.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "b0fa598b790d19f23136a97c432017f0903cfb55a570389c2461516e74cb7e47",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifactSha256": {
+        "manifest": "202617f0b2daa81ce0faa644415be936159bb9bb1ede52d9c8b91b7476e6429a",
+        "readme": "53b94054cbd2b116c8e86e07b67d30004505a0b3500e0e24a69f7d82519248d5",
+        "tarball": "1d371b0558b1ba877a7ca52a21983d6d4d1051c73489d211d50ad8fc3ff487e2"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.4671999999999912,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.42000000000007276,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 26.75659999999999,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 458082,
+            "unpackedBytes": 1856250,
+            "filesScanned": 84,
+            "filesSkipped": 24,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "content-process-exec",
+              "severity": "medium",
+              "filePath": "package/lib/node-gyp.js",
+              "lineNumber": 6,
+              "message": "Published runtime source can execute child processes: package/lib/node-gyp.js."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 70.14660000000003,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 458082,
+            "unpackedBytes": 1856250,
+            "filesScanned": 84,
+            "filesSkipped": 24,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "content-process-exec",
+              "severity": "medium",
+              "filePath": "package/lib/node-gyp.js",
+              "lineNumber": 6,
+              "message": "Published runtime source can execute child processes: package/lib/node-gyp.js."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cross-spawn-7.0.6",
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "label": "benign",
+      "family": "challenge-process-launcher",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/cross-spawn/-/cross-spawn-7.0.6.tgz",
+        "labelEvidence": "https://github.com/moxystudio/node-cross-spawn; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Cross-platform child_process replacement; legitimate process execution capability. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:51.3590512Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/cross-spawn/7.0.6",
+        "registryManifestSha256": "410b2fff1a9a836d1e1e1c1c4bf2505a389e765400a46d2f13509595fafce78b",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/moxystudio/node-cross-spawn",
+        "selectionRationale": "Cross-platform child_process replacement; legitimate process execution capability.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "d6a08bfa520e2ad3ea1c3152801a564f7a3bc0e81b827976746d4ebcf8bd24d6",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifactSha256": {
+        "manifest": "a3b7d3cbd6f01a90610003cbbbbace828d114a7e653bf67cce3c1194d35cf679",
+        "readme": "022aa5bc5706ce14899569741b420e8cb59108c90871d341f31b684d279bd594",
+        "tarball": "188c320cdc413adfec03098fda72af7a9b02152ba13d3a8f87f172d93ced38ea"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.29239999999998645,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.5158999999994194,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.6144999999999925,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 6255,
+            "unpackedBytes": 16094,
+            "filesScanned": 7,
+            "filesSkipped": 2,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "content-process-exec",
+              "severity": "medium",
+              "filePath": "package/index.js",
+              "lineNumber": 3,
+              "message": "Published runtime source can execute child processes: package/index.js."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.9086999999999534,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 6255,
+            "unpackedBytes": 16094,
+            "filesScanned": 7,
+            "filesSkipped": 2,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "content-process-exec",
+              "severity": "medium",
+              "filePath": "package/index.js",
+              "lineNumber": 3,
+              "message": "Published runtime source can execute child processes: package/index.js."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "metamask--providers-22.1.0",
+      "name": "@metamask/providers",
+      "version": "22.1.0",
+      "label": "benign",
+      "family": "challenge-browser-wallet-provider",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@metamask/providers/-/providers-22.1.0.tgz",
+        "labelEvidence": "https://github.com/MetaMask/providers; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Legitimate injected Ethereum provider and browser request mediation, close to the browser-wallet behavior surface. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:53.1429663Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/%40metamask%2Fproviders/22.1.0",
+        "registryManifestSha256": "b53f4549afc2af6e5e120a02dc28c158ae028ef5399fd8b04a0c614fdef04edd",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/MetaMask/providers",
+        "selectionRationale": "Legitimate injected Ethereum provider and browser request mediation, close to the browser-wallet behavior surface.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "0991d307c49df7e0b5e4f81c6edbc26b384699c40b93fa66f7dbfc1ad8f7da02",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifactSha256": {
+        "manifest": "72a2c34454cb2f8cf9b4067625e003c80f42dc41bfe805e0f094c05b352311b1",
+        "readme": "8561b9d536d09164b0c604d741348ac9c50ba4e06d462a2ebfd0331d917cf2a7",
+        "tarball": "e0ea8436e1b275e9b8155e4a10237c118e421cd57e6618f4b5d15202d89fa4fe"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.21359999999998536,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.5178999999998268,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 2.628600000000006,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 74235,
+            "unpackedBytes": 499460,
+            "filesScanned": 65,
+            "filesSkipped": 63,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 8.956199999999626,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 74235,
+            "unpackedBytes": 499460,
+            "filesScanned": 65,
+            "filesSkipped": 63,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "walletconnect--ethereum-provider-2.21.1",
+      "name": "@walletconnect/ethereum-provider",
+      "version": "2.21.1",
+      "label": "benign",
+      "family": "challenge-browser-wallet-provider",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@walletconnect/ethereum-provider/-/ethereum-provider-2.21.1.tgz",
+        "labelEvidence": "https://github.com/WalletConnect/walletconnect-monorepo/tree/v2.0/providers/ethereum-provider; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Legitimate wallet connector using browser provider APIs and Ethereum RPC. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:55.0697660Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/%40walletconnect%2Fethereum-provider/2.21.1",
+        "registryManifestSha256": "4b6ced1837aef762dc8266bbe8c063d3bc59df6b8da90906b1b439938ee9a81b",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/WalletConnect/walletconnect-monorepo/tree/v2.0/providers/ethereum-provider",
+        "selectionRationale": "Legitimate wallet connector using browser provider APIs and Ethereum RPC.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "d270d2decaca663a1e0f5d4ed5f07f9f4cfa6fb964b445d87eba470445885ce5",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifactSha256": {
+        "manifest": "de440f2b0af091a9b00abd3c4c56532edff63d07494f824c3931b92a406df57f",
+        "readme": "2260256cd006e1eaa7097214434d7507c8eff0c9728b49d4fd37abce56b802b5",
+        "tarball": "790f51756e23260e0c92f9180ae1130162000eaa60bda4322816bdaccea39bb9"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.2371000000000265,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.6381000000001222,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "partial",
+          "score": 92,
+          "level": "unknown",
+          "highCriticalAlert": false,
+          "scanDurationMs": 15.372500000000002,
+          "contentScan": {
+            "status": "partial",
+            "archiveBytes": 1201417,
+            "unpackedBytes": 6085367,
+            "filesScanned": 13,
+            "filesSkipped": 17,
+            "integrityVerified": true,
+            "truncated": true,
+            "reason": "Text scanning stopped at the configured byte limit."
+          },
+          "findings": [
+            {
+              "ruleId": "content-scan-incomplete",
+              "severity": "medium",
+              "message": "Text scanning stopped at the configured byte limit."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 489.64440000000013,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 1201417,
+            "unpackedBytes": 6085367,
+            "filesScanned": 14,
+            "filesSkipped": 16,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "sentry--browser-9.22.0",
+      "name": "@sentry/browser",
+      "version": "9.22.0",
+      "label": "benign",
+      "family": "challenge-browser-telemetry",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@sentry/browser/-/browser-9.22.0.tgz",
+        "labelEvidence": "https://github.com/getsentry/sentry-javascript/tree/develop/packages/browser; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Legitimate browser error and performance telemetry; request instrumentation may resemble interception. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:37:58.1082854Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/%40sentry%2Fbrowser/9.22.0",
+        "registryManifestSha256": "9a03d2d17afd7f29c56085fa1185c1b67810d5e819c69daede1f4745e7d34a4b",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/getsentry/sentry-javascript/tree/develop/packages/browser",
+        "selectionRationale": "Legitimate browser error and performance telemetry; request instrumentation may resemble interception.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "453dbb79f74a0ece533e7ffa38f33dc29b555f47b5ab4b0e3f476dee4c95d77f",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifactSha256": {
+        "manifest": "033149593f91784424cd226e0f46a868cb27efd5f2df68b18267721c46919dbc",
+        "readme": "dfa4a1fde45ce1ad30c300422c7f0a5165d540f0ccead800291ea51e610071f6",
+        "tarball": "ba7139d962df32d8f18289878635e687767b924f1b6aa8f0ce8eb84874801f39"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.29470000000000596,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.6669999999994616,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 13.767799999999994,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 199555,
+            "unpackedBytes": 1213946,
+            "filesScanned": 220,
+            "filesSkipped": 151,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 53.62790000000041,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 199555,
+            "unpackedBytes": 1213946,
+            "filesScanned": 220,
+            "filesSkipped": 151,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "axios-1.9.0",
+      "name": "axios",
+      "version": "1.9.0",
+      "label": "benign",
+      "family": "challenge-browser-http-client",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/axios/-/axios-1.9.0.tgz",
+        "labelEvidence": "https://github.com/axios/axios; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Browser and Node HTTP client with bundled/minified distributions; network primitives alone are ordinary functionality. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:38:00.3681823Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/axios/1.9.0",
+        "registryManifestSha256": "07e448dac31d6463b2f998a792561aaafe38049000f44e3e748fea4c7608c6a8",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/axios/axios",
+        "selectionRationale": "Browser and Node HTTP client with bundled/minified distributions; network primitives alone are ordinary functionality.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "46095ab1001d5ecfe60510688f4039bc97b74462b93ae70c3f75fe6ce4ae3742",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifactSha256": {
+        "manifest": "21fce121b3d5ab62e748e586ab6c68db3b7b2b4fbba3a3f1a454197cd1ed25cc",
+        "readme": "510a21de8dc25ee79747df0733a6bf7c97ccc64c7fc975bcd9c2ab9b31371aee",
+        "tarball": "6758628f748506b961ff588dcb572473342f33efb10ee9f914d2b68f5a73d745"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 7.056100000000015,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 12.015000000000327,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 49.11699999999996,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 552654,
+            "unpackedBytes": 2155396,
+            "filesScanned": 71,
+            "filesSkipped": 14,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 174.92889999999989,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 552654,
+            "unpackedBytes": 2155396,
+            "filesScanned": 71,
+            "filesSkipped": 14,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "lodash-4.17.21",
+      "name": "lodash",
+      "version": "4.17.21",
+      "label": "benign",
+      "family": "challenge-dynamic-code-tooling",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
+        "labelEvidence": "https://github.com/lodash/lodash; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Utility library with templating/dynamic code construction and minified distribution; challenging benign dynamic syntax. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:38:03.8724471Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/lodash/4.17.21",
+        "registryManifestSha256": "49938fac33dc7eccdadce7f837a054cc4ae2c6bb965ee547065bf3146b7414b8",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/lodash/lodash",
+        "selectionRationale": "Utility library with templating/dynamic code construction and minified distribution; challenging benign dynamic syntax.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "500100dac7c28445228d713dcf9f3f149474941dbd74b0824c7c85f33c018be9",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifactSha256": {
+        "manifest": "cf782ca68ef8ad22272993329117f756a11886eeed80c627d87dcbc2897fcd47",
+        "readme": "aa8223fc6ac03beb61e9e1d55587c6a77bef133a3687b7bc85b61a738ad76740",
+        "tarball": "6a087ac9e5702a0c9d60fbcd48696012646ec8df1491dea472b150e79fcaf804"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.176400000000001,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.30159999999978027,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 36.83760000000001,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 318961,
+            "unpackedBytes": 1412415,
+            "filesScanned": 1049,
+            "filesSkipped": 5,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 167.3062,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 318961,
+            "unpackedBytes": 1412415,
+            "filesScanned": 1049,
+            "filesSkipped": 5,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "terser-5.39.0",
+      "name": "terser",
+      "version": "5.39.0",
+      "label": "benign",
+      "family": "challenge-dynamic-code-tooling",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/terser/-/terser-5.39.0.tgz",
+        "labelEvidence": "https://github.com/terser/terser; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Parser/minifier legitimately handles dynamic-code syntax, string concatenation and generated bundles. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:38:06.0777336Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/terser/5.39.0",
+        "registryManifestSha256": "73bbd0eb0400b66190f1496c58e16f9a903af4b4cce1933dd65478220606d10e",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/terser/terser",
+        "selectionRationale": "Parser/minifier legitimately handles dynamic-code syntax, string concatenation and generated bundles.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "7044aececf7f0fb17af167f49e0bdec40d68a6e18997a61e112c6c1df376b845",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifactSha256": {
+        "manifest": "90625b51a40009a4c5b518d45cb2037f5381a1971b9ce84ab81199ae6572f27c",
+        "readme": "7281081b749075eeb6d25e3a60013df3f22d3e1141c6eb7d4873b4a6f7d145c6",
+        "tarball": "ef669abcd38fc0a31dede049f1186ae4999783c34cfa6652a5e12b4e57cccf58"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.6497999999999706,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.186800000000403,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 69.04769999999996,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 443697,
+            "unpackedBytes": 2221569,
+            "filesScanned": 37,
+            "filesSkipped": 5,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 283.2008999999998,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 443697,
+            "unpackedBytes": 2221569,
+            "filesScanned": 37,
+            "filesSkipped": 5,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "core-js-3.42.0",
+      "name": "core-js",
+      "version": "3.42.0",
+      "label": "benign",
+      "family": "challenge-browser-polyfill",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/core-js/-/core-js-3.42.0.tgz",
+        "labelEvidence": "https://github.com/zloirock/core-js; official project source and matching exact Registry/package coordinates. Provisional benign control selected for legitimate capability: Browser polyfills include global/Function feature detection and compatibility indirection; broad source archive. This is not a guarantee of malware absence or vulnerability freedom.",
+        "capturedAt": "2026-10-31T08:38:08.5927952Z",
+        "archiveKind": "published-tarball",
+        "registryManifestUrl": "https://registry.npmjs.org/core-js/3.42.0",
+        "registryManifestSha256": "31acd29fa48a02329037e8340a8451eb8abfcfc5c89ab1de9d919682be1e0aa5",
+        "publishedIntegrityVerified": true,
+        "publishedShasumVerified": true,
+        "officialSource": "https://github.com/zloirock/core-js",
+        "selectionRationale": "Browser polyfills include global/Function feature detection and compatibility indirection; broad source archive.",
+        "selectionFileSha256": "0b655063f9f13a176ec8db71919fc57e17c406f70533bfa75f5cba8905d8e35c",
+        "fileHashesSha256": "7517fec8cec4b490d42c6f994391ac6b94ff56d3224f00c5c58ebd8f55db00f1",
+        "derivation": "Original official npm tarball retained byte-for-byte. Readme and package.json are read in memory from this exact tarball; scanner manifest adds the original Registry dist object for SRI verification. No package source extraction, installation, imports or execution."
+      },
+      "artifactSha256": {
+        "manifest": "af42fb590d3a934462b0252c910e1fcb49fc8ffe0cd4d008debd215cad6d1590",
+        "readme": "3b9879071bab77bc137004f66acc1773c58d71b0e3ee1c04013f8fc97db4768f",
+        "tarball": "ba4cb35e7c13da82dc2ebfb1e9e57463dc941ab950dbc9a854dd1f7775464db0"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.24680000000000746,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.4846000000006825,
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 24.78370000000001,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 297367,
+            "unpackedBytes": 1272681,
+            "filesScanned": 3568,
+            "filesSkipped": 10,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 92,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 99.35100000000057,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 297367,
+            "unpackedBytes": 1272681,
+            "filesScanned": 3568,
+            "filesSkipped": 10,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": [
+            {
+              "ruleId": "install-script",
+              "severity": "medium",
+              "message": "Lifecycle script \"postinstall\" runs automatically during package installation."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "xrpl-4.2.5",
+      "name": "xrpl",
+      "version": "4.2.5",
+      "label": "benign",
+      "family": "xrpl-4.2.5",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/xrpl/-/xrpl-4.2.5.tgz",
+        "labelEvidence": "https://github.com/XRPLF/xrpl.js/security/advisories/GHSA-33qr-m49q-rxfx — Maintainer-designated patched wallet SDK; tests legitimate wallet construction and RPC.",
+        "capturedAt": "2026-11-12T08:47:55.724483+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "cbca99d7432b08e973cb6343e440f8551f00aa32d63451e77c6e5c53e49f0070",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged; package.json and README read in memory; registry dist preserved for SRI verification. Provisional benign control, not a safety guarantee."
+      },
+      "artifactSha256": {
+        "manifest": "c1ef7bb4034c24e2754d0cc3dedc44201fe4da79ddb50d00afc877515d3a22db",
+        "readme": "c6a5d663d0e2514fa229bfae2bfd600c1bfcab2aca6a2c5d15b746635391b7b3",
+        "tarball": "e87202bbdbb0fcc9b89bb0b425c5320e81b6b553b1056e01c90e241b283e28bc"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 2.401999999999987,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.5507999999999811,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "partial",
+          "score": 92,
+          "level": "unknown",
+          "highCriticalAlert": false,
+          "scanDurationMs": 146.91180000000003,
+          "contentScan": {
+            "status": "partial",
+            "archiveBytes": 2157057,
+            "unpackedBytes": 9578343,
+            "filesScanned": 942,
+            "filesSkipped": 758,
+            "integrityVerified": true,
+            "truncated": true,
+            "reason": "Source token inspection reached its configured budget."
+          },
+          "findings": [
+            {
+              "ruleId": "content-scan-incomplete",
+              "severity": "medium",
+              "message": "Source token inspection reached its configured budget."
+            }
+          ]
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 977.1840000000011,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 2157057,
+            "unpackedBytes": 9578343,
+            "filesScanned": 942,
+            "filesSkipped": 758,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "solana-web3-1.95.8",
+      "name": "@solana/web3.js",
+      "version": "1.95.8",
+      "label": "benign",
+      "family": "solana-web3-1.95.8",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@solana/web3.js/-/web3.js-1.95.8.tgz",
+        "labelEvidence": "https://github.com/solana-foundation/solana-web3.js/security/advisories/GHSA-jcxm-7wvp-g6p5 — Maintainer-designated patched wallet SDK; tests local signing and ordinary RPC.",
+        "capturedAt": "2026-11-12T08:47:55.779112+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "61c1a775914b70f7c74e3e8bc091664a2c86ea12e09f238c6b1309ce43bc8e82",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged; package.json and README read in memory; registry dist preserved for SRI verification. Provisional benign control, not a safety guarantee."
+      },
+      "artifactSha256": {
+        "manifest": "8aaba3a358872305501643425efb390dd10366584ce0ce78bdc9e8e22d45d019",
+        "readme": "1fd85a328cfaddf93c6de28224a66fad7c4f1f8ec31ed5889532be643470dcac",
+        "tarball": "2e972f6f38e34d287be13c65acd8d0fa4e108b03dbae91494b570c10edec0756"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.37060000000002447,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.63510000000133,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 162.77290000000005,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 2188258,
+            "unpackedBytes": 10937455,
+            "filesScanned": 69,
+            "filesSkipped": 9,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 971.237000000001,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 2188258,
+            "unpackedBytes": 10937455,
+            "filesScanned": 69,
+            "filesSkipped": 9,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "ctrl-tinycolor-4.2.0",
+      "name": "@ctrl/tinycolor",
+      "version": "4.2.0",
+      "label": "benign",
+      "family": "ctrl-tinycolor-4.2.0",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/@ctrl/tinycolor/-/tinycolor-4.2.0.tgz",
+        "labelEvidence": "https://github.com/scttcper/tinycolor/issues/257 — Maintainer-designated clean replacement for compromised color library.",
+        "capturedAt": "2026-11-12T08:47:55.783109+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "69d2cb662384e5d54182f65c6cba9ca4197833f9bf5f959a2d01538c389ccdf4",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged; package.json and README read in memory; registry dist preserved for SRI verification. Provisional benign control, not a safety guarantee."
+      },
+      "artifactSha256": {
+        "manifest": "b7a5708b3ea05e01713da3d536dd5ddb9b79f9d2607e4c0bda03f9c6f5d01fa7",
+        "readme": "caf36cdeac8ca95cb3ad75853417a69779008f05f877e759315517ca53c1d9f6",
+        "tarball": "cc774e7d58a65962fc8be80bfc06d00fde4e6d3e9be3c1b3e586c08e2d441601"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.4115000000000464,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.7256999999990512,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 2.0155999999999494,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 54268,
+            "unpackedBytes": 244090,
+            "filesScanned": 38,
+            "filesSkipped": 3,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 9.8778999999995,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 54268,
+            "unpackedBytes": 244090,
+            "filesScanned": 38,
+            "filesSkipped": 3,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "passport-0.7.0",
+      "name": "passport",
+      "version": "0.7.0",
+      "label": "benign",
+      "family": "passport-0.7.0",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/passport/-/passport-0.7.0.tgz",
+        "labelEvidence": "https://github.com/jaredhanson/passport — Original authentication framework impersonated by passports-js; provisional benign control.",
+        "capturedAt": "2026-11-12T08:47:55.786291+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "83b45f133459b290a44b964d2df474191b7cbff4e54e06c24983d8fd8558d11d",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged; package.json and README read in memory; registry dist preserved for SRI verification. Provisional benign control, not a safety guarantee."
+      },
+      "artifactSha256": {
+        "manifest": "077d76520a0e48a31b68f45ec9dd9973ba7f1262327fc6bfce63bcb5f51eae58",
+        "readme": "c3af996aaf7a2fd9483c88155e9a7d5e84222a2f17ebd4f7d13fb90aa3b30072",
+        "tarball": "f69294d05ec9e1ccad27dde98ef81e7240f321d61a4916d804e76750855267b5"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.30080000000009477,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.7247999999999593,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 1.75,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 95450,
+            "unpackedBytes": 156687,
+            "filesScanned": 11,
+            "filesSkipped": 10,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 6.2523999999993976,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 95450,
+            "unpackedBytes": 156687,
+            "filesScanned": 11,
+            "filesSkipped": 10,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    },
+    {
+      "id": "node-telegram-bot-api-0.66.0",
+      "name": "node-telegram-bot-api",
+      "version": "0.66.0",
+      "label": "benign",
+      "family": "node-telegram-bot-api-0.66.0",
+      "provenance": {
+        "sourceUrl": "https://registry.npmjs.org/node-telegram-bot-api/-/node-telegram-bot-api-0.66.0.tgz",
+        "labelEvidence": "https://github.com/yagop/node-telegram-bot-api — Legitimate Telegram SDK with ordinary network operations; provisional benign control.",
+        "capturedAt": "2026-11-12T08:47:55.790370+00:00",
+        "archiveKind": "published-tarball",
+        "registryManifestSha256": "fe80afb6ae44f2a68f818889593e4e3c277a282c312426e7ad3eb400cca2d8c9",
+        "publishedIntegrityVerified": true,
+        "derivation": "Original npm tarball retained unchanged; package.json and README read in memory; registry dist preserved for SRI verification. Provisional benign control, not a safety guarantee."
+      },
+      "artifactSha256": {
+        "manifest": "eca170bbaa5c6d831a8d34b9d333728f10762e7319e5936138b631052853e326",
+        "readme": "e926804a239756b62b77b4f3335dbc6ca2620780d0bd535ac7f59ee541e7459c",
+        "tarball": "a3d59ee0a9e3020143fb6b7838af1bef87bdfe7d8e3a3857a65b53385ddc5a04"
+      },
+      "metadata": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.3683000000000902,
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 0.6193999999995867,
+          "findings": []
+        }
+      },
+      "deep": {
+        "before": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 8.808499999999981,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 85194,
+            "unpackedBytes": 513020,
+            "filesScanned": 12,
+            "filesSkipped": 13,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        },
+        "after": {
+          "status": "complete",
+          "score": 100,
+          "level": "safe",
+          "highCriticalAlert": false,
+          "scanDurationMs": 45.461600000000544,
+          "contentScan": {
+            "status": "complete",
+            "archiveBytes": 85194,
+            "unpackedBytes": 513020,
+            "filesScanned": 12,
+            "filesSkipped": 13,
+            "integrityVerified": true,
+            "truncated": false
+          },
+          "findings": []
+        }
+      }
+    }
+  ],
+  "counts": {
+    "before": {
+      "malicious": {
+        "total": 8,
+        "complete": 7,
+        "abstained": 1,
+        "highCritical": 3,
+        "productPositive": 3
+      },
+      "benign": {
+        "total": 18,
+        "complete": 16,
+        "abstained": 2,
+        "highCritical": 0,
+        "productPositive": 0
+      }
+    },
+    "after": {
+      "malicious": {
+        "total": 8,
+        "complete": 8,
+        "abstained": 0,
+        "highCritical": 8,
+        "productPositive": 8
+      },
+      "benign": {
+        "total": 18,
+        "complete": 18,
+        "abstained": 0,
+        "highCritical": 0,
+        "productPositive": 0
+      }
+    }
+  },
+  "processPeakRssKiB": 651380
+}

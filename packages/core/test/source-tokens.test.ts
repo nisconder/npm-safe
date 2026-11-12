@@ -62,20 +62,25 @@ describe('bounded source tokens', () => {
   });
 
   it('exposes character and token budget exhaustion', () => {
-    assert.equal(tokenizeSourceDetailed(' '.repeat(1024 * 1024 + 1)).truncated, true);
-    const budget = tokenizeSourceDetailed(';'.repeat(200_001));
+    assert.equal(tokenizeSourceDetailed(' '.repeat(129), { maxSourceChars: 128 }).truncated, true);
+    const budget = tokenizeSourceDetailed(';'.repeat(33), { maxTokens: 32 });
     assert.equal(budget.truncated, true);
-    assert.equal(budget.tokens.length, 200_000);
+    assert.equal(budget.tokens.length, 32);
     assert.equal(tokenizeSourceDetailed('const x = 1;').truncated, false);
-    const foldedBudget = tokenizeSourceDetailed("'a'+".repeat(100_001));
+    const foldedBudget = tokenizeSourceDetailed("'a'+".repeat(33), { maxTokens: 32 });
     assert.equal(foldedBudget.truncated, true, 'Folding must not increase the raw token budget.');
-    assert.ok(foldedBudget.tokens.length < 200_000);
+    assert.ok(foldedBudget.tokens.length < 32);
   });
 
   it('does not fold dynamic values or run string-producing expressions', () => {
     const tokens = tokenizeSource("require('child_' + globalThis.moduleName)");
     assert.ok(tokens.some((token) => token.value === '+'));
     assert.ok(!tokens.some((token) => token.value === 'child_process'));
+  });
+
+  it('does not let caller overrides raise the hard source budget', () => {
+    const source = ' '.repeat(4 * 1024 * 1024 + 1);
+    assert.equal(tokenizeSourceDetailed(source, { maxSourceChars: 8 * 1024 * 1024 }).truncated, true);
   });
 
   it('keeps malformed regex and oversized escaped literals opaque within limits', () => {

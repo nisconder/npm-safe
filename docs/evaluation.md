@@ -18,9 +18,25 @@ incomplete scans, and a fresh serial timing comparison.
 The existing rule tests and harness fixtures are synthetic. Do not describe
 passing those tests as malware recall.
 
+The [2026-11-12 repair comparison](evaluation/repairs-2026-11-12.md) adds five
+known misses and five matching clean controls, retaining all earlier sixteen
+versions. It reports 8/8 malicious alerts, 18/18 complete normal controls with
+zero high/critical alerts, and the limits of this observed development corpus.
+
+The subsequent [fresh-package run with unchanged rules](evaluation/fresh-2026-11-12.md)
+finds 0/8 malicious samples and raises false positives on 2/12 normal controls,
+despite all 20 deep scans reporting complete. It documents source limitations,
+sample operational caveats and why the earlier regression result does not
+establish accuracy on new inputs. No rules were tuned during this fresh run.
+
+The [static pre-push recheck](evaluation/static-prepush-2026-11-12.md) records a
+subsequent object-property overwrite fix and repeats all 46 versions from those
+two cohorts. The earlier reports retain their original source fingerprints;
+the recheck is observed regression data, not another independent test set.
+
 The pilot, second-round and third-round reports are frozen core 1.1.1
 snapshots: their numeric scores, original levels and source fingerprints are
-historical measurements. Current core 1.1.2 uses the shared security policy
+historical measurements. Current source uses the shared security policy
 described below; new runs must retain their own version and source identity.
 The [post-merge core 1.1.2 check](evaluation/integration-2026-10-31.md) records
 the current policy on the same frozen inputs without replacing old measurements.
@@ -129,9 +145,10 @@ Both matrices are about the independently labeled package, not whether a rule
 correctly recognizes a benign capability. Current policy first marks any
 Critical finding or score below 50 `dangerous`, even if inspection is
 incomplete. Otherwise incomplete inspection or a non-finite score is
-`unknown`; complete scores 80–100 are `safe`, and 50–79 are `suspicious`.
-One high finding costs 15 points, so a complete score of 85 remains `safe`
-when no Critical finding is present. Historical 1.1.1 reports used the prior
+`unknown`; complete scans with High findings are at least `suspicious`.
+Otherwise complete scores 80–100 are `safe`, and 50–79 are `suspicious`.
+One High finding still costs 15 points, but its complete score of 85 is now
+`suspicious`. Historical 1.1.1 reports used the prior
 score bands, including `unknown` below 20; their saved output is not rewritten.
 Retain findings and product outcome separately. The evaluation protocol still
 excludes all failed/partial attempts from completed-scan matrices, including

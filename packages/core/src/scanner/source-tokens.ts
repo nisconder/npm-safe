@@ -7,8 +7,8 @@ export interface SourceToken {
   readonly concealed?: boolean;
 }
 
-const MAX_SOURCE_CHARS = 1024 * 1024;
-const MAX_TOKENS = 200_000;
+export const MAX_SOURCE_CHARS = 4 * 1024 * 1024;
+export const MAX_SOURCE_TOKENS = 1_600_000;
 const MAX_LITERAL_CHARS = 4096;
 const identifierStart = (code: number) => (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 36 || code === 95;
 const identifierPart = (code: number) => identifierStart(code) || (code >= 48 && code <= 57);
@@ -138,14 +138,25 @@ export interface SourceTokenization {
   readonly truncated: boolean;
 }
 
+/** Callers may lower, but never raise, the hard lexical resource limits. */
+export interface SourceTokenLimits {
+  readonly maxSourceChars?: number;
+  readonly maxTokens?: number;
+}
+
+function boundedLimit(value: number | undefined, maximum: number): number {
+  return value === undefined || !Number.isFinite(value) ? maximum : Math.max(0, Math.min(maximum, Math.floor(value)));
+}
+
 /** Decode only quoted literals and their adjacent + chains; never evaluate code. */
-export function tokenizeSourceDetailed(content: string): SourceTokenization {
-  const text = content.slice(0, MAX_SOURCE_CHARS);
+export function tokenizeSourceDetailed(content: string, limits: SourceTokenLimits = {}): SourceTokenization {
+  const text = content.slice(0, boundedLimit(limits.maxSourceChars, MAX_SOURCE_CHARS));
+  const maxTokens = boundedLimit(limits.maxTokens, MAX_SOURCE_TOKENS);
   const tokens: SourceToken[] = [];
   const controlHeads: boolean[] = [];
   let afterControlHead = false;
   let index = 0, rawTokenCount = 0;
-  while (index < text.length && rawTokenCount < MAX_TOKENS) {
+  while (index < text.length && rawTokenCount < maxTokens) {
     const start = index, char = text[index], code = text.charCodeAt(index);
     if (code === 32 || (code >= 9 && code <= 13) || (code >= 128 && /\s/.test(char))) { index++; continue; }
     if (index === 0 && char === '#' && text[index + 1] === '!') {

@@ -3,6 +3,25 @@
 All notable user-facing changes are documented here. The project follows
 semantic versioning for `@npm-safe/core`.
 
+## Unreleased
+
+### Fixed
+
+- Require argument-local encoding evidence for JavaScript dynamic-execution
+  findings. Lodash global-object probes and template compilation no longer
+  inherit an obfuscation alert from unrelated data or comments in the file.
+  Invalidate older scan reports so cached results are re-evaluated as well.
+- Classify complete scans with High findings as at least `suspicious`, keeping
+  the score unchanged. Explain the severity floor and heuristic limits in the
+  CLI and documentation; invalidate older cached reports.
+- Detect bounded private-key/seed-to-network flows, connected downloads with
+  silent process execution, and concealed process/file/network capabilities
+  recovered from constant string tables without executing package code.
+  Respect later object fields and spreads that overwrite private data, including
+  nested serialized payloads and accessor/method overrides.
+- Inspect text files up to 4 MiB with a 1,600,000-token lexical budget. Retain
+  the 8 MiB aggregate text limit and visible partial results on exhaustion.
+
 ## 1.1.3 - 2026-11-10
 
 ### Fixed

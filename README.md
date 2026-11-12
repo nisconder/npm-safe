@@ -57,7 +57,7 @@ metadata and supply-chain attack signals before or during installation.
 | Review DSH plugins visually | [Desktop app](#desktop-gui) | Installation risk card, DSH contract checks, and a pinned command |
 | Give coding agents a safety check | `npm-safe skill install` | A skill for Codex, Claude Code, OpenCode, Gemini CLI, and more |
 
-The scanner is transparent by design: the 10 metadata rules and 14 deep-scan
+The scanner is transparent by design: the 10 metadata rules and 17 deep-scan
 rules are documented and configurable, and metadata analysis is extensible
 with local rule plugins.
 
@@ -157,7 +157,7 @@ npm-safe refresh                    # refresh all watched packages
 npm-safe settings set lang zh       # persist a setting
 ```
 
-Example output:
+Illustrative metadata-only output (version and findings can change):
 
 ```bash
 npm-safe check lodash
@@ -167,6 +167,19 @@ npm-safe check lodash
 # Score: 97/100
 # Findings: 1 low-severity informational signal
 ```
+
+`safe` can still include Medium or Low findings. Complete scans with HIGH
+findings are at least `suspicious`. Review each finding; the score is not a
+probability of safety. See [Security Model](#security-model) for interpretation
+and limits.
+
+**Known lodash example:** older scans can pair `safe`, 82/100 with a HIGH
+`content-obfuscated-exec` alert on the ordinary `Function('return this')`
+global-object probe. The current, unreleased source requires encoding evidence
+inside the execution argument. On the official lodash 4.17.21 and 4.18.1
+tarballs, verified complete deep scans now return 97/100 with only the existing
+Low metadata finding. This targeted regression fix does not establish overall
+detection accuracy; see [Unreleased changes](CHANGELOG.md#unreleased).
 
 > **Windows PATH note:** a global install places `npm-safe` in the npm global
 > bin directory (`%APPDATA%\npm`), which must be on your `PATH` for external
@@ -288,7 +301,7 @@ memory, and reports file paths and line numbers for high-confidence findings.
 It never extracts package files or executes package code.
 
 Safety limits are enforced before and during parsing: 20 MiB compressed,
-50 MiB unpacked, 5,000 archive entries, 1 MiB per text file, and 8 MiB total
+50 MiB unpacked, 5,000 archive entries, 4 MiB per text file, and 8 MiB total
 text inspected. Tarball URLs and redirects must remain on the configured
 registry origin. Reaching a limit produces a visible partial result; `ci
 --deep` fails closed when any requested deep scan is partial or unavailable.
@@ -316,7 +329,7 @@ npm-safe --proxy http://127.0.0.1:7897 check react
 
 ### Rules and plugins
 
-Ten metadata rules and twelve opt-in content rules detect install scripts,
+Ten metadata rules and seventeen opt-in content rules detect install scripts,
 obfuscation, typosquatting, secret exposure, unsafe archives, executable
 content, process/network combinations, and more. Rules can be managed at runtime;
 configuration is persisted in `~/.npm-safe/rules.json`:
@@ -566,9 +579,17 @@ GUI toggle stay in sync.
 npm-safe is an early-warning heuristic, not a safety certification. The
 default scan inspects registry metadata, the selected manifest, and README.
 Passing `--deep` additionally verifies and heuristically inspects the shipped
-tarball within strict resource limits, without extracting or executing it. A
-`safe` result means that no configured signal was detected in the selected
-inspection boundary; it does not prove runtime safety.
+tarball within strict resource limits, without extracting or executing it.
+
+`safe` requires a score of 80–100, no High or Critical finding, and no
+incomplete scan. A High finding makes a complete scan at least `suspicious`;
+a Critical finding makes it `dangerous`. Medium and Low findings may still
+appear in a `safe` report. Review the evidence for every finding; neither the
+score nor the label is a probability or guarantee of runtime safety.
+
+False positives and missed detections are possible. Passing the automated
+tests establishes tested behavior, not real-world detection accuracy. The
+[evaluation reports](docs/evaluation.md) describe the samples and their limits.
 
 Use it alongside vulnerability databases, lockfiles, code review, and
 least-privilege build environments. See the full [threat model](docs/THREAT_MODEL.md),
@@ -708,8 +729,8 @@ npm-safe/
 | **TokenBucket rate limiter (5 tokens/s, 10 burst)** | Prevents registry throttling. Tokens refill at 5 per second; burst allows up to 10 immediate requests. |
 | **Cache-first `checkPackage` with TTL staleness** | Reuses fresh metadata and reports under the current scanner/rule fingerprint. Stale metadata is fetched before returning; changed rules invalidate the report. Default metadata TTL is 1 hour. |
 | **String enums for `SecurityLevel` / `Severity`** | Unlike numeric enums, string enums are safe to log, serialize, and use in `switch` statements without reverse-mapping surprises. |
-| **Score: 100 minus severity weights** | Critical = 25, High = 15, Medium = 8, Low = 3. Starting from 100 ensures an unscored package scores 100 (safe). |
-| **Level thresholds** | Critical findings or scores below 50 are Dangerous; otherwise `>=80` Safe and `>=50` Suspicious. Incomplete scans without established danger are Unknown. One shared policy covers live scans, cached reports, the engine and CI. LLM analysis cannot raise a static safety score. |
+| **Score: 100 minus severity weights** | Critical = 25, High = 15, Medium = 8, Low = 3. A report with no findings starts at 100; scan completeness and Critical findings also affect the level. |
+| **Level thresholds** | Critical findings or scores below 50 are Dangerous. Incomplete scans without established danger are Unknown. Complete scans with High findings are at least Suspicious; otherwise `>=80` Safe and `>=50` Suspicious. One shared policy covers live scans, cached reports, the engine and CI. LLM analysis cannot raise a static safety score. |
 
 ---
 

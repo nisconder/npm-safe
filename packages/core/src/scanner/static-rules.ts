@@ -22,7 +22,7 @@ import { findEncodedShell } from './readme-shell-signals.js';
 import { findExecutableLinks } from './readme-url-signals.js';
 
 // Bump whenever scanner/content semantics change, including policy and limits.
-export const SCANNER_CACHE_VERSION = '3';
+export const SCANNER_CACHE_VERSION = '5';
 
 /** Severity weights subtracted from the base score (100) per finding. */
 const SEVERITY_WEIGHT: Readonly<Record<Severity, number>> = {

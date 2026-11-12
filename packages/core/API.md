@@ -703,7 +703,7 @@ interface ContentScanSummary {
 }
 ```
 
-`partial` means a configured archive, entry, file, or text-byte limit stopped
+`partial` means a configured archive, entry, file, text-byte or lexical-token limit stopped
 complete inspection. `failed` means download, integrity validation,
 decompression, or archive parsing did not complete. `integrityVerified` is
 false when neither a supported SRI value nor a valid legacy shasum was present.
@@ -1278,7 +1278,7 @@ analyze(
 ): StaticScanReport
 ```
 
-Runs all enabled rules against the given README and package.json. Scoring starts at 100 and subtracts per-finding weights (Critical -25, High -15, Medium -8, Low -3), clamped to [0, 100]. The shared `classifySecurity` policy first marks any Critical finding or score below 50 Dangerous; otherwise incomplete content inspection or a non-finite score is Unknown, scores 80–100 are Safe, and scores 50–79 are Suspicious. Established danger takes precedence over an incomplete scan. The returned report includes the current scanner/rule fingerprint for cache validation.
+Runs all enabled rules against the given README and package.json. Scoring starts at 100 and subtracts per-finding weights (Critical -25, High -15, Medium -8, Low -3), clamped to [0, 100]. The shared `classifySecurity` policy first marks any Critical finding or score below 50 Dangerous; otherwise incomplete content inspection or a non-finite score is Unknown. Complete scans with High findings are at least Suspicious; otherwise scores 80–100 are Safe, and scores 50–79 are Suspicious. Established danger takes precedence over an incomplete scan. The returned report includes the current scanner/rule fingerprint for cache validation.
 
 ### Database Manager
 

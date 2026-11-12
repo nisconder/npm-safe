@@ -10,8 +10,11 @@ import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 import { scanBrowserContent } from './browser-signals.js';
 import { scanProcessContent } from './content-process-signals.js';
-import { findDynamicExecution } from './content-dynamic-signals.js';
+import { findDynamicExecution, hasDynamicExecutionCandidate } from './content-dynamic-signals.js';
 import { findNetworkExecution } from './content-network-signals.js';
+import { hasSecretFlowCandidate, findSecretExfiltration } from './content-secret-flow.js';
+import { hasDownloadExecutionCandidate, scanDownloadExecution } from './content-download-exec.js';
+import { hasConcealedCodeCandidate, scanConcealedContent } from './content-concealed-code.js';
 import { tokenizeSourceDetailed, type SourceToken } from './source-tokens.js';
 
 import {
@@ -23,7 +26,7 @@ import {
 
 export const DEFAULT_MAX_UNPACKED_BYTES = 50 * 1024 * 1024;
 export const DEFAULT_MAX_ARCHIVE_ENTRIES = 5_000;
-export const DEFAULT_MAX_FILE_BYTES = 1024 * 1024;
+export const DEFAULT_MAX_FILE_BYTES = 4 * 1024 * 1024;
 export const DEFAULT_MAX_SCANNED_BYTES = 8 * 1024 * 1024;
 
 export interface PackageContentScanOptions {
@@ -33,6 +36,8 @@ export interface PackageContentScanOptions {
   readonly maxEntries?: number;
   readonly maxFileBytes?: number;
   readonly maxScannedBytes?: number;
+  /** May lower the hard lexical token budget; cannot raise it. */
+  readonly maxTokensPerFile?: number;
 }
 
 export interface PackageContentScanResult {
@@ -52,6 +57,9 @@ export const CONTENT_SCAN_RULES = [
   { id: 'content-remote-shell', name: 'Remote content piped to a shell', description: 'Published source downloads remote content and passes it to a command shell.', severity: Severity.Critical, category: FindingCategory.InstallScript },
   { id: 'content-obfuscated-exec', name: 'Obfuscated dynamic code execution', description: 'Published source combines encoded payloads with dynamic execution.', severity: Severity.High, category: FindingCategory.CodeObfuscation },
   { id: 'content-network-exec', name: 'Network response used as a process command', description: 'A bounded local flow connects fetch response text to a child-process command or shell input.', severity: Severity.High, category: FindingCategory.BinaryDownload },
+  { id: 'content-secret-exfiltration', name: 'Private-key material sent over the network', description: 'A bounded local flow connects private keys, wallet seeds or mnemonics to fetch headers or body sent to a literal HTTP(S) endpoint.', severity: Severity.Critical, category: FindingCategory.SensitiveExposure },
+  { id: 'content-download-exec', name: 'Downloaded content launched silently', description: 'A connected local flow downloads a file, optionally extracts it, and launches it as a detached process with ignored stdio.', severity: Severity.High, category: FindingCategory.BinaryDownload },
+  { id: 'content-concealed-capabilities', name: 'Concealed process, file and network capabilities', description: 'Bounded static string-table recovery exposes process execution combined with file access and networking.', severity: Severity.High, category: FindingCategory.CodeObfuscation },
   { id: 'content-process-exec', name: 'Process execution capability', description: 'Published runtime source imports or invokes child-process functionality.', severity: Severity.Medium, category: FindingCategory.SuspiciousDep },
   { id: 'content-sensitive-network', name: 'Sensitive environment access with networking', description: 'Published source reads sensitive environment data and performs network access.', severity: Severity.High, category: FindingCategory.SensitiveExposure },
   { id: 'content-concealed-native-exec', name: 'Concealed native-loader execution', description: 'Constant string fragments conceal a child-process call that launches a native loader with a DLL entry point.', severity: Severity.High, category: FindingCategory.CodeObfuscation },
@@ -397,12 +405,15 @@ export function analyzePackageTarball(
       const javascript = JAVASCRIPT_EXTENSIONS.has(extension);
       const processCandidate = content.includes('require') && (content.includes('+') || content.includes('\\'));
       const browserCandidate = content.includes('fetch') && content.includes('XMLHttpRequest') && content.includes('Response');
-      const dynamicCandidate = (content.includes('eval') || content.includes('Function')) && ENCODED_PAYLOAD_PATTERN.test(content);
+      const dynamicCandidate = hasDynamicExecutionCandidate(content);
       const networkCandidate = content.includes('fetch') && (content.includes('require') || content.includes('import'));
+      const secretCandidate = hasSecretFlowCandidate(content);
+      const downloadCandidate = hasDownloadExecutionCandidate(content);
+      const concealedCandidate = hasConcealedCodeCandidate(content);
       let sourceTokens: readonly SourceToken[] | undefined;
       // Each gate is a necessary condition of its lexical detector, not an allowlist.
-      if (javascript && (processCandidate || browserCandidate || dynamicCandidate || networkCandidate)) {
-        const lexical = tokenizeSourceDetailed(content);
+      if (javascript && (processCandidate || browserCandidate || dynamicCandidate || networkCandidate || secretCandidate || downloadCandidate || concealedCandidate)) {
+        const lexical = tokenizeSourceDetailed(content, { maxTokens: options.maxTokensPerFile });
         sourceTokens = lexical.tokens;
         if (lexical.truncated) {
           truncated = true;
@@ -411,7 +422,21 @@ export function analyzePackageTarball(
         for (const finding of [
           ...(processCandidate ? scanProcessContent(content, entry.path, lexical.tokens) : []),
           ...(browserCandidate ? scanBrowserContent(content, entry.path, lexical.tokens) : []),
+          ...(downloadCandidate ? scanDownloadExecution(content, entry.path, lexical.tokens) : []),
+          ...(concealedCandidate ? scanConcealedContent(content, entry.path, lexical.tokens) : []),
         ]) emit(finding);
+        const secret = secretCandidate ? findSecretExfiltration(content, lexical.tokens) : undefined;
+        if (secret) emit({
+          ruleId: 'content-secret-exfiltration',
+          ruleName: 'Private-key material sent over the network',
+          severity: Severity.Critical,
+          category: FindingCategory.SensitiveExposure,
+          message: `A bounded local flow connects private-key material to fetch headers or body at a literal HTTP(S) endpoint in ${entry.path}.`,
+          filePath: entry.path,
+          lineNumber: content.slice(0, secret.start).split(/\r?\n/).length,
+          codeSnippet: content.slice(secret.start, secret.end).slice(0, 240),
+          recommendation: 'Do not install until the private-material transmission and destination have been independently reviewed.',
+        });
       }
       const remoteShell = lineForMatch(content, REMOTE_SHELL_PATTERN);
       if (remoteShell) {
@@ -436,11 +461,13 @@ export function analyzePackageTarball(
           ruleId: 'content-obfuscated-exec',
           ruleName: 'Obfuscated dynamic code execution',
           severity: Severity.High,
-          message: `Published source combines encoded payloads with dynamic execution in ${entry.path}.`,
+          message: javascript
+            ? `Published source contains encoded data or decoding operations in dynamic-execution arguments in ${entry.path}.`
+            : `Published source combines encoded payloads with dynamic execution in ${entry.path}.`,
           filePath: entry.path,
           lineNumber: dynamic.line,
           codeSnippet: dynamic.snippet,
-          recommendation: 'Decode the payload and review the executed code before installation.',
+          recommendation: 'Review the dynamic-execution arguments and any decoded code before installation.',
           category: FindingCategory.CodeObfuscation,
         });
       }

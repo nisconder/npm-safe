@@ -62,6 +62,7 @@ function printSingleResult(result: CheckResult, packageName: string): void {
     `${t("check.label.securityLevel")}: ${result.security.overallLevel}`,
     `${t("check.label.score")}: ${result.security.overallScore}/100`,
     `${t("check.label.findings")}: ${findingCount}`,
+    t("check.interpretation"),
   ];
 
   if (result.registryInfo?.description) {
@@ -161,6 +162,7 @@ export async function runCheck(packageNames: string[], options: RunCheckOptions)
     console.log(
       `${t("check.batchSummary", { count: String(names.length) })}${failed ? ` — ${t("check.batchFailed")}` : ""}`,
     );
+    console.log(t("check.interpretation"));
   } finally {
     engine.close();
   }

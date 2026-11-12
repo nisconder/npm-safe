@@ -52,6 +52,21 @@ describe('shared security classification and CI policy', () => {
     assert.equal(classifySecurity(Number.POSITIVE_INFINITY), SecurityLevel.Unknown);
   });
 
+  it('high findings cannot be labeled safe even when the numeric score is high', () => {
+    const high = { ...critical(), severity: Severity.High };
+    for (const score of [50, 79, 80, 82, 85, 100]) {
+      assert.equal(classifySecurity(score, [high]), SecurityLevel.Suspicious);
+    }
+    assert.equal(classifySecurity(49, [high]), SecurityLevel.Dangerous);
+    assert.equal(classifySecurity(85, [high], false), SecurityLevel.Unknown);
+    assert.equal(classifySecurity(Number.NaN, [high]), SecurityLevel.Unknown);
+    const report = new StaticAnalyzer([]).analyze('', undefined, [high]);
+    assert.equal(report.score, 85);
+    assert.equal(report.overallLevel, SecurityLevel.Suspicious);
+    assert.equal(shouldFailCi(report.overallLevel), false);
+    assert.equal(shouldFailCi(report.overallLevel, SecurityLevel.Suspicious), true);
+  });
+
   it('honors each configured threshold while retaining fail-closed unknown results', () => {
     const levels = [SecurityLevel.Unknown, SecurityLevel.Dangerous, SecurityLevel.Suspicious, SecurityLevel.Safe];
     const expectations = [

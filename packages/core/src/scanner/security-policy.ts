@@ -10,6 +10,7 @@ export function classifySecurity(
     return SecurityLevel.Dangerous;
   }
   if (!complete || !Number.isFinite(score)) return SecurityLevel.Unknown;
+  if (findings.some((finding) => finding.severity === Severity.High)) return SecurityLevel.Suspicious;
   return score >= 80 ? SecurityLevel.Safe : SecurityLevel.Suspicious;
 }
 

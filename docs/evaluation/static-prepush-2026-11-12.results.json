@@ -1,0 +1,1269 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-12T13:00:38.947Z",
+  "interpretation": "Observed regression recheck after object-property overwrite fix; not a fresh or independent accuracy benchmark. Sample code was never executed.",
+  "scanner": {
+    "entrypoint": "TypeScript source via existing core-local tsx; default built-in rules; no LLM/config/cache",
+    "sourceFiles": {
+      "packages/core/src/scanner/browser-signals.ts": "e77c9b0e53ebcfa7f38d8f952e874615aa07129edfcef28dcb71dae6ee6bafdf",
+      "packages/core/src/scanner/concealed-expression.ts": "749a1d0f4f5f88e18e53903a3c262091d73a4ed9f7af9f89dd8eb2c178e20f69",
+      "packages/core/src/scanner/concealed-string-table.ts": "563281c20f95203a5115cdcd42dd1e5569df3a2e296aa30299dc6c5e8de6f75a",
+      "packages/core/src/scanner/content-concealed-code.ts": "8e45a96a9c6e3ede37b010d85f880a28affe4346a71ee4f3c1848a46fcda6a77",
+      "packages/core/src/scanner/content-download-exec.ts": "b3963df268921c8520db768e69b007b8eaeb45205a0b2942728db1f33a50e9e1",
+      "packages/core/src/scanner/content-dynamic-signals.ts": "ee32eb6c96d967b7551e638da10234a1d4b3852a9c020d675c97fc92c1d2c7d9",
+      "packages/core/src/scanner/content-network-signals.ts": "da3039019bdff517863678fc684074e034f87820eff88637cda54e440614e169",
+      "packages/core/src/scanner/content-process-signals.ts": "eb6cde99996fb3ba3e8a435e3687bd1297b948b18582b65faf7bd421205ab1f8",
+      "packages/core/src/scanner/content-secret-flow.ts": "9283f2fd96d4ee1ee6f74cb624c4ba8f2f532504d26d5c679e3cee52b2a49870",
+      "packages/core/src/scanner/download-summaries.ts": "d1ce920d462f8e2073416d9790e8bc7ae641fff448bb77f914f7d992504466fa",
+      "packages/core/src/scanner/download-syntax.ts": "6f52bb59574a18c1b8cf0426e649b8b8e15b132f59ee9a77f79d0ad3b97977a8",
+      "packages/core/src/scanner/network-flow-expression.ts": "dc5f08cd9c5e3de54770f847301a0554a657ffcc7169f7d8c23fa5f131646029",
+      "packages/core/src/scanner/package-content.ts": "e40f7af6932424b30eb2f6eeeb86a3d9c3e8ec84bf8c83e57606e5828e0d8ee9",
+      "packages/core/src/scanner/readme-shell-signals.ts": "3e7079e9f4d4422298dbf839a72a93cb68d057edc402cbfb3f72db898abae039",
+      "packages/core/src/scanner/readme-url-signals.ts": "0e0271bbd73aa50163a888ad07178d6f4eb38b17b9dc15c7212b66b9d1dbbd4c",
+      "packages/core/src/scanner/rule-config.ts": "bf4e5da7cef1539dddd1a0955406363cb6047cc0c822cf5c5314701ba65c0b5c",
+      "packages/core/src/scanner/rule-loader.ts": "b34e1ed46dbeb9ed79a9d0b59e91be718efe23ee59a885923b46317894331d4c",
+      "packages/core/src/scanner/secret-flow-syntax.ts": "c88f34bd22fad369a6fe717b8cdf8380af8d8425ab92c8e3ad2a74e78743b1d9",
+      "packages/core/src/scanner/secret-flow-value.ts": "e6ff03ef5c7eae381e0e6af9d1dc2f232f0d000594613f41ffee891415c01914",
+      "packages/core/src/scanner/secret-flow-writes.ts": "89c9cc66e93711efd2eb3e1080af334f2b52fafe0a4e0829e4406f7fab26546a",
+      "packages/core/src/scanner/security-policy.ts": "e27174efdebda160b0b53d300af6ce2d08a31105097394e2839f6777d199e596",
+      "packages/core/src/scanner/source-binding-patterns.ts": "9b6abfe5b835ea5076a249e78e371c9b20bbee56b4999914f8fdac1ce02063b9",
+      "packages/core/src/scanner/source-bindings.ts": "8bce6d41845fe25a3785d0b00286848e3d3522fc052639bd404c96005b907d45",
+      "packages/core/src/scanner/source-tokens.ts": "51d29ffa1c4b7b12a37ecd04077714d97e24fa1526d3e15ea2b0c27a3e985c4a",
+      "packages/core/src/scanner/static-rules.ts": "f1f609ec576142bca3f4b20fcf7b3e651129afd9daf2960f252f3d142e79a961",
+      "packages/core/src/scanner/types.ts": "41b1daeaff7b9f76dcdf90c021b772fded81aa4e1b326e524708836a87672f3c"
+    },
+    "sourceFingerprint": "f8c73d543800c724a886800c7589a993de0d3f973f973e09769b1962786736b0",
+    "coreVersion": "1.1.3",
+    "tsxVersion": "4.23.13"
+  },
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "datasets": [
+    {
+      "name": "new-malicious",
+      "sha256": "5dab576da25ecbade3b4631fc448e33e47061b55293c0bc21c38f179ca6522a3"
+    },
+    {
+      "name": "regression",
+      "sha256": "232e8bf5ba1e61425366331c164535840d3a1e3ab37e41f2ebe355dae1bf2122"
+    },
+    {
+      "name": "controls",
+      "sha256": "96c9453c38682b29c81306ccd3baa82c8559b68465316307a47a48c2616c6e5d"
+    },
+    {
+      "name": "matched-controls",
+      "sha256": "43d146928751401f34f6fe8c79a6e00320d7b9c974b12fc6bbbc03100b340cd0"
+    },
+    {
+      "name": "fresh",
+      "sha256": "ce1619e7feb33c8572d18216f062b124d4cdeae6816b4be9785914a37cd47d35"
+    }
+  ],
+  "samples": [
+    {
+      "id": "xrpl-4.2.1",
+      "name": "xrpl",
+      "version": "4.2.1",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 75,
+        "level": "dangerous",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "content-secret-exfiltration",
+            "severity": "critical"
+          }
+        ]
+      }
+    },
+    {
+      "id": "solana-web3-1.95.7",
+      "name": "@solana/web3.js",
+      "version": "1.95.7",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 75,
+        "level": "dangerous",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "content-secret-exfiltration",
+            "severity": "critical"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ctrl-tinycolor-4.1.1",
+      "name": "@ctrl/tinycolor",
+      "version": "4.1.1",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-sensitive-network",
+            "severity": "high"
+          }
+        ]
+      }
+    },
+    {
+      "id": "custom-tg-bot-plan-1.0.1",
+      "name": "custom-tg-bot-plan",
+      "version": "1.0.1",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 69,
+        "level": "suspicious",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-download-exec",
+            "severity": "high"
+          }
+        ]
+      }
+    },
+    {
+      "id": "passports-js-0.7.0",
+      "name": "passports-js",
+      "version": "0.7.0",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 85,
+        "level": "suspicious",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "content-concealed-capabilities",
+            "severity": "high"
+          }
+        ]
+      }
+    },
+    {
+      "id": "debug-4.4.2",
+      "name": "debug",
+      "version": "4.4.2",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 75,
+        "level": "dangerous",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "content-browser-interception",
+            "severity": "critical"
+          }
+        ]
+      }
+    },
+    {
+      "id": "debug-4.4.1",
+      "name": "debug",
+      "version": "4.4.1",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "eslint-config-prettier-10.1.7",
+      "name": "eslint-config-prettier",
+      "version": "10.1.7",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 74,
+        "level": "suspicious",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-concealed-native-exec",
+            "severity": "high"
+          },
+          {
+            "ruleId": "content-native-binary",
+            "severity": "low"
+          }
+        ]
+      }
+    },
+    {
+      "id": "eslint-config-prettier-10.1.5",
+      "name": "eslint-config-prettier",
+      "version": "10.1.5",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "is-3.3.1",
+      "name": "is",
+      "version": "3.3.1",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-obfuscated-exec",
+            "severity": "high"
+          }
+        ]
+      }
+    },
+    {
+      "id": "is-3.3.0",
+      "name": "is",
+      "version": "3.3.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "esbuild-0.25.5",
+      "name": "esbuild",
+      "version": "0.25.5",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 84,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-gyp-11.2.0",
+      "name": "node-gyp",
+      "version": "11.2.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cross-spawn-7.0.6",
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "metamask--providers-22.1.0",
+      "name": "@metamask/providers",
+      "version": "22.1.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "walletconnect--ethereum-provider-2.21.1",
+      "name": "@walletconnect/ethereum-provider",
+      "version": "2.21.1",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "sentry--browser-9.22.0",
+      "name": "@sentry/browser",
+      "version": "9.22.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "axios-1.9.0",
+      "name": "axios",
+      "version": "1.9.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "lodash-4.17.21",
+      "name": "lodash",
+      "version": "4.17.21",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "terser-5.39.0",
+      "name": "terser",
+      "version": "5.39.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "core-js-3.42.0",
+      "name": "core-js",
+      "version": "3.42.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "xrpl-4.2.5",
+      "name": "xrpl",
+      "version": "4.2.5",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "solana-web3-1.95.8",
+      "name": "@solana/web3.js",
+      "version": "1.95.8",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "ctrl-tinycolor-4.2.0",
+      "name": "@ctrl/tinycolor",
+      "version": "4.2.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "passport-0.7.0",
+      "name": "passport",
+      "version": "0.7.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "node-telegram-bot-api-0.66.0",
+      "name": "node-telegram-bot-api",
+      "version": "0.66.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "node-ipc-12.0.1",
+      "name": "node-ipc",
+      "version": "12.0.1",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "nodelogic-1.0.0",
+      "name": "nodelogic",
+      "version": "1.0.0",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rspack-core-1.1.7",
+      "name": "@rspack/core",
+      "version": "1.1.7",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 84,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "0xengine-xmlrpc-1.3.18",
+      "name": "@0xengine/xmlrpc",
+      "version": "1.3.18",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "ethereumvulncontracthandler-1.3.0",
+      "name": "ethereumvulncontracthandler",
+      "version": "1.3.0",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "slf4j-api-js-1.0.0",
+      "name": "slf4j-api-js",
+      "version": "1.0.0",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 84,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "xlsx-to-json-lh-0.5.2",
+      "name": "xlsx-to-json-lh",
+      "version": "0.5.2",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 82,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 82,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          },
+          {
+            "ruleId": "suspicious-build-metadata",
+            "severity": "low"
+          }
+        ]
+      }
+    },
+    {
+      "id": "crypto-encrypt-ts-5.4.5",
+      "name": "crypto-encrypt-ts",
+      "version": "5.4.5",
+      "label": "malicious",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 84,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "aws-sdk-client-s3-3.758.0",
+      "name": "@aws-sdk/client-s3",
+      "version": "3.758.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "opentelemetry-sdk-node-0.57.2",
+      "name": "@opentelemetry/sdk-node",
+      "version": "0.57.2",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "nodemailer-6.10.1",
+      "name": "nodemailer",
+      "version": "6.10.1",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "electron-get-3.1.0",
+      "name": "@electron/get",
+      "version": "3.1.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 85,
+        "level": "suspicious",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "typosquatting",
+            "severity": "high"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 77,
+        "level": "suspicious",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "typosquatting",
+            "severity": "high"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sharp-0.34.1",
+      "name": "sharp",
+      "version": "0.34.1",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 84,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "install-script",
+            "severity": "medium"
+          },
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "webpack-5.99.8",
+      "name": "webpack",
+      "version": "5.99.8",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 92,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": [
+          {
+            "ruleId": "content-process-exec",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ethers-6.13.5",
+      "name": "ethers",
+      "version": "6.13.5",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "tweetnacl-1.0.3",
+      "name": "tweetnacl",
+      "version": "1.0.3",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "jsonwebtoken-9.0.2",
+      "name": "jsonwebtoken",
+      "version": "9.0.2",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "dotenv-16.5.0",
+      "name": "dotenv",
+      "version": "16.5.0",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 75,
+        "level": "dangerous",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "secret-exposure",
+            "severity": "critical"
+          }
+        ]
+      },
+      "deep": {
+        "status": "complete",
+        "score": 75,
+        "level": "dangerous",
+        "highCriticalAlert": true,
+        "findings": [
+          {
+            "ruleId": "secret-exposure",
+            "severity": "critical"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fastify-5.3.2",
+      "name": "fastify",
+      "version": "5.3.2",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    },
+    {
+      "id": "ws-8.18.2",
+      "name": "ws",
+      "version": "8.18.2",
+      "label": "benign",
+      "metadata": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      },
+      "deep": {
+        "status": "complete",
+        "score": 100,
+        "level": "safe",
+        "highCriticalAlert": false,
+        "findings": []
+      }
+    }
+  ],
+  "changes": [],
+  "counts": {
+    "malicious": {
+      "total": 16,
+      "complete": 16,
+      "highCritical": 8
+    },
+    "benign": {
+      "total": 30,
+      "complete": 30,
+      "highCritical": 2
+    }
+  }
+}

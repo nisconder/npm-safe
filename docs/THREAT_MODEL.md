@@ -32,9 +32,18 @@ rules to JavaScript, TypeScript, shell scripts, native files, and binaries.
 
 Deep scanning does **not** extract files to disk, build a complete AST, execute
 the package, follow runtime imports, or observe runtime behavior. Its default
-limits are 20 MiB compressed, 50 MiB unpacked, 5,000 entries, 1 MiB per text
+limits are 20 MiB compressed, 50 MiB unpacked, 5,000 entries, 4 MiB per text
 file, and 8 MiB total inspected text. A limit produces a visible partial scan;
 CI deep mode treats partial or failed scans as a failed gate.
+
+For JavaScript, `content-obfuscated-exec` looks for encoded quoted literals or
+recognized decoder calls inside `eval`'s first argument or `Function`'s body
+argument, within a 256-token call boundary. Unrelated encoded assets, comments,
+and global-object probes do not establish this signal. This is a lexical
+heuristic, not data-flow proof: values passed through bindings, arbitrary
+transforms, aliases, templates or larger expressions may be missed; shadowed
+names and incidental decoder calls inside arguments may still cause alerts.
+Other text formats retain their broader same-file heuristic.
 
 Optional LLM analysis receives a bounded subset of the same README and manifest
 data. It is disabled by default and only runs after the user configures a
@@ -70,9 +79,22 @@ npm-safe. Run untrusted builds with minimal credentials and privileges.
 ## Score Interpretation
 
 The score is a triage aid. It is calculated from weighted rule findings and is
-not a probability, certification, or guarantee of safety. Review every finding
-and treat a clean result as "no configured signal detected," not "safe to
-execute."
+not a probability, certification, or guarantee of safety. Critical findings
+or scores below 50 produce `dangerous`; otherwise incomplete scans or invalid
+scores produce `unknown`. A High finding makes a complete scan at least
+`suspicious`, regardless of its score. Remaining scores of 80 or more produce
+`safe`, and 50–79 produce `suspicious`.
+
+`safe` can still include Medium and Low findings. One High finding deducts
+15 points: its 85/100 result is `suspicious`, not `safe`.
+Review the evidence for every finding. A completed scan with no findings means
+"no configured signal detected" within the selected inspection boundary;
+even that does not establish runtime safety.
+
+False positives and missed detections are possible. Automated tests verify
+the behaviors covered by their cases; passing them does not establish
+real-world detection accuracy. See the [evaluation protocol and reports](evaluation.md)
+for sample coverage and remaining limitations.
 
 ## Data Flow
 

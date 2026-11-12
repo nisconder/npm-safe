@@ -7,7 +7,7 @@ that report with bounded inspection of the published package tarball. Neither
 mode uses LLM inference or executes package code.
 
 The 10 metadata rules are defined in `src/scanner/static-rules.ts` and exported
-via `BUILTIN_RULES`. Fourteen content rule descriptors are exported from
+via `BUILTIN_RULES`. Seventeen content rule descriptors are exported from
 `src/scanner/package-content.ts` via `CONTENT_SCAN_RULES`.
 
 ---
@@ -78,8 +78,11 @@ or `engine.checkPackage(name, { deep: true })`.
 | `content-archive-link` | High | A symbolic or hard link, including PAX/GNU long links, targets an escaping path. |
 | `content-native-binary` | Low | The archive contains `.node`, `.dll`, `.so`, `.dylib`, `.exe`, `.wasm`, or `.bin` content. |
 | `content-remote-shell` | Critical | Remote content is piped or passed directly to a shell/interpreter. |
-| `content-obfuscated-exec` | High | An encoded-payload signal appears with a case-sensitive `eval`/`Function` call; JavaScript comments and quoted examples do not supply the call. |
+| `content-obfuscated-exec` | High | For JavaScript, encoded quoted literals or recognized decoder calls occur in `eval`'s first argument or `Function`'s body argument (up to 256 call tokens). Unrelated same-file encoding, comments and quoted call examples do not establish this signal; arbitrary variable/data flow is not followed. Other text formats retain the broader same-file check. |
 | `content-network-exec` | High | A bounded local flow connects fetch response text to a child-process command or explicit shell `-c` input. |
+| `content-secret-exfiltration` | Critical | Bounded local flows connect private keys, wallet seeds or mnemonics to fetch headers/body sent to a literal HTTP(S) endpoint, including recognized reversible encodings and named helper calls. |
+| `content-download-exec` | High | Local helpers connect an HTTP response to a written file, optional archive extraction, and a detached child process with ignored stdio. |
+| `content-concealed-capabilities` | High | Bounded constant string-table recovery reveals actual process, file and network calls together. Obfuscation alone is insufficient. |
 | `content-process-exec` | Medium | Non-test runtime source imports or invokes Node child-process functionality. |
 | `content-sensitive-network` | High | One file reads sensitive environment values and performs network access. |
 | `content-concealed-native-exec` | High | Quoted string concatenation or escapes conceal a child-process native-loader call with a DLL entry point. |
@@ -88,7 +91,7 @@ or `engine.checkPackage(name, { deep: true })`.
 | `content-scan-unavailable` | Medium | The tarball is missing, refused by origin policy, or cannot be downloaded. |
 
 To bound decompression bombs and parser abuse, default limits are 20 MiB
-compressed (download layer), 50 MiB unpacked, 5,000 TAR entries, 1 MiB per
+compressed (download layer), 50 MiB unpacked, 5,000 TAR entries, 4 MiB per
 text file, and 8 MiB total inspected text. Archives stay in memory and are
 never extracted. Findings are deduplicated by rule ID per archive to keep one
 large package from overwhelming the score. A `ContentScanSummary` records
@@ -97,13 +100,16 @@ the partial/failure reason.
 
 Deep rules honor the same enable/disable and severity overrides as metadata
 rules and appear in `npm-safe rules list`. The content scanner uses regular
-expressions, bounded lexical inspection and narrow local response-flow shapes;
+expressions, bounded lexical inspection and narrow local flow shapes;
 full AST and general interprocedural data-flow analysis remain future work.
-The lexical checks do not execute JavaScript, resolve arbitrary
-values or decode payloads. They fold adjacent quoted string literals only
+The lexical checks do not execute JavaScript or resolve arbitrary
+values. They fold adjacent quoted string literals
 (including static escapes), with a 4,096-character literal/fold limit, and
-skip template expressions. Lexical inspection is limited to 1 MiB of source
-and 200,000 tokens per file; reaching either budget makes inspection partial.
+skip template expressions. The concealed-capabilities rule also interprets
+a restricted grammar of constant string tables and checksum-based rotations;
+it never evaluates the package's JavaScript. Lexical inspection is limited to
+4 MiB of source and 1,600,000 tokens per file; reaching either budget makes
+inspection partial.
 Files whose necessary lexical signals are absent retain the other rules but
 avoid token allocation. These prefilters do not use package names or lower
 resource budgets. Tokenization uses character-code classification and folds
@@ -117,6 +123,8 @@ supports bare or qualified global fetch, bounded copies and literal
 concatenations, with 256-token/4,096-character expressions and limited local
 scope tracking. It does not follow custom HTTP callbacks, Promise chains,
 downloads written to disk and then executed, or arbitrary cross-function flow.
+The separate download-execution rule handles a narrow HTTP/write/extract/silent
+spawn chain; ordinary downloads beside unrelated build commands do not match.
 Complete archive parsing does not imply complete behavior/data-flow coverage.
 
 `content-concealed-native-exec` requires a direct or same-block constant alias
