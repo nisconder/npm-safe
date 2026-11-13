@@ -16,6 +16,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { NpmSafeEngine, DatabaseManager, CacheManager } from "@npm-safe/core";
+import { desktopLlmStatus, reviewDesktopPackageSource } from "./source-review.mjs";
 
 // ---------------------------------------------------------------------------
 // Startup: read connectivity info passed via stdin by the Neutralinojs server
@@ -92,6 +93,7 @@ ws.onerror = (err) => {
 
 const SUPPORTED_METHODS = new Set([
   "assessInstallRisk",
+  "reviewPackageSource",
   "checkPackage",
   "searchPackages",
   "getWatchlist",
@@ -180,6 +182,8 @@ async function invoke(method, data) {
   switch (method) {
     case "assessInstallRisk":
       return await engine.assessInstallRisk(data.input, data.profile ?? "web", data.targetKind ?? "auto");
+    case "reviewPackageSource":
+      return await reviewDesktopPackageSource(engine, data, log);
     case "checkPackage": {
       const result = await engine.checkPackage(data.name);
       if (result.exists && result.security) {
@@ -242,7 +246,7 @@ async function invoke(method, data) {
     case "loadRulePlugins":
       return await engine.loadRulePlugins(data.dir);
     case "getLlmStatus":
-      return engine.getLlmStatus();
+      return desktopLlmStatus(engine);
     case "setLlmConfig":
       engine.setLlmConfig(data);
       return null;

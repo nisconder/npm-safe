@@ -960,6 +960,49 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 .install-risk-card.risk-low { --risk-tone: var(--risk-safe); }
 .install-risk-card.risk-medium { --risk-tone: var(--risk-caution); }
 .install-risk-card.risk-high { --risk-tone: var(--risk-danger); }
+.install-risk-card.risk-source-malicious { --risk-tone: var(--risk-danger); }
+
+.source-review-panel {
+  margin: 20px 26px 20px 30px;
+  padding: 16px;
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 12px;
+  font-size: var(--type-reading);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.source-review-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.source-review-header h4 { margin: 0; font-size: var(--type-heading); }
+.source-review-panel p { margin: 10px 0 0; line-height: 1.65; }
+.source-review-scope, .source-review-caveat, .llm-source-review-hint {
+  color: var(--md-on-surface-variant);
+  font-size: var(--type-caption);
+  line-height: 1.65;
+}
+.llm-source-review-hint { margin: 0 0 18px; }
+.source-review-result { margin-top: 14px; padding: 14px; border: 1px solid var(--md-outline-variant); border-radius: 8px; }
+.source-review-result > strong { font-size: var(--type-heading); }
+.source-review-result.warning { border-color: var(--risk-caution); }
+.source-review-result.warning > strong { color: var(--risk-caution); }
+.source-review-result.danger { border-color: var(--risk-danger); background: color-mix(in srgb, var(--risk-danger) 9%, transparent); }
+.source-review-result.danger > strong { color: var(--risk-danger); }
+.source-review-metrics { display: grid; gap: 8px; margin: 14px 0 0; }
+.source-review-metrics > div { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.source-review-metrics dt { color: var(--md-on-surface-variant); }
+.source-review-metrics dd { margin: 0; font-family: var(--md-font-mono); }
+.source-review-diagnostic { white-space: pre-wrap; }
+.source-review-settings { margin-top: 10px; }
+.source-review-findings { margin: 16px 0 0; padding-left: 22px; }
+.source-review-findings li + li { margin-top: 14px; }
+.source-review-location { font-family: var(--md-font-mono); font-size: var(--type-caption); }
 
 .risk-card-rail {
   position: absolute;

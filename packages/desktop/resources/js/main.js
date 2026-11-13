@@ -39,13 +39,18 @@ function registerHistoryEvents() {
   }
 }
 
-function callEngine(method, data) {
+function callEngine(method, data, options = {}) {
   return new Promise((resolve, reject) => {
     const requestId = crypto.randomUUID();
+    const timeoutMs = method === "reviewPackageSource"
+      ? Math.min(2147483647, Math.max(120000, Number(options.timeoutMs) || 120000))
+      : 30000;
     const timer = setTimeout(() => {
       pending.delete(requestId);
-      reject(new Error("请求超时"));
-    }, 30000);
+      reject(new Error(method === "reviewPackageSource"
+        ? "LLM 源码复核等待超时；后台可能仍在处理，请确认原任务结束后再重试。"
+        : "请求超时"));
+    }, timeoutMs);
     pending.set(requestId, {
       resolve: (v) => {
         clearTimeout(timer);
@@ -57,10 +62,20 @@ function callEngine(method, data) {
       },
     });
 
-    Neutralino.extensions.dispatch(EXT_ID, method, {
-      ...data,
-      _requestId: requestId,
-    });
+    try {
+      Promise.resolve(Neutralino.extensions.dispatch(EXT_ID, method, {
+        ...data,
+        _requestId: requestId,
+      })).catch((error) => {
+        pending.delete(requestId);
+        clearTimeout(timer);
+        reject(error);
+      });
+    } catch (error) {
+      pending.delete(requestId);
+      clearTimeout(timer);
+      reject(error);
+    }
   });
 }
 
@@ -95,6 +110,7 @@ function registerEngineEvents() {
   const events = [
     "assessInstallRisk",
     "checkPackage",
+    "reviewPackageSource",
     "searchPackages",
     "getWatchlist",
     "addToWatchlist",
@@ -298,10 +314,143 @@ const CHECK_STATUS = {
   unknown: { icon: "?", label: "未知" },
 };
 
+let activeRiskCard = null;
+const sourceReviewInFlight = new Set();
+
+function sourceReviewTimeout(status) {
+  const timeout = Number(status.timeoutMs);
+  return Number.isFinite(timeout) && timeout > 0
+    ? Math.min(2147483647, timeout * 2 + 130000)
+    : 120000;
+}
+
+function sourceReviewMalicious(card) {
+  const report = card?.review?.report;
+  return report?.status === "complete" && report.verdict === "malicious";
+}
+
+function riskVerdictMarkup(result, card) {
+  const malicious = sourceReviewMalicious(card);
+  const risk = malicious ? RISK_LABELS.high : RISK_LABELS[result.riskLevel] ?? RISK_LABELS.medium;
+  return `<span class="risk-verdict-label">${malicious ? "总体风险" : "静态风险"}</span>
+    <strong>${escapeHtml(risk.en)}</strong><span>${escapeHtml(risk.zh)}</span>`;
+}
+
+function sourceReviewMarkup(card) {
+  const state = card.review;
+  const busy = state.busy || sourceReviewInFlight.has(card.key);
+  const report = state.report;
+  const count = (value) => Number.isFinite(value) && value >= 0 ? value.toLocaleString("zh-CN") : "0";
+  let content = `<p>尚未调用模型。风险卡的分数与发现来自静态检查。</p>`;
+  if (busy) {
+    content = `<p role="status">正在获取发布源码并等待模型复核，最多两轮模型请求；可继续查看其他包。</p>`;
+  } else if (state.error) {
+    content = `<div class="source-review-result warning"><strong>源码复核未完成</strong><p>${escapeHtml(state.error)}</p>
+      ${state.needsSettings ? '<button class="source-review-settings btn text" data-open-llm-settings>打开 LLM 设置</button>' : ""}</div>`;
+  } else if (report) {
+    const complete = report.status === "complete";
+    const malicious = complete && report.verdict === "malicious";
+    const title = !complete
+      ? report.status === "skipped" ? "源码复核未执行" : "源码复核失败"
+      : malicious ? "发现恶意行为，整体风险已标为高风险"
+        : report.verdict === "benign" ? "本次证据未发现恶意行为" : "证据不足，结论未知";
+    const coverage = report.coverage;
+    const coverageStatus = { complete: "完整", partial: "部分", failed: "失败" }[coverage?.sourceCoverage] ?? "未提供";
+    const findings = Array.isArray(report.findings) ? report.findings : [];
+    const evidence = findings.slice(0, 10).map((finding) => `<li>
+      <strong>${escapeHtml(finding.ruleName || finding.ruleId || "源码证据")}</strong>
+      <p>${escapeHtml(finding.message || "")}</p>
+      ${finding.filePath ? `<p class="source-review-location">${escapeHtml(finding.filePath)}${finding.lineNumber ? `:${escapeHtml(String(finding.lineNumber))}` : ""}</p>` : ""}
+      ${finding.recommendation ? `<p>建议：${escapeHtml(finding.recommendation)}</p>` : ""}</li>`).join("");
+    content = `<div class="source-review-result ${malicious ? "danger" : !complete || report.verdict === "unknown" ? "warning" : "reviewed"}">
+      <strong>${title}</strong>
+      <dl class="source-review-metrics">
+        <div><dt>状态</dt><dd>${escapeHtml(report.status)}</dd></div>
+        <div><dt>结论</dt><dd>${escapeHtml(report.verdict)}</dd></div>
+        <div><dt>模型调用</dt><dd>${count(report.calls)}</dd></div>
+        <div><dt>累计发送源码字符（含重复）</dt><dd>${count(report.sourceCharsSent)}</dd></div>
+        <div><dt>初始源码覆盖</dt><dd>${coverageStatus}${coverage ? ` · ${count(coverage.shownFiles)} / ${count(coverage.candidateFiles)} 个候选文件；${count(coverage.shownChars)} / ${count(coverage.decodedChars)} 字符` : ""}</dd></div>
+        <div><dt>补充新增覆盖字符</dt><dd>${count(report.newlyCoveredChars)}</dd></div>
+      </dl>
+      ${report.summary ? `<p>${escapeHtml(report.summary)}</p>` : ""}
+      ${report.reason ? `<p class="source-review-diagnostic">诊断：${escapeHtml(report.reason)}</p>` : ""}
+      ${report.sourceRequestFailure ? '<p class="source-review-diagnostic">模型的补充源码请求未通过校验，未提供额外源码；最终判断仍限于原有证据。</p>' : ""}
+      ${evidence ? `<ol class="source-review-findings">${evidence}</ol>${findings.length > 10 ? `<p>显示前 10 项，共 ${count(findings.length)} 项证据。</p>` : ""}` : ""}
+      <p class="source-review-caveat">${escapeHtml(coverage?.caveat || "复核结论限于本次发送给模型的源码证据，未覆盖内容仍可能存在风险。")}</p>
+      <p class="source-review-caveat">静态安全分保持独立；源码复核不会降低已有静态风险。</p>
+    </div>`;
+  }
+  return `<div class="source-review-header"><h4>LLM 源码复核</h4>
+    <button class="btn outlined" data-source-review ${busy || !card.exactVersion ? "disabled" : ""}>${busy ? "正在复核..." : "LLM 源码复核"}</button></div>
+    <p class="source-review-scope">将 ${escapeHtml(card.name)}@${escapeHtml(card.version)} 的发布源码证据发送到已配置的模型；需启用源码复核。</p>
+    ${!card.exactVersion ? "<p>需要先获得确定的 npm 发布版本，才能进行源码复核。</p>" : content}`;
+}
+
+function bindSourceReview(card) {
+  const area = document.getElementById("check-result");
+  area.querySelector("[data-source-review]")?.addEventListener("click", () => handleSourceReview(card));
+  area.querySelector("[data-open-llm-settings]")?.addEventListener("click", () => {
+    document.querySelector('.nav-item[data-tab="llm"]')?.click();
+  });
+}
+
+function updateSourceReview(card) {
+  if (activeRiskCard !== card) return;
+  const area = document.getElementById("check-result");
+  const panel = area.querySelector("[data-source-review-panel]");
+  if (panel) panel.innerHTML = sourceReviewMarkup(card);
+  const verdict = area.querySelector("[data-risk-verdict]");
+  if (verdict) verdict.innerHTML = riskVerdictMarkup(card.assessment, card);
+  area.querySelector("[data-risk-card]")?.classList.toggle("risk-source-malicious", sourceReviewMalicious(card));
+  bindSourceReview(card);
+}
+
+async function handleSourceReview(card) {
+  if (activeRiskCard !== card || !card.exactVersion || sourceReviewInFlight.has(card.key)) return;
+  sourceReviewInFlight.add(card.key);
+  card.review = { busy: true };
+  updateSourceReview(card);
+  try {
+    const status = await callEngine("getLlmStatus", {});
+    if (activeRiskCard !== card) return;
+    const missing = [];
+    if (!status.enabled) missing.push("启用 LLM 扫描");
+    if (!status.configured) missing.push("配置模型与 API 密钥");
+    if (!status.sourceReview) missing.push("启用 LLM 源码复核");
+    if (missing.length) {
+      card.review = { needsSettings: true, error: `请在 LLM 设置中${missing.join("、")}并保存，然后重试。` };
+      return;
+    }
+    const result = await callEngine("reviewPackageSource", { name: card.name, version: card.version }, {
+      timeoutMs: sourceReviewTimeout(status),
+    });
+    if (result.packageName !== card.name || result.latestVersion !== card.version) {
+      throw new Error("源码复核返回的包或版本与当前风险卡不一致，请重新检查。");
+    }
+    if (!result.security?.sourceReview) throw new Error("源码复核未返回结果，请检查 LLM 设置与后端诊断。");
+    card.review = { report: result.security.sourceReview };
+  } catch (err) {
+    card.review = { error: err.message ?? "源码复核失败" };
+  } finally {
+    sourceReviewInFlight.delete(card.key);
+    card.review.busy = false;
+    updateSourceReview(card);
+    // A new scan of the same version may have been displayed while this task ran.
+    // Re-enable its button without copying the old generation's result.
+    if (activeRiskCard && activeRiskCard !== card && activeRiskCard.key === card.key) updateSourceReview(activeRiskCard);
+  }
+}
+
 function renderInstallRisk(result) {
   const area = document.getElementById("check-result");
   const isDshPlugin = result.packageKind === "dsh-plugin";
-  const risk = RISK_LABELS[result.riskLevel] ?? RISK_LABELS.medium;
+  const card = result.sourceKind === "npm" ? {
+    name: result.packageName, version: result.version,
+    key: JSON.stringify([result.packageName, result.version]),
+    exactVersion: /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(result.version),
+    assessment: result, review: {},
+  } : null;
+  activeRiskCard = card;
   const checks = result.checks ?? [];
   const findings = result.findings ?? [];
   const checkedAt = new Date(result.inspectedAt).toLocaleString("zh-CN", {
@@ -337,7 +486,7 @@ function renderInstallRisk(result) {
     : `<div class="risk-clear"><span>✓</span>没有需要展开的风险项。</div>`;
 
   area.innerHTML = `
-    <article class="install-risk-card risk-${escapeAttr(result.riskLevel)}">
+    <article class="install-risk-card risk-${escapeAttr(result.riskLevel)}" data-risk-card>
       <div class="risk-card-rail" aria-hidden="true"></div>
       <header class="risk-card-header">
         <div>
@@ -350,18 +499,14 @@ function renderInstallRisk(result) {
           <h3>${escapeHtml(result.packageName)}</h3>
           <div class="risk-version">${escapeHtml(result.version)}</div>
         </div>
-        <div class="risk-verdict">
-          <span class="risk-verdict-label">RISK</span>
-          <strong>${escapeHtml(risk.en)}</strong>
-          <span>${escapeHtml(risk.zh)}</span>
-        </div>
+        <div class="risk-verdict" data-risk-verdict>${riskVerdictMarkup(result, card)}</div>
       </header>
 
       <div class="risk-summary-row">
         <div class="risk-score-block">
           <span class="risk-score">${escapeHtml(String(result.safetyScore))}</span>
           <span class="risk-score-denominator">/100</span>
-          <span class="risk-score-label">安全分</span>
+          <span class="risk-score-label">静态安全分</span>
         </div>
         <p>${escapeHtml(result.summary)}</p>
       </div>
@@ -382,6 +527,8 @@ function renderInstallRisk(result) {
         <div class="risk-findings">${findingsHtml}</div>
       </section>
 
+      ${card ? `<section class="source-review-panel" data-source-review-panel aria-live="polite">${sourceReviewMarkup(card)}</section>` : ""}
+
       <section class="safe-command-panel">
         <div class="command-label">
           <span>固定来源安装命令</span>
@@ -398,6 +545,8 @@ function renderInstallRisk(result) {
         <span>${result.integrityVerified === true ? "npm 完整性已验证" : result.sourceKind === "github" ? "已固定 commit" : "发布内容未完成完整性验证"}</span>
       </footer>
     </article>`;
+
+  if (card) bindSourceReview(card);
 
   area.querySelector("[data-copy-command]")?.addEventListener("click", async (event) => {
     const button = event.currentTarget;
@@ -468,6 +617,7 @@ async function handleCheck() {
   }
 
   setBusy(btn, true);
+  activeRiskCard = null;
   inputField.disabled = true;
   kindField.disabled = true;
   setStatus(`正在生成安装风险卡: ${input} ...`);
@@ -800,6 +950,7 @@ async function handleLoadRulePlugins() {
 async function renderLlmConfig() {
   const statusText = document.getElementById("llm-status-text");
   const enabledInput = document.getElementById("llm-enabled");
+  const sourceReviewInput = document.getElementById("llm-source-review");
   const providerInput = document.getElementById("llm-provider");
   const apiKeyInput = document.getElementById("llm-api-key");
   const modelInput = document.getElementById("llm-model");
@@ -811,6 +962,7 @@ async function renderLlmConfig() {
   try {
     const status = await callEngine("getLlmStatus", {});
     enabledInput.checked = status.enabled;
+    sourceReviewInput.checked = status.sourceReview === true;
     providerInput.value = status.provider;
     apiKeyInput.value = "";
     apiKeyInput.placeholder = " ";
@@ -836,6 +988,7 @@ async function handleLlmSave() {
   try {
     const update = {
       enabled: document.getElementById("llm-enabled").checked,
+      sourceReview: document.getElementById("llm-source-review").checked,
       provider: document.getElementById("llm-provider").value,
       model: document.getElementById("llm-model").value.trim() || undefined,
       baseUrl: document.getElementById("llm-base-url").value.trim() || undefined,
@@ -865,6 +1018,7 @@ async function handleLlmTest() {
     // explicit Save click).
     const update = {
       enabled: document.getElementById("llm-enabled").checked,
+      sourceReview: document.getElementById("llm-source-review").checked,
       provider: document.getElementById("llm-provider").value,
       model: document.getElementById("llm-model").value.trim() || undefined,
       baseUrl: document.getElementById("llm-base-url").value.trim() || undefined,

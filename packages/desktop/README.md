@@ -70,6 +70,8 @@ The dashboard is re-rendered every time you navigate back to the tab.
 - **检查类型** defaults to automatic detection; choose **普通 npm 包** or **DSH 插件** to override it.
 - **Scan scope** — npm inputs check metadata and deep-scan the published source by default. GitHub inputs currently check the repository manifest and README.
 - The card shows the package type, resolved immutable source, overall risk, safety score, evidence rows, and actionable findings.
+- **LLM 源码复核** runs a fresh model review of the npm release pinned on the card, using the same deep-check engine as the CLI. Enable LLM scanning and source review in the LLM settings first. The result shows completion status, verdict, model calls, source characters and coverage; a successful connection test alone does not review source. GitHub manifest-only cards do not offer this action.
+- Source-review results are shown separately from the static score. A malicious verdict raises the displayed risk, while failed or inconclusive reviews are never presented as safe. Review coverage is bounded and does not guarantee that all published source has been reviewed.
 - npm sources are resolved to `package@exact-version`; GitHub sources are resolved to `github:owner/repository#commit-sha`.
 - Lifecycle scripts and suspicious dependency specs are called out for all packages. DSH plugins also receive checks for misplaced or duplicated host packages, missing or unpublished bundle patches, and incompatible peer ranges.
 - **Copy pinned command** copies `npm install package@exact-version` for an ordinary package or `dsh plugin ... add ...` for a DSH plugin. Packages with install lifecycle scripts include `--ignore-scripts` as an additional guardrail.

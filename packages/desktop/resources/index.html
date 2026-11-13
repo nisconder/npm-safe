@@ -180,7 +180,7 @@
                 </select>
                 <span id="check-kind-hint">普通 npm 包不要求 DSH bundle；检查特定插件时也可手动选择。</span>
               </div>
-              <p id="check-scope-hint" class="preflight-scope-hint">npm 包检查元数据并深扫发布源码；GitHub 地址检查仓库清单与 README。</p>
+              <p id="check-scope-hint" class="preflight-scope-hint">npm 包静态检查元数据与发布源码；GitHub 地址检查仓库清单与 README。模型复核需在风险卡中单独发起。</p>
               <div class="preflight-examples">
                 <button class="example-chip" data-example="lodash" data-target-kind="auto">lodash</button>
                 <button class="example-chip" data-example="@npm-safe/dsh-tool-npm-safe" data-target-kind="auto">@npm-safe/dsh-tool-npm-safe</button>
@@ -252,6 +252,14 @@
                   <span class="switch-text">启用 LLM 扫描</span>
                 </label>
               </div>
+              <div class="form-row switch-row">
+                <label class="switch-label">
+                  <input type="checkbox" id="llm-source-review" />
+                  <span class="switch"></span>
+                  <span class="switch-text">启用 LLM 源码复核</span>
+                </label>
+              </div>
+              <p class="llm-source-review-hint">将有预算限制的 npm 发布源码证据发送到已配置的模型，最多两轮请求。保存后，可在安装风险卡中单独发起复核。</p>
               <div class="form-grid">
                 <div class="text-field outlined">
                   <select id="llm-provider">

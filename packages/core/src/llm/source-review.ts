@@ -2,7 +2,8 @@ import { createHash } from 'node:crypto';
 import type { LlmScanProvider } from './provider.js';
 import { FindingCategory, Severity, type ScanFinding } from '../scanner/types.js';
 import { collectSourceBundle, SOURCE_BUNDLE_LIMITS } from './source/source-bundle.js';
-import { collectSourceSupplement, combineSourceEvidence, sourceLineAt, SUPPLEMENT_LIMITS } from './source/source-supplement.js';
+import { collectSourceSupplement, combineSourceEvidence, sourceLineAt, validateSourceRequest, SourceRequestValidationError, SOURCE_REQUEST_BOUNDS_PROMPT, SUPPLEMENT_LIMITS } from './source/source-supplement.js';
+import type { SourceRequestValidationCode } from './source/source-supplement.js';
 import { SYSTEM_PROMPT, REVIEW_PROMPT, validateReview } from './source/review-contract.js';
 import type { SourceBundle, SourcePacket, SourceReview, SourceSupplement } from './source/types.js';
 import { assertSourcePrompt, SOURCE_RESPONSE_BYTES } from './source-transport.js';
@@ -14,10 +15,11 @@ const API_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
 );
 const REQUEST_PROMPT = `Instead of a final review, you may return ONE optional source request:
 {"schemaVersion":1,"caseId":"the supplied case ID","requests":[{"path":"exact sourceIndex path","startOffset":0,"endOffset":1000,"reason":"Missing behavior or connection"}]}
-At most 4 ranges, 40000 UTF-16 characters total, and 24000 per file. Offsets refer to original source; endOffset is exclusive. Only paths from packet.sourceIndex are permitted. Do not read files or contact endpoints yourself. The coordinator returns the requested source as data in one final round. If the available evidence does not support a reliable decision, return unknown. Do not request a second supplement.`;
+At most 4 ranges, 40000 UTF-16 characters total, and 24000 per file. Offsets refer to original source; endOffset is exclusive. ${SOURCE_REQUEST_BOUNDS_PROMPT} Do not read files or contact endpoints yourself. The coordinator returns the requested source as data in one final round. If the available evidence does not support a reliable decision, return unknown. Do not request a second supplement.`;
+const REJECTED_REQUEST_PROMPT = `The optional source request failed strict schema, indexed-path, offset or character-budget validation. No supplementary source was read or provided. The original packet is supplied again unchanged. This is the second and FINAL model call: further source requests are not permitted. Do not repair or repeat the request. Return only the final-review JSON schema using evidence already present in packet.files excerpts. Paths in sourceIndex alone are not evidence. Use unknown and explain the missing evidence when the supplied excerpts do not support a reliable decision.`;
 export const SOURCE_REVIEW_PROTOCOL_FINGERPRINT = createHash('sha256').update(JSON.stringify({
   version: SOURCE_REVIEW_PROTOCOL_VERSION, system: API_SYSTEM_PROMPT, review: REVIEW_PROMPT,
-  request: REQUEST_PROMPT, initialLimits: SOURCE_BUNDLE_LIMITS, supplementLimits: SUPPLEMENT_LIMITS,
+  request: REQUEST_PROMPT, rejectedRequest: REJECTED_REQUEST_PROMPT, initialLimits: SOURCE_BUNDLE_LIMITS, supplementLimits: SUPPLEMENT_LIMITS,
 })).digest('hex');
 
 /** Independent model result; confidence is not a security score or a probability. */
@@ -38,6 +40,8 @@ export interface SourceReviewReport {
   readonly sourceCharsSent: number;
   /** UTF-16 prompt characters sent, including system instructions and retransmits. */
   readonly promptCharsSent: number;
+  /** Fixed protocol diagnostic only; the rejected model request is never echoed. */
+  readonly sourceRequestFailure?: SourceRequestValidationCode;
   /** Empty when no archive could be acquired. */
   readonly archiveSha256: string;
   readonly protocolVersion: string;
@@ -96,7 +100,9 @@ export async function reviewPackageSource(
   let coverage: SourceBundle['coverage'] | undefined;
   let calls = 0, initialChars = 0, supplementChars = 0, newlyCoveredChars = 0, sourceCharsSent = 0, promptCharsSent = 0;
   let responseBytes = 0;
-  const accounting = () => ({ archiveSha256, coverage, calls, initialChars, supplementChars, newlyCoveredChars, sourceCharsSent, promptCharsSent });
+  let sourceRequestFailure: SourceRequestValidationCode | undefined;
+  const accounting = () => ({ archiveSha256, coverage, calls, initialChars, supplementChars, newlyCoveredChars, sourceCharsSent, promptCharsSent,
+    ...(sourceRequestFailure ? { sourceRequestFailure } : {}) });
   try {
     const packet: SourcePacket = { ...collectSourceBundle(archive, manifest), caseId };
     coverage = packet.coverage;
@@ -106,12 +112,13 @@ export async function reviewPackageSource(
       !/(?:^|\/)(?:package\.json|readme(?:\.[^/]*)?)$/i.test(file.path) && !/\.d\.[cm]?ts$/i.test(file.path))) {
       throw new Error('No executable source was available in the selected evidence.');
     }
-    const call = async (supplement?: SourceSupplement): Promise<unknown> => {
+    const call = async (supplement?: SourceSupplement, rejectedRequest?: SourceRequestValidationCode): Promise<unknown> => {
       signal?.throwIfAborted();
-      const systemPrompt = `${API_SYSTEM_PROMPT}\n\n${REVIEW_PROMPT}\n\n${supplement
+      const systemPrompt = `${API_SYSTEM_PROMPT}\n\n${REVIEW_PROMPT}\n\n${rejectedRequest ? REJECTED_REQUEST_PROMPT : supplement
         ? 'The single allowed supplement is included. Return your final review now; further source requests are not permitted.'
         : REQUEST_PROMPT}`;
-      const prompt = JSON.stringify({ caseId, packet, ...(supplement ? { supplement } : {}) });
+      const prompt = JSON.stringify({ caseId, packet, ...(supplement ? { supplement } : {}),
+        ...(rejectedRequest ? { sourceRequestFailure: { code: rejectedRequest, additionalSourceProvided: false, finalReviewRequired: true } } : {}) });
       assertSourcePrompt({ systemPrompt, prompt, signal });
       calls++;
       sourceCharsSent += initialChars + (supplement?.coverage.transmittedChars ?? 0);
@@ -126,11 +133,20 @@ export async function reviewPackageSource(
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Object.hasOwn(parsed, 'requests')) {
       if (responseBytes > SUPPLEMENT_LIMITS.requestBytes) throw new Error('Source request exceeds the byte budget.');
       if (createHash('sha256').update(archive).digest('hex') !== archiveSha256) throw new Error('Source archive changed during review.');
-      const supplement = collectSourceSupplement(archive, packet, parsed, caseId);
-      supplementChars = supplement.coverage.transmittedChars;
-      newlyCoveredChars = supplement.coverage.newlyCoveredChars ?? 0;
-      evidence = combineSourceEvidence(packet, supplement);
-      parsed = await call(supplement);
+      try { validateSourceRequest(parsed, packet, caseId); }
+      catch (error) {
+        if (!(error instanceof SourceRequestValidationError)) throw error;
+        sourceRequestFailure = error.code;
+      }
+      if (sourceRequestFailure) {
+        parsed = await call(undefined, sourceRequestFailure);
+      } else {
+        const supplement = collectSourceSupplement(archive, packet, parsed, caseId);
+        supplementChars = supplement.coverage.transmittedChars;
+        newlyCoveredChars = supplement.coverage.newlyCoveredChars ?? 0;
+        evidence = combineSourceEvidence(packet, supplement);
+        parsed = await call(supplement);
+      }
     }
     const checked = validateReview(parsed, evidence, caseId);
     if (!checked.valid || !checked.normalized) throw new Error(`Invalid source review: ${checked.errors.join(' ')}`);
