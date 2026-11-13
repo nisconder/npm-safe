@@ -78,6 +78,47 @@ describe('bounded source-review provider transports', () => {
 });
 
 describe('source-review orchestration', () => {
+  it('corrects a unique exact quote offset without changing the verdict, evidence or request accounting', async () => {
+    const source = '// UTF-16 🌐\r\nexport const answer = 42;\n';
+    const quote = 'export const answer = 42;';
+    const startOffset = source.indexOf(quote);
+    const report = await reviewPackageSource(archiveFor(source), manifest, providerWith(async input => {
+      const { caseId } = packetOf(input);
+      return JSON.stringify({ ...benign(caseId), verdict: 'malicious', findings: [{
+        kind: 'Synthetic fixture', severity: 'high', claim: 'A fixture claim, not a malware classification.',
+        reasoning: 'Only verifies preservation of a model verdict after deterministic source matching.',
+        evidence: [{ path: 'package/index.js', startOffset, endOffset: startOffset + quote.length + 7, quote }],
+      }] });
+    }));
+    assert.equal(report.status, 'complete');
+    assert.equal(report.verdict, 'malicious');
+    assert.equal(report.calls, 1);
+    assert.equal(report.sourceCharsSent, report.initialChars);
+    assert.equal(report.supplementChars, 0);
+    assert.equal(report.newlyCoveredChars, 0);
+    assert.deepEqual(report.evidenceOffsetCorrections, [{ findingIndex: 0, evidenceIndex: 0,
+      originalStartOffset: startOffset, originalEndOffset: startOffset + quote.length + 7,
+      startOffset, endOffset: startOffset + quote.length }]);
+    assert.equal(report.review?.findings[0].evidence[0].quote, quote);
+    assert.equal(report.review?.findings[0].evidence[0].endOffset, startOffset + quote.length);
+    assert.equal(report.findings[0].lineNumber, 2);
+    assert.equal(report.findings[0].codeSnippet, quote);
+    assert.equal(report.findings[0].severity, 'high');
+  });
+  it('retains failure when a response mixes a correctable quote with fabricated evidence', async () => {
+    const quote = 'export const answer = 42;';
+    const report = await reviewPackageSource(archiveFor(), manifest, providerWith(async input => JSON.stringify({
+      ...benign(packetOf(input).caseId), findings: [{ kind: 'Fixture', severity: 'low', claim: 'Mixed evidence', reasoning: 'Must validate every reference.',
+        evidence: [{ path: 'package/index.js', startOffset: 0, endOffset: 99, quote },
+          { path: 'package/index.js', startOffset: 0, endOffset: 4, quote: 'fake' }],
+      }],
+    })));
+    assert.equal(report.status, 'failed');
+    assert.equal(report.verdict, 'unknown');
+    assert.equal(report.calls, 1);
+    assert.deepEqual(report.findings, []);
+    assert.match(report.reason ?? '', /does not exactly match/);
+  });
   for (const mode of ['length-limited-final', 'reasoning-only'] as const) {
     it(`keeps an OpenAI-compatible ${mode} response failed and unknown without retry`, async () => {
       let requests = 0;

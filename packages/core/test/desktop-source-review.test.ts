@@ -215,6 +215,33 @@ describe('desktop explicit LLM source review', () => {
     await view.run('handleLlmTest()');
     assert.equal(view.calls.filter(call => call.method === 'setLlmConfig').at(-1)?.data.sourceReview, true);
   });
+
+  it('shows only the number of exact-quote coordinate corrections without changing the source verdict', async () => {
+    const auditEntry = { findingIndex: 0, evidenceIndex: 0, originalStartOffset: 987654,
+      originalEndOffset: 987699, startOffset: 12, endOffset: 20, extra: '<unsafe-audit-value>' };
+    const result = { packageName: 'example', latestVersion: '1.2.3', security: {
+      sourceReview: report({ verdict: 'malicious', evidenceOffsetCorrections: [auditEntry, auditEntry] }),
+    } };
+    const before = JSON.stringify(result);
+    const view = page({ review: async () => result });
+    view.render();
+    await view.review();
+    assert.match(view.panel.innerHTML, /唯一逐字引用校正 2 处坐标；引用仍经过完整校验/);
+    assert.doesNotMatch(view.panel.innerHTML, /987654|originalStartOffset|unsafe-audit-value/);
+    assert.match(view.parts['[data-risk-verdict]'].innerHTML, /High/);
+    assert.equal(JSON.stringify(result), before);
+  });
+
+  it('omits correction notices for absent, empty, or malformed correction arrays', async () => {
+    for (const value of [undefined, [], { length: 5 }]) {
+      const view = page({ review: async () => ({ packageName: 'example', latestVersion: '1.2.3', security: {
+        sourceReview: report({ evidenceOffsetCorrections: value }),
+      } }) });
+      view.render();
+      await view.review();
+      assert.doesNotMatch(view.panel.innerHTML, /逐字引用校正/);
+    }
+  });
 });
 
 describe('desktop optional reasoning effort', () => {

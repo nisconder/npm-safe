@@ -356,6 +356,7 @@ function sourceReviewMarkup(card) {
         : report.verdict === "benign" ? "本次证据未发现恶意行为" : "证据不足，结论未知";
     const coverage = report.coverage;
     const coverageStatus = { complete: "完整", partial: "部分", failed: "失败" }[coverage?.sourceCoverage] ?? "未提供";
+    const correctionCount = Array.isArray(report.evidenceOffsetCorrections) ? report.evidenceOffsetCorrections.length : 0;
     const findings = Array.isArray(report.findings) ? report.findings : [];
     const evidence = findings.slice(0, 10).map((finding) => `<li>
       <strong>${escapeHtml(finding.ruleName || finding.ruleId || "源码证据")}</strong>
@@ -375,6 +376,7 @@ function sourceReviewMarkup(card) {
       ${report.summary ? `<p>${escapeHtml(report.summary)}</p>` : ""}
       ${report.reason ? `<p class="source-review-diagnostic">诊断：${escapeHtml(report.reason)}</p>` : ""}
       ${report.sourceRequestFailure ? '<p class="source-review-diagnostic">模型的补充源码请求未通过校验，未提供额外源码；最终判断仍限于原有证据。</p>' : ""}
+      ${correctionCount > 0 ? `<p class="source-review-diagnostic">已按所提供源码的唯一逐字引用校正 ${count(correctionCount)} 处坐标；引用仍经过完整校验。</p>` : ""}
       ${evidence ? `<ol class="source-review-findings">${evidence}</ol>${findings.length > 10 ? `<p>显示前 10 项，共 ${count(findings.length)} 项证据。</p>` : ""}` : ""}
       <p class="source-review-caveat">${escapeHtml(coverage?.caveat || "复核结论限于本次发送给模型的源码证据，未覆盖内容仍可能存在风险。")}</p>
       <p class="source-review-caveat">静态安全分保持独立；源码复核不会降低已有静态风险。</p>

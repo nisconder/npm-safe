@@ -3,6 +3,24 @@
 All notable user-facing changes are documented here. The project follows
 semantic versioning for `@npm-safe/core`.
 
+## Unreleased
+
+### Fixed
+
+- Run an explicit desktop source review through the same deep-check engine as
+  the CLI, with a timeout that covers both bounded model calls and visible
+  evidence, coverage, and failure details.
+- Allow a final review of the original evidence when the model requests an
+  invalid supplementary range; do not read or transmit the rejected source.
+- Correct model citation coordinates only when the unchanged quote matches
+  uniquely in the same file's supplied excerpts, then apply full validation.
+  Preserve every finding and verdict and record coordinate corrections.
+
+### Added
+
+- Optional reasoning-effort configuration for compatible model services in
+  the CLI and desktop. Existing token/timeout defaults remain unchanged.
+
 ## 2.0.1 - 2026-11-13
 
 ### Fixed

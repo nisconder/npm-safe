@@ -51,6 +51,8 @@ export async function reviewDesktopPackageSource(engine, data, log = () => {}) {
         sourceCharsSent: Number.isSafeInteger(review?.sourceCharsSent) && review.sourceCharsSent >= 0 ? review.sourceCharsSent : 0,
         ...(["invalid-request-schema", "invalid-source-range", "supplement-character-budget"].includes(review?.sourceRequestFailure)
           ? { sourceRequestFailure: review.sourceRequestFailure } : {}),
+        ...(Array.isArray(review?.evidenceOffsetCorrections) && review.evidenceOffsetCorrections.length
+          ? { evidenceOffsetsCorrected: review.evidenceOffsetCorrections.length } : {}),
         elapsedMs: Math.round(performance.now() - started),
       }));
     } catch { /* Operational logging must not change the review result. */ }

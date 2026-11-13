@@ -82,6 +82,20 @@ and runtime payloads remain limitations. Confidence is subjective. Both misses
 and false positives remain possible; the union cannot remove static false
 positives.
 
+If a final review miscounts offsets but its exact quote occurs uniquely in
+the already supplied excerpts for the same path, the engine can correct the
+coordinates before full validation. It does not use fuzzy matching, search
+unprovided source, or change the quote or path. Ambiguous or unverifiable
+evidence remains invalid.
+
+When corrections occur, `security.sourceReview.evidenceOffsetCorrections`
+records `findingIndex`, `evidenceIndex`, `originalStartOffset`,
+`originalEndOffset`, `startOffset`, and `endOffset` in JSON for auditing. The
+CLI and desktop show only the correction count. This local correction sends
+no additional source and adds no model call or retry; it does not rewrite the
+model's verdict or the static score. All evidence still undergoes full
+validation, and an invalid final review remains failed/unknown.
+
 ## Programmatic use
 
 ```ts

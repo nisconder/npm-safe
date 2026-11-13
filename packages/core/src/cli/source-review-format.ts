@@ -10,6 +10,8 @@ export function formatSourceReview(report: SourceReviewReport): string {
     status: report.status, verdict: report.verdict, calls: String(report.calls), chars: String(report.sourceCharsSent),
   })}`];
   lines.push(t('check.sourceScoreNote'));
+  const correctionCount = Array.isArray(report.evidenceOffsetCorrections) ? report.evidenceOffsetCorrections.length : 0;
+  if (correctionCount > 0) lines.push(t('check.sourceOffsetCorrections', { count: String(correctionCount) }));
   if (report.summary) lines.push(report.summary);
   if (report.reason) lines.push(report.reason);
   for (const finding of report.findings) {

@@ -5,6 +5,7 @@ import { collectSourceBundle, SOURCE_BUNDLE_LIMITS } from './source/source-bundl
 import { collectSourceSupplement, combineSourceEvidence, sourceLineAt, validateSourceRequest, SourceRequestValidationError, SOURCE_REQUEST_BOUNDS_PROMPT, SUPPLEMENT_LIMITS } from './source/source-supplement.js';
 import type { SourceRequestValidationCode } from './source/source-supplement.js';
 import { SYSTEM_PROMPT, REVIEW_PROMPT, validateReview } from './source/review-contract.js';
+import { normalizeReviewEvidenceOffsets, EVIDENCE_OFFSET_POLICY, type SourceEvidenceOffsetCorrection } from './source/normalize-evidence.js';
 import type { SourceBundle, SourcePacket, SourceReview, SourceSupplement } from './source/types.js';
 import { assertSourcePrompt, SOURCE_RESPONSE_BYTES } from './source-transport.js';
 
@@ -20,6 +21,7 @@ const REJECTED_REQUEST_PROMPT = `The optional source request failed strict schem
 export const SOURCE_REVIEW_PROTOCOL_FINGERPRINT = createHash('sha256').update(JSON.stringify({
   version: SOURCE_REVIEW_PROTOCOL_VERSION, system: API_SYSTEM_PROMPT, review: REVIEW_PROMPT,
   request: REQUEST_PROMPT, rejectedRequest: REJECTED_REQUEST_PROMPT, initialLimits: SOURCE_BUNDLE_LIMITS, supplementLimits: SUPPLEMENT_LIMITS,
+  evidenceOffsetPolicy: EVIDENCE_OFFSET_POLICY,
 })).digest('hex');
 
 /** Independent model result; confidence is not a security score or a probability. */
@@ -42,6 +44,8 @@ export interface SourceReviewReport {
   readonly promptCharsSent: number;
   /** Fixed protocol diagnostic only; the rejected model request is never echoed. */
   readonly sourceRequestFailure?: SourceRequestValidationCode;
+  /** Deterministic offsets from unique exact quotes in the supplied excerpts only. */
+  readonly evidenceOffsetCorrections?: readonly SourceEvidenceOffsetCorrection[];
   /** Empty when no archive could be acquired. */
   readonly archiveSha256: string;
   readonly protocolVersion: string;
@@ -101,8 +105,10 @@ export async function reviewPackageSource(
   let calls = 0, initialChars = 0, supplementChars = 0, newlyCoveredChars = 0, sourceCharsSent = 0, promptCharsSent = 0;
   let responseBytes = 0;
   let sourceRequestFailure: SourceRequestValidationCode | undefined;
+  let evidenceOffsetCorrections: SourceEvidenceOffsetCorrection[] = [];
   const accounting = () => ({ archiveSha256, coverage, calls, initialChars, supplementChars, newlyCoveredChars, sourceCharsSent, promptCharsSent,
-    ...(sourceRequestFailure ? { sourceRequestFailure } : {}) });
+    ...(sourceRequestFailure ? { sourceRequestFailure } : {}),
+    ...(evidenceOffsetCorrections.length ? { evidenceOffsetCorrections } : {}) });
   try {
     const packet: SourcePacket = { ...collectSourceBundle(archive, manifest), caseId };
     coverage = packet.coverage;
@@ -148,7 +154,9 @@ export async function reviewPackageSource(
         parsed = await call(supplement);
       }
     }
-    const checked = validateReview(parsed, evidence, caseId);
+    const normalized = normalizeReviewEvidenceOffsets(parsed, evidence);
+    evidenceOffsetCorrections = normalized.corrections;
+    const checked = validateReview(normalized.review, evidence, caseId);
     if (!checked.valid || !checked.normalized) throw new Error(`Invalid source review: ${checked.errors.join(' ')}`);
     if (createHash('sha256').update(archive).digest('hex') !== archiveSha256) throw new Error('Source archive changed during review.');
     return {
