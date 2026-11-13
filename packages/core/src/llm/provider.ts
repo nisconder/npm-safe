@@ -77,6 +77,12 @@ export enum LlmProviderType {
   Anthropic = "anthropic",
 }
 
+export const LLM_REASONING_EFFORTS = ['none', 'low', 'high', 'max'] as const;
+export type LlmReasoningEffort = typeof LLM_REASONING_EFFORTS[number];
+export function isLlmReasoningEffort(value: unknown): value is LlmReasoningEffort {
+  return typeof value === 'string' && (LLM_REASONING_EFFORTS as readonly string[]).includes(value);
+}
+
 /**
  * Unified options accepted by {@link createLlmProvider} and every concrete
  * provider constructor. Fields not relevant to a given backend are ignored
@@ -97,6 +103,8 @@ export interface LlmProviderOptions {
   readonly maxInputChars?: number;
   /** Maximum response tokens. @default 4096 */
   readonly maxTokens?: number;
+  /** OpenAI-compatible reasoning effort. Omit to keep the service's default. */
+  readonly reasoningEffort?: LlmReasoningEffort;
 }
 
 /**
@@ -144,6 +152,7 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
   private readonly timeoutMs: number;
   private readonly maxInputChars: number;
   private readonly maxTokens: number;
+  private readonly reasoningEffort?: LlmReasoningEffort;
 
   /**
    * @param options - Provider configuration. Env-var fallbacks:
@@ -156,6 +165,10 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
     this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxInputChars = options.maxInputChars ?? DEFAULT_MAX_INPUT_CHARS;
     this.maxTokens = options.maxTokens ?? DEFAULT_MAX_TOKENS;
+    if (options.reasoningEffort !== undefined && !isLlmReasoningEffort(options.reasoningEffort)) {
+      throw new LlmProviderError('Invalid reasoning effort. Expected none, low, high or max, or omit it for the service default.');
+    }
+    this.reasoningEffort = options.reasoningEffort;
   }
 
   /** @inheritdoc */
@@ -257,7 +270,7 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
           "content-type": "application/json",
           authorization: `Bearer ${this.apiKey}`,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(this.reasoningEffort === undefined ? body : { ...body, reasoning_effort: this.reasoningEffort }),
         signal: combinedSignal,
       });
       if (!response.ok) {

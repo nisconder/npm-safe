@@ -27,7 +27,7 @@ import { loadRulesFromDirectory } from './scanner/rule-loader.js';
 import { createLlmProvider } from './llm/provider.js';
 import type { LlmProviderOptions, LlmScanProvider } from './llm/provider.js';
 import { LlmConfigManager } from './llm/llm-config.js';
-import type { LlmConfig, LlmStatus } from './llm/llm-config.js';
+import type { LlmConfig, LlmConfigUpdate, LlmStatus } from './llm/llm-config.js';
 import { reviewPackageSource, unavailableSourceReview } from './llm/source-review.js';
 import type { SourceReviewReport } from './llm/source-review.js';
 import { analyzePackageTarball, CONTENT_SCAN_RULES } from './scanner/package-content.js';
@@ -886,7 +886,7 @@ export class NpmSafeEngine {
    *
    * @param update - Partial config update. Pass `{ enabled: false }` to disable.
    */
-  setLlmConfig(update: Partial<LlmConfig>): void {
+  setLlmConfig(update: LlmConfigUpdate): void {
     this.llmConfig.setConfig(update);
     if (update.sourceReview !== undefined) this.sourceReviewEnabled = update.sourceReview === true;
     this.llmProvider = this.llmConfig.createProvider();
@@ -1304,11 +1304,12 @@ function combineScores(
 export { createLlmProvider, LlmProviderError } from './llm/provider.js';
 export type {
   LlmProviderOptions,
+  LlmReasoningEffort,
   LlmScanInput,
   LlmScanProvider,
 } from './llm/provider.js';
 export { LlmConfigManager, getDefaultLlmConfigPath } from './llm/llm-config.js';
-export type { LlmConfig, LlmStatus } from './llm/llm-config.js';
+export type { LlmConfig, LlmConfigUpdate, LlmStatus } from './llm/llm-config.js';
 export { reviewPackageSource } from './llm/source-review.js';
 export type { SourceReviewReport } from './llm/source-review.js';
 export { RuleConfigManager } from './scanner/rule-config.js';

@@ -1,14 +1,16 @@
 import assert from 'node:assert';
 import { describe, it, beforeEach, afterEach } from 'node:test';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
 import { LlmConfigManager } from '../src/llm/llm-config.js';
 import { LlmProviderType } from '../src/llm/provider.js';
+import type { LlmReasoningEffort } from '../src/llm/provider.js';
 import { NpmSafeEngine } from '../src/index.js';
 
 const envBackup = { ...process.env };
+const originalFetch = globalThis.fetch;
 
 function cleanEnv() {
   delete process.env.OPENAI_API_KEY;
@@ -41,6 +43,7 @@ describe('LlmConfigManager', () => {
       // ignore
     }
     restoreEnv();
+    globalThis.fetch = originalFetch;
   });
 
   it('defaults to disabled with openai provider', () => {
@@ -52,6 +55,7 @@ describe('LlmConfigManager', () => {
     assert.strictEqual(config.provider, LlmProviderType.OpenAi);
     assert.strictEqual(config.apiKey, undefined);
     assert.strictEqual(config.maxTokens, 4096);
+    assert.strictEqual(config.reasoningEffort, undefined);
     assert.strictEqual(manager.createProvider(), undefined);
   });
 
@@ -133,6 +137,62 @@ describe('LlmConfigManager', () => {
   it('testConnection returns false when not configured', async () => {
     const manager = new LlmConfigManager(path.join(tmpDir, 'llm.json'));
     assert.strictEqual(await manager.testConnection(), false);
+  });
+
+  it('round-trips explicit reasoning effort, preserves omitted updates, and clears JSON null to service default', () => {
+    const file = path.join(tmpDir, 'llm.json');
+    const manager = new LlmConfigManager(file);
+    for (const reasoningEffort of ['none', 'low', 'high', 'max'] as const) {
+      manager.setConfig({ reasoningEffort });
+      manager.setConfig({ maxTokens: 16384 });
+      const reloaded = new LlmConfigManager(file);
+      assert.strictEqual(reloaded.getConfig().reasoningEffort, reasoningEffort);
+      assert.strictEqual(reloaded.getStatus().reasoningEffort, reasoningEffort);
+    }
+    manager.setConfig({ reasoningEffort: null });
+    assert.strictEqual(manager.getStatus().reasoningEffort, undefined);
+    assert.strictEqual(new LlmConfigManager(file).getConfig().reasoningEffort, undefined);
+    assert.strictEqual(Object.hasOwn(JSON.parse(readFileSync(file, 'utf8')), 'reasoningEffort'), false);
+    manager.setConfig({ reasoningEffort: 'none' });
+    manager.setConfig({ reasoningEffort: undefined });
+    assert.strictEqual(manager.getConfig().reasoningEffort, 'none');
+    assert.strictEqual(new LlmConfigManager(file).getConfig().reasoningEffort, 'none');
+  });
+
+  it('rejects invalid reasoning effort without changing memory or the saved configuration', () => {
+    const file = path.join(tmpDir, 'llm.json');
+    const manager = new LlmConfigManager(file);
+    manager.setConfig({ reasoningEffort: 'none', model: 'preserved-model' });
+    const before = readFileSync(file, 'utf8');
+    for (const value of ['default', 'medium', 'minimal', '', 'NONE', true, 1, {}]) {
+      assert.throws(() => manager.setConfig({ reasoningEffort: value as LlmReasoningEffort, model: 'must-not-change' }), /Invalid reasoning effort/);
+      assert.strictEqual(manager.getConfig().reasoningEffort, 'none');
+      assert.strictEqual(manager.getConfig().model, 'preserved-model');
+      assert.strictEqual(readFileSync(file, 'utf8'), before);
+    }
+  });
+
+  it('ignores only a malformed persisted effort while preserving the remaining provider configuration', () => {
+    const file = path.join(tmpDir, 'llm.json');
+    writeFileSync(file, JSON.stringify({ enabled: true, provider: 'openai', apiKey: 'fixture-key', model: 'configured-model', reasoningEffort: 'unsupported' }));
+    const manager = new LlmConfigManager(file);
+    assert.strictEqual(manager.getConfig().enabled, true);
+    assert.strictEqual(manager.getConfig().model, 'configured-model');
+    assert.strictEqual(manager.getConfig().reasoningEffort, undefined);
+    assert.strictEqual(manager.getStatus().configured, true);
+    assert.ok(manager.createProvider());
+  });
+
+  it('passes a persisted explicit effort to the OpenAI-compatible provider', async () => {
+    const manager = new LlmConfigManager(path.join(tmpDir, 'llm.json'));
+    manager.setConfig({ enabled: true, apiKey: 'fixture-key', reasoningEffort: 'none' });
+    let body: Record<string, unknown> | undefined;
+    globalThis.fetch = (async (_url, init) => {
+      body = JSON.parse(String(init?.body));
+      return new Response(JSON.stringify({ choices: [{ message: { content: '{}' } }] }));
+    }) as typeof fetch;
+    await manager.createProvider()!.reviewSource!({ systemPrompt: 'Return JSON.', prompt: '{}' });
+    assert.strictEqual(body?.reasoning_effort, 'none');
   });
 });
 

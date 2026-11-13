@@ -1,6 +1,6 @@
 import { Command } from "commander";
 
-import { LlmProviderType } from "../llm/provider.js";
+import { isLlmReasoningEffort, LLM_REASONING_EFFORTS, LlmProviderType } from "../llm/provider.js";
 import { createEngine } from "./shared.js";
 import { t } from "./i18n.js";
 
@@ -39,6 +39,7 @@ export function registerLlmCommand(program: Command): void {
         if (status.maxTokens) {
           lines.push(`${t("llm.status.maxTokens")}: ${status.maxTokens}`);
         }
+        lines.push(`${t("llm.status.reasoningEffort")}: ${status.reasoningEffort ?? t("llm.reasoningEffortDefault")}`);
         if (status.maxInputChars) {
           lines.push(`${t("llm.status.maxInputChars")}: ${status.maxInputChars}`);
         }
@@ -151,6 +152,23 @@ export function registerLlmCommand(program: Command): void {
       } finally {
         engine.close();
       }
+    });
+
+  llm
+    .command("set-reasoning-effort <effort>")
+    .description("Set OpenAI-compatible reasoning effort (default / none / low / high / max)")
+    .action(async (effort: string) => {
+      if (effort !== "default" && !isLlmReasoningEffort(effort)) {
+        console.error(t("llm.reasoningEffortUnknown", { effort, supported: ["default", ...LLM_REASONING_EFFORTS].join(" / ") }));
+        process.exitCode = 1;
+        return;
+      }
+      const opts = program.opts<{ db?: string; proxy?: string }>();
+      const engine = await createEngine(opts.db, opts.proxy);
+      try {
+        engine.setLlmConfig({ reasoningEffort: effort === "default" ? null : effort });
+        console.log(t("llm.reasoningEffortSet", { effort: effort === "default" ? t("llm.reasoningEffortDefault") : effort }));
+      } finally { engine.close(); }
     });
 
   llm

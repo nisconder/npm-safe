@@ -423,10 +423,16 @@ Returns a masked, display-safe view of the LLM configuration: enabled state, pro
 #### setLlmConfig
 
 ```ts
-setLlmConfig(update: Partial<LlmConfig>): void
+setLlmConfig(update: LlmConfigUpdate): void
 ```
 
 Update the persisted LLM configuration and recreate the provider. Pass `{ enabled: false }` to disable LLM scanning entirely. The provider is re-evaluated immediately, so the next `checkPackage` or refresh will use the new configuration.
+
+`reasoningEffort` accepts `none`, `low`, `high` or `max`. Omission or `undefined`
+preserves the current override; `null` clears it and restores the service default.
+The override is sent as `reasoning_effort` only by the OpenAI-compatible provider.
+The CLI equivalents are `npm-safe llm set-reasoning-effort none` and
+`npm-safe llm set-reasoning-effort default`; `llm status` shows the selection.
 
 #### testLlmConnection
 
@@ -874,6 +880,7 @@ interface LlmProviderOptions {
   readonly timeoutMs?: number;
   readonly maxInputChars?: number;
   readonly maxTokens?: number;
+  readonly reasoningEffort?: LlmReasoningEffort; // 'none' | 'low' | 'high' | 'max'
 }
 ```
 
@@ -886,6 +893,7 @@ interface LlmProviderOptions {
 | `timeoutMs` | `number` | `30000` | Request timeout in milliseconds. |
 | `maxInputChars` | `number` | `12000` | Maximum README characters to send to the model. |
 | `maxTokens` | `number` | `4096` | Maximum response tokens for source review on all three providers; also used by OpenAI/Anthropic metadata requests. |
+| `reasoningEffort` | `LlmReasoningEffort` | unset | Explicit OpenAI-compatible `reasoning_effort` parameter for metadata, connection tests and source review. Omitted by default; ignored by Gemini/Anthropic. Select a value supported by the chosen service. |
 
 The deprecated alias `OpenAICompatibleLlmOptions` is kept for backward
 compatibility and is identical to `LlmProviderOptions`.
@@ -906,7 +914,12 @@ interface LlmConfig {
   readonly timeoutMs?: number;
   readonly maxInputChars?: number;
   readonly maxTokens?: number;
+  readonly reasoningEffort?: LlmReasoningEffort;
 }
+
+type LlmConfigUpdate = Omit<Partial<LlmConfig>, 'reasoningEffort'> & {
+  readonly reasoningEffort?: LlmReasoningEffort | null;
+};
 ```
 
 ### LlmStatus
@@ -923,6 +936,7 @@ interface LlmStatus {
   readonly model?: string;
   readonly baseUrl?: string;
   readonly apiKey?: string; // masked, e.g. "sk-****1234"
+  readonly reasoningEffort?: LlmReasoningEffort; // absent means service default
 }
 ```
 

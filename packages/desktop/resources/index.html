@@ -283,6 +283,17 @@
                   <label for="llm-base-url">基础 URL（可选）</label>
                 </div>
                 <div class="text-field outlined">
+                  <select id="llm-reasoning-effort" aria-describedby="llm-reasoning-effort-hint">
+                    <option value="">默认（由服务决定）</option>
+                    <option value="none">关闭思考</option>
+                    <option value="low">低</option>
+                    <option value="high">高</option>
+                    <option value="max">最高</option>
+                  </select>
+                  <label for="llm-reasoning-effort">思考强度</label>
+                  <div class="field-hint" id="llm-reasoning-effort-hint">仅适用于支持 reasoning_effort 参数的 OpenAI 兼容模型；默认不发送此参数。</div>
+                </div>
+                <div class="text-field outlined">
                   <input id="llm-max-tokens" type="number" min="1" placeholder=" " />
                   <label for="llm-max-tokens">最大响应 Token 数（默认 4096）</label>
                 </div>

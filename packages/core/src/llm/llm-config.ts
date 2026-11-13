@@ -14,8 +14,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { createLlmProvider, LlmProviderType } from './provider.js';
-import type { LlmProviderOptions, LlmScanProvider } from './provider.js';
+import { createLlmProvider, isLlmReasoningEffort, LlmProviderType } from './provider.js';
+import type { LlmProviderOptions, LlmReasoningEffort, LlmScanProvider } from './provider.js';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_INPUT_CHARS = 12_000;
@@ -59,7 +59,14 @@ export interface LlmConfig {
   readonly maxInputChars?: number;
   /** Anthropic maximum response tokens. */
   readonly maxTokens?: number;
+  /** Optional OpenAI-compatible effort; omission keeps the service default. */
+  readonly reasoningEffort?: LlmReasoningEffort;
 }
+
+/** Null explicitly clears the reasoning override in JSON-based clients. */
+export type LlmConfigUpdate = Omit<Partial<LlmConfig>, 'reasoningEffort'> & {
+  readonly reasoningEffort?: LlmReasoningEffort | null;
+};
 
 /** Runtime status of the LLM integration, safe to display. */
 export interface LlmStatus {
@@ -80,6 +87,8 @@ export interface LlmStatus {
   readonly maxTokens?: number;
   /** Maximum input characters, if set. */
   readonly maxInputChars?: number;
+  /** Explicit OpenAI-compatible override; absent means the service default. */
+  readonly reasoningEffort?: LlmReasoningEffort;
 }
 
 /** Returns the default path for the LLM configuration file. */
@@ -151,6 +160,7 @@ export class LlmConfigManager {
       timeoutMs: input.timeoutMs ?? DEFAULT_TIMEOUT_MS,
       maxInputChars: input.maxInputChars ?? DEFAULT_MAX_INPUT_CHARS,
       maxTokens: input.maxTokens ?? DEFAULT_MAX_TOKENS,
+      reasoningEffort: isLlmReasoningEffort(input.reasoningEffort) ? input.reasoningEffort : undefined,
     };
   }
 
@@ -172,11 +182,15 @@ export class LlmConfigManager {
       apiKey: maskApiKey(resolved),
       maxTokens: this.config.maxTokens,
       maxInputChars: this.config.maxInputChars,
+      reasoningEffort: this.config.reasoningEffort,
     };
   }
 
   /** Update the persisted config. */
-  setConfig(update: Partial<LlmConfig>): void {
+  setConfig(update: LlmConfigUpdate): void {
+    if (update.reasoningEffort !== undefined && update.reasoningEffort !== null && !isLlmReasoningEffort(update.reasoningEffort)) {
+      throw new Error('Invalid reasoning effort. Expected none, low, high or max, or null to use the service default.');
+    }
     const nextApiKey = update.apiKey !== undefined ? update.apiKey : this.config.apiKey;
     const next: LlmConfig = {
       enabled: update.enabled ?? this.config.enabled,
@@ -190,6 +204,7 @@ export class LlmConfigManager {
       timeoutMs: update.timeoutMs ?? this.config.timeoutMs,
       maxInputChars: update.maxInputChars ?? this.config.maxInputChars,
       maxTokens: update.maxTokens ?? this.config.maxTokens,
+      reasoningEffort: update.reasoningEffort === undefined ? this.config.reasoningEffort : update.reasoningEffort ?? undefined,
     };
     this.config = next;
     this.save();
@@ -233,6 +248,7 @@ export class LlmConfigManager {
       timeoutMs: this.config.timeoutMs,
       maxInputChars: this.config.maxInputChars,
       maxTokens: this.config.maxTokens,
+      reasoningEffort: this.config.reasoningEffort,
     };
     return createLlmProvider(options);
   }

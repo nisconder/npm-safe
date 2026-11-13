@@ -947,6 +947,10 @@ async function handleLoadRulePlugins() {
 // LLM configuration
 // ---------------------------------------------------------------------------
 
+function updateLlmReasoningAvailability() {
+  document.getElementById("llm-reasoning-effort").disabled = document.getElementById("llm-provider").value !== "openai";
+}
+
 async function renderLlmConfig() {
   const statusText = document.getElementById("llm-status-text");
   const enabledInput = document.getElementById("llm-enabled");
@@ -955,6 +959,7 @@ async function renderLlmConfig() {
   const apiKeyInput = document.getElementById("llm-api-key");
   const modelInput = document.getElementById("llm-model");
   const baseUrlInput = document.getElementById("llm-base-url");
+  const reasoningEffortInput = document.getElementById("llm-reasoning-effort");
   const maxTokensInput = document.getElementById("llm-max-tokens");
   const maxInputCharsInput = document.getElementById("llm-max-input-chars");
   const resultArea = document.getElementById("llm-result");
@@ -970,6 +975,8 @@ async function renderLlmConfig() {
     if (hint) hint.textContent = status.apiKey ? `已配置 (${status.apiKey})` : "未配置";
     modelInput.value = status.model ?? "";
     baseUrlInput.value = status.baseUrl ?? "";
+    reasoningEffortInput.value = ["none", "low", "high", "max"].includes(status.reasoningEffort) ? status.reasoningEffort : "";
+    updateLlmReasoningAvailability();
     maxTokensInput.value = status.maxTokens ?? 4096;
     maxInputCharsInput.value = status.maxInputChars ?? 12000;
 
@@ -995,6 +1002,7 @@ async function handleLlmSave() {
       maxTokens: Number(document.getElementById("llm-max-tokens").value) || undefined,
       maxInputChars: Number(document.getElementById("llm-max-input-chars").value) || undefined,
     };
+    if (update.provider === "openai") update.reasoningEffort = document.getElementById("llm-reasoning-effort").value || null;
     const apiKey = document.getElementById("llm-api-key").value.trim();
     if (apiKey) update.apiKey = apiKey;
     await callEngine("setLlmConfig", update);
@@ -1025,6 +1033,7 @@ async function handleLlmTest() {
       maxTokens: Number(document.getElementById("llm-max-tokens").value) || undefined,
       maxInputChars: Number(document.getElementById("llm-max-input-chars").value) || undefined,
     };
+    if (update.provider === "openai") update.reasoningEffort = document.getElementById("llm-reasoning-effort").value || null;
     const apiKey = document.getElementById("llm-api-key").value.trim();
     if (apiKey) update.apiKey = apiKey;
     await callEngine("setLlmConfig", update);
@@ -1252,6 +1261,7 @@ Neutralino.events.on("windowClose", () => {
   document.getElementById("rules-load-btn").addEventListener("click", handleLoadRulePlugins);
 
   document.getElementById("llm-save-btn").addEventListener("click", handleLlmSave);
+  document.getElementById("llm-provider").addEventListener("change", updateLlmReasoningAvailability);
   document.getElementById("llm-test-btn").addEventListener("click", handleLlmTest);
   document.getElementById("llm-reset-btn").addEventListener("click", handleLlmReset);
 

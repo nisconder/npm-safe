@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import {
   OpenAICompatibleLlmProvider,
   LlmProviderError,
+  GeminiLlmProvider,
+  AnthropicLlmProvider,
+  type LlmReasoningEffort,
 } from "../src/llm/provider.js";
 
 const originalFetch = globalThis.fetch;
@@ -84,6 +87,56 @@ describe("OpenAICompatibleLlmProvider", () => {
         error.message.includes("invalid JSON"),
     );
   });
+});
+
+describe('explicit OpenAI-compatible reasoning effort', () => {
+  const scanInput = { packageName: 'fixture', version: '1.0.0', description: '', readme: '' };
+  const sourceInput = { systemPrompt: 'Return a JSON review.', prompt: '{}' };
+  const payload = JSON.stringify({ summary: 'Fixture report.', functionalMatch: true, suspiciousScore: 0, findings: [] });
+
+  for (const reasoningEffort of [undefined, 'none', 'low', 'high', 'max'] as const) {
+    it(`${reasoningEffort ?? 'service default'} applies consistently to metadata, connection and source requests`, async () => {
+      const bodies: Record<string, unknown>[] = [];
+      globalThis.fetch = (async (_url, init) => {
+        bodies.push(JSON.parse(String(init?.body)));
+        return new Response(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content: payload } }] }));
+      }) as typeof fetch;
+      const provider = new OpenAICompatibleLlmProvider({ apiKey: 'fixture', reasoningEffort });
+      await provider.scan(scanInput);
+      await provider.testConnection();
+      await provider.reviewSource(sourceInput);
+      assert.equal(bodies.length, 3);
+      for (const body of bodies) {
+        assert.equal(body.reasoning_effort, reasoningEffort);
+        assert.equal(Object.hasOwn(body, 'reasoning_effort'), reasoningEffort !== undefined);
+        assert.equal(Object.hasOwn(body, 'thinking'), false);
+      }
+    });
+  }
+
+  it('rejects unsupported direct-provider options before any request', () => {
+    for (const reasoningEffort of ['default', 'medium', '', null, 1]) {
+      assert.throws(() => new OpenAICompatibleLlmProvider({ apiKey: 'fixture', reasoningEffort: reasoningEffort as LlmReasoningEffort }), /Invalid reasoning effort/);
+    }
+  });
+
+  for (const Provider of [GeminiLlmProvider, AnthropicLlmProvider]) {
+    it(`${Provider.name} does not send the OpenAI-specific parameter`, async () => {
+      const bodies: Record<string, unknown>[] = [];
+      globalThis.fetch = (async (_url, init) => {
+        bodies.push(JSON.parse(String(init?.body)));
+        return new Response(JSON.stringify(Provider === GeminiLlmProvider
+          ? { candidates: [{ content: { parts: [{ text: payload }] } }] }
+          : { content: [{ type: 'text', text: payload }] }));
+      }) as typeof fetch;
+      const provider = new Provider({ apiKey: 'fixture', reasoningEffort: 'none' });
+      await provider.scan(scanInput);
+      await provider.testConnection();
+      await provider.reviewSource(sourceInput);
+      assert.equal(bodies.length, 3);
+      assert.ok(bodies.every(body => !Object.hasOwn(body, 'reasoning_effort') && !Object.hasOwn(body, 'reasoningEffort') && !Object.hasOwn(body, 'thinking')));
+    });
+  }
 });
 
 describe("OpenAI-compatible completion diagnostics", () => {

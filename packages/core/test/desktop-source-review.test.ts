@@ -60,7 +60,7 @@ function page(options: { status?: Record<string, unknown>; review?: (data: any) 
   const elements: Record<string, any> = { 'check-result': area };
   for (const id of ['check-name', 'check-target-kind', 'check-btn', 'status-bar', 'llm-enabled', 'llm-source-review',
     'llm-status-text', 'llm-provider', 'llm-api-key', 'llm-api-key-hint', 'llm-model', 'llm-base-url',
-    'llm-max-tokens', 'llm-max-input-chars', 'llm-result', 'llm-save-btn', 'llm-test-btn']) {
+    'llm-reasoning-effort', 'llm-max-tokens', 'llm-max-input-chars', 'llm-result', 'llm-save-btn', 'llm-test-btn']) {
     elements[id] = { value: '', textContent: '', innerHTML: '', dataset: {}, checked: false, disabled: false };
   }
   elements['check-name'].value = 'example';
@@ -81,7 +81,7 @@ function page(options: { status?: Record<string, unknown>; review?: (data: any) 
   });
   vm.runInContext(source, context);
   vm.runInContext('callEngine = testCallEngine', context);
-  return { calls, elements, parts, panel, context,
+  return { calls, elements, parts, panel, context, status,
     render(result = assessment()) { context.testAssessment = result; vm.runInContext('renderInstallRisk(testAssessment)', context); },
     review: () => vm.runInContext('handleSourceReview(activeRiskCard)', context) as Promise<void>,
     scan: () => vm.runInContext('handleCheck()', context) as Promise<void>,
@@ -214,6 +214,71 @@ describe('desktop explicit LLM source review', () => {
     assert.equal(view.calls.find(call => call.method === 'setLlmConfig')?.data.sourceReview, false);
     await view.run('handleLlmTest()');
     assert.equal(view.calls.filter(call => call.method === 'setLlmConfig').at(-1)?.data.sourceReview, true);
+  });
+});
+
+describe('desktop optional reasoning effort', () => {
+  it('loads each explicit effort and leaves the service default unset', async () => {
+    for (const effort of [undefined, 'none', 'low', 'high', 'max']) {
+      const view = page({ status: { reasoningEffort: effort } });
+      await view.run('renderLlmConfig()');
+      assert.equal(view.elements['llm-reasoning-effort'].value, effort ?? '');
+      assert.equal(view.elements['llm-reasoning-effort'].disabled, false);
+      assert.deepEqual(view.calls.map(call => call.method), ['getLlmStatus']);
+    }
+  });
+
+  it('saves explicit efforts and reloads the saved value', async () => {
+    for (const effort of ['none', 'low', 'high', 'max']) {
+      const view = page();
+      await view.run('renderLlmConfig()');
+      view.elements['llm-reasoning-effort'].value = effort;
+      await view.run('handleLlmSave()');
+      const update = view.calls.find(call => call.method === 'setLlmConfig')!.data;
+      assert.equal(update.reasoningEffort, effort);
+      Object.assign(view.status, { reasoningEffort: update.reasoningEffort });
+      await view.run('renderLlmConfig()');
+      assert.equal(view.elements['llm-reasoning-effort'].value, effort);
+    }
+  });
+
+  it('sends null to clear an explicit effort when the user selects the default', async () => {
+    const view = page({ status: { reasoningEffort: 'high' } });
+    await view.run('renderLlmConfig()');
+    view.elements['llm-reasoning-effort'].value = '';
+    await view.run('handleLlmSave()');
+    assert.equal(view.calls.find(call => call.method === 'setLlmConfig')!.data.reasoningEffort, null);
+    Object.assign(view.status, { reasoningEffort: undefined });
+    await view.run('renderLlmConfig()');
+    assert.equal(view.elements['llm-reasoning-effort'].value, '');
+  });
+
+  it('applies the selected effort to connection tests, including returning to the default', async () => {
+    const view = page();
+    await view.run('renderLlmConfig()');
+    for (const effort of ['none', 'low', 'high', 'max', '']) {
+      view.elements['llm-reasoning-effort'].value = effort;
+      await view.run('handleLlmTest()');
+      assert.equal(view.calls.filter(call => call.method === 'setLlmConfig').at(-1)!.data.reasoningEffort, effort || null);
+    }
+  });
+
+  it('disables unsupported providers without clearing or writing the stored effort', async () => {
+    for (const provider of ['gemini', 'anthropic']) {
+      const view = page({ status: { provider, reasoningEffort: 'high' } });
+      await view.run('renderLlmConfig()');
+      assert.equal(view.elements['llm-reasoning-effort'].disabled, true);
+      assert.equal(view.elements['llm-reasoning-effort'].value, 'high');
+      await view.run('handleLlmSave()');
+      await view.run('handleLlmTest()');
+      for (const call of view.calls.filter(call => call.method === 'setLlmConfig')) {
+        assert.equal(Object.hasOwn(call.data, 'reasoningEffort'), false);
+      }
+      view.elements['llm-provider'].value = 'openai';
+      view.run('updateLlmReasoningAvailability()');
+      assert.equal(view.elements['llm-reasoning-effort'].disabled, false);
+      assert.equal(view.elements['llm-reasoning-effort'].value, 'high');
+    }
   });
 });
 
