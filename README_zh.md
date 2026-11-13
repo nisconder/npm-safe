@@ -16,9 +16,9 @@
 
 <br>
 
-<img src="docs/assets/dsh-risk-states.svg" alt="npm-safe 低、中、高三种 DSH 插件安装风险状态" width="100%">
+<img src="docs/assets/npm-safe-desktop.jpg" alt="npm-safe 桌面端真实扫描 lodash，识别为普通 npm 包并显示低风险结果" width="100%">
 
-<sub>一眼看懂低、中、高三种 DSH 安装结论。桌面端只分析并生成固定来源命令，不会在此页面执行安装。</sub>
+<sub>桌面端真实截图：在线扫描 lodash，展示 npm 包检查结果与固定版本安装命令。此页面不会执行安装。</sub>
 
 </div>
 
@@ -36,9 +36,10 @@
 混淆、进程执行、联网行为和敏感环境变量访问，并给出可解释的 0–100 评分。
 
 桌面端会把这些证据转换成红、黄、绿安装风险卡，支持输入 npm 包名或公开
-GitHub 插件仓库。它会检查 DSH bundle 声明、发布的 patch 文件、生命周期脚本、
-宿主核心包重复、依赖来源和 peer 兼容性，并生成固定到版本或 commit 的命令，
-但不会自动执行安装。
+GitHub 仓库。它会自动识别普通 npm 包和 DSH 插件，也支持手动选择类型。
+所有包都会检查生命周期脚本和依赖来源，npm 发布包还会验证完整性。DSH 插件还会检查
+bundle 声明、发布的 patch 文件、宿主核心包重复和 peer 兼容性。应用会生成
+固定到版本或 commit 的命令，但不会自动执行安装。
 
 静态分析和缓存均在本地运行，无需账号或托管后端。可选的 LLM 分析默认
 关闭，只有在你主动配置提供商后才会运行。
@@ -61,7 +62,7 @@ GitHub 插件仓库。它会检查 DSH bundle 声明、发布的 patch 文件、
 | 选用依赖前先检查 | `npm-safe check <package>` | 规则命中、解释和安全评分 |
 | 为包管理器安装加门禁 | `npm-safe install <package>` | 低于评分阈值时触发的可选确认门禁 |
 | 保护现有项目 | `npm-safe ci --lockfile` | 直接与间接依赖扫描，以及适用于 CI 的退出码 |
-| 可视化审查 DSH 插件 | [桌面端](#桌面图形界面) | 安装风险卡、DSH 契约检查与固定来源命令 |
+| 可视化审查 npm 包和 DSH 插件 | [桌面端](#桌面图形界面) | 安装风险卡、按包类型检查与固定来源命令 |
 | 给 AI 编程智能体增加安全检查 | `npm-safe skill install` | 支持 Codex、Claude Code、OpenCode、Gemini CLI 等 |
 
 扫描逻辑完全透明：10 条元数据规则与 17 条深度扫描规则都有文档且可配置，
@@ -148,7 +149,8 @@ npm-safe report lodash express     # 导出安全报告（JSON/CSV）
 npm-safe telemetry status          # 查看遥测状态（可选，仅本地）
 npm-safe gate status               # 查看安装门禁状态（可选）
 npm-safe gate enable               # 启用门禁 + 自动安装包装/shim
-npm-safe gate shell                # 安装 shell 包装 + PATH shim
+npm-safe gate shell                # 安装包装与 shim，不修改持久 PATH
+npm-safe gate shell --user         # Windows：显式将 shim 前置到用户 PATH
 npm-safe gate shell --machine      # Windows（管理员）：将 shim 前置到系统 PATH
 npm-safe install axios             # 带门禁安装（启用后生效）
 npm-safe doctor                    # 诊断 PATH / 门禁 / shim 配置
@@ -186,7 +188,19 @@ npm-safe check lodash
 97/100，仅保留原有的 Low 元数据提示。这项定向回归修复不代表总体检测准确率，
 详见[2.0.0 变更](CHANGELOG.md#200---2026-11-12)。
 
-> **Windows PATH 说明：** 全局安装会把 `npm-safe` 放入 npm 全局 bin 目录（`%APPDATA%\npm`），外部终端需要该目录在 `PATH` 中才能找到它。官方 Node.js MSI 安装器会自动添加；自定义安装（如 Node 解压到自定义目录）需手动添加：`setx PATH "%APPDATA%\npm;%PATH%"`，然后重新打开终端。如有异常可运行 `npm-safe doctor` 诊断。
+> **Windows PATH 说明：** npm 默认的全局 bin 目录是 `%APPDATA%\npm`，自定义 npm prefix 则使用对应目录。若 PATH 缺少该目录，请打开「环境变量 → 用户变量 → Path → 编辑 → 新建」，仅新增一项 `%APPDATA%\npm`（或实际全局 bin 目录）。保留其他已有项，不要把当前进程的整段 `%PATH%` 复制进用户值。重新打开终端后，运行 `npm-safe doctor` 诊断。
+
+如果终端找不到 `npm-safe`，但默认 prefix 下的命令文件存在，可在 PowerShell
+中通过完整路径运行诊断：
+
+```powershell
+$npmSafeCommand = Join-Path $env:APPDATA 'npm\npm-safe.cmd'
+if (Test-Path -LiteralPath $npmSafeCommand -PathType Leaf) {
+  & $npmSafeCommand doctor
+}
+```
+
+如果该文件不存在，请先找到实际 npm 全局 bin 目录中的已安装 CLI，再调用它。
 
 更深层的功能（代理细节、自定义规则插件、LLM 扫描、CI/CD、批量操作、报告导出、遥测、共享检查历史、命令日志和安装时安全门禁）见下方[功能特性](#功能特性)一节。
 
@@ -440,19 +454,29 @@ npm-safe install axios --dry-run   # 只检查+确认，不实际安装
 门禁的 `--yes` 必须位于分隔符前；包装器转发的 npm `--yes` 不会自动批准
 安全警告。启用门禁后，无法检查的安装来源或注册表配置会被拒绝。
 
-`gate enable` 一步完成：开启检查、安装 **PATH shim**（`~/.npm-safe/bin` 下的 npm.cmd / pnpm.cmd / yarn.cmd，对所有 shell 生效），并把 `npm`、`pnpm`、`yarn` 的包装函数写入 shell 配置（Windows 上为 PowerShell `$PROFILE`，其他平台为 `~/.zshrc`/`~/.bashrc`）。激活方式：
+`gate enable` 会开启检查、安装 **PATH shim**（`~/.npm-safe/bin` 下的
+npm.cmd / pnpm.cmd / yarn.cmd，可供各类 shell 使用），并把 `npm`、`pnpm`、
+`yarn` 的包装函数写入 shell 配置（Windows 上为 PowerShell `$PROFILE`，
+其他平台为 `~/.zshrc`/`~/.bashrc`）。普通 `gate shell` 只刷新这些文件，不修改
+Windows 持久 PATH；通过 PATH 激活需显式选择 `--user` 或 `--machine`：
 
 | 你的 shell | 激活方式 |
 |---|---|
 | PowerShell / bash / zsh | 直接重启 shell 即可（profile 包装自动加载） |
-| **Windows cmd**（或 shim 目录不在 PATH 最前的任何 shell） | **以管理员身份运行一次**：`npm-safe gate shell --machine`；该命令把 shim 目录加到**系统** PATH 最前，之后所有新终端（含 cmd）都被拦截。完成后重新打开终端。 |
+| Windows 用户 PATH | 运行 `npm-safe gate shell --user`，把 shim 前置到**用户** PATH，无需管理员权限。重新打开终端后，用 `npm-safe doctor` 检查解析顺序。 |
+| **Windows cmd**，且 Node 安装目录优先于 shim | **以管理员身份运行一次**：`npm-safe gate shell --machine`，把 shim 前置到**系统** PATH。完成后重新打开终端。 |
 
-在 Windows 上，只有系统 PATH 能可靠地排在 Node 安装目录之前；当某些工具把机器 PATH 放在前面时，仅修改用户 PATH 不够。`npm-safe doctor` 会验证 `where npm.cmd` 是否优先解析到 shim，并给出确切修复命令。
+Windows 可能把系统 PATH 放在用户 PATH 之前，因此 `--user` 不一定能让 shim
+排在系统级 Node 安装目录之前。`--machine` 修改系统值，需要管理员权限。
+这两个选项都不会把当前进程 PATH 复制到持久配置。`npm-safe doctor` 会检查
+`where npm.cmd` 是否优先解析到 shim，并给出修复命令。
 
 可用 `--shell-file <path>` 指定配置文件，`--no-shell` 跳过。激活后，任何 `pnpm add <pkg>` 或 `npm install <pkg>` 都会先执行 `npm-safe install ...`；门禁检查包，低于阈值时确认通过后才会运行真正的包管理器。移除：
 
 ```bash
 npm-safe gate shell --remove
+# 如果曾写入用户 PATH，移除对应项：
+npm-safe gate shell --user --remove
 # 如果曾写入系统 PATH，以管理员身份移除对应项：
 npm-safe gate shell --machine --remove
 ```

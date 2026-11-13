@@ -85,7 +85,7 @@ describe('security guarantees across engine, rule configuration and SQLite', () 
     assert.equal((await engine.checkPackage(name)).security.overallLevel, SecurityLevel.Dangerous);
   });
 
-  for (const legacyVersion of ['3', '4']) it(`rescans a v${legacyVersion} deep report after helper changes without refetching fresh metadata`, async () => {
+  for (const legacyVersion of ['3', '4', '5', '6']) it(`rescans a v${legacyVersion} deep report after helper changes without refetching fresh metadata`, async () => {
     const source = `const asset = '${'A'.repeat(200)}';\nconst root = Function('return this')();`;
     const archive = makeTarball([{ path: 'package/index.js', content: source }]);
     const tarball = `https://registry.npmjs.org/${name}/fixture.tgz`;
@@ -105,7 +105,7 @@ describe('security guarantees across engine, rule configuration and SQLite', () 
     }) as typeof fetch;
 
     // Reproduce the previous identity with otherwise identical rules/configuration:
-    // the dynamic-execution helper changed outside the fingerprinted rule bodies.
+    // content helpers changed outside the fingerprinted metadata rule bodies.
     const legacyFingerprint = createHash('sha256').update(JSON.stringify({
       version: legacyVersion, revision: 0,
       rules: BUILTIN_RULES.map((rule) => ({ ...rule, match: rule.match.toString() })),

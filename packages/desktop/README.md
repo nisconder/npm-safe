@@ -15,13 +15,13 @@
 
 ---
 
-A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core` engine. Its primary workflow is a visual DSH installation preflight: paste an npm package or public GitHub repository, inspect the evidence, then copy an immutable install command. It also provides search, watch, refresh, rules, and history views. The UI language is Chinese (zh-CN).
+A [Neutralinojs](https://neutralino.js.org/) desktop GUI for the `@npm-safe/core` engine. Paste an npm package or public GitHub repository, inspect the installation evidence, then copy an immutable install command. The app automatically identifies ordinary npm packages and DSH plugins; the check-type selector lets you override that choice. It also provides search, watch, refresh, rules, and history views. The UI language is Chinese (zh-CN).
 
 ## Screenshots
 
 ### DSH installation preflight
 
-The complete desktop window includes the custom title bar, permanent navigation, npm/GitHub input, three-level legend, and evidence-backed risk card.
+The desktop view includes permanent navigation, npm/GitHub input, a three-level legend, and an evidence-backed risk card.
 
 ![Complete npm-safe desktop installation risk screen](docs/desktop-preflight.png)
 
@@ -36,8 +36,8 @@ The overview turns persisted local scan history into a safety gauge, weekly acti
 ## Features
 
 - **Overview dashboard** — average security score shown on a half-circle gauge, a 7-day check histogram, total check count, risk breakdown (safe / suspicious / dangerous / unknown), and a recent-checks list (latest 8).
-- **Installation risk** — enter an npm package spec or public GitHub repository and receive a red / amber / green DSH risk card. It checks lifecycle scripts, suspicious dependency sources, duplicated DSH runtime packages, `dsh.bundle.patch`, published patch files, and `@deepseek-ai/dsh-tools` peer compatibility.
-- **Pinned command** — npm inputs resolve to an exact version and GitHub inputs to a commit SHA. The app only copies the command; it never runs an installation.
+- **Installation risk** — enter an npm package spec or public GitHub repository and receive a red / amber / green risk card. All packages receive lifecycle-script and dependency-source checks; npm tarballs also receive integrity verification. Automatically identified or manually selected DSH plugins also receive shared-runtime, `dsh.bundle.patch`, published-patch, and `@deepseek-ai/dsh-tools` peer checks.
+- **Pinned command** — npm inputs resolve to an exact version and GitHub inputs to a commit SHA. Ordinary packages get an `npm install` command; DSH plugins get `dsh plugin ... add`. The app only copies the command; it never runs an installation.
 - **Search** — keyword search against the npm registry (1-250 results, default 20); click a result to jump straight to Installation risk.
 - **Watch** — add/remove packages from the watchlist and refresh individual or all watched packages.
 - **Rules** — list every registered scan rule with its source and description; toggle each rule on/off and override its severity; reload plugin rules from `~/.npm-safe/rules/`.
@@ -45,7 +45,7 @@ The overview turns persisted local scan history into a safety gauge, weekly acti
 - **Settings** — read/write arbitrary engine settings (e.g. `proxy`, `lang`).
 - **Material You theming** — independent light/dark palettes (seed `#4f8cff`), toggled from the custom title bar and remembered across sessions.
 - **Remembered preferences** — the theme and the last active tab are persisted in both `localStorage` (instant startup) and the engine settings table (survives webview cache clears).
-- **Custom window chrome** — borderless, transparent, draggable title bar with minimize and close buttons.
+- **System window frame** — the native title bar provides minimize, maximize/restore, and close controls, with native edge and corner resizing. The OS manages the taskbar work area when maximizing. Cards retain their rounded corners.
 - **Persistent check history** — stored in the shared SQLite database (`~/.npm-safe/npm-safe.db`, `check_history` table, newest-first, capped at 1000). The desktop GUI and CLI share this history — packages scanned on the command line appear in the app, and vice versa. Legacy `~/.npm-safe/history.json` data is migrated into the database once on first launch.
 
 ## Screens (Tab Navigation)
@@ -67,11 +67,15 @@ The dashboard is re-rendered every time you navigate back to the tab.
 ### 安装风险 (Installation risk)
 
 - Enter an npm package name/spec or a public GitHub repository URL and click **生成风险卡** (or press Enter).
-- The card shows the resolved immutable source, overall risk, safety score, seven evidence rows, and actionable findings.
+- **检查类型** defaults to automatic detection; choose **普通 npm 包** or **DSH 插件** to override it.
+- **Scan scope** — npm inputs check metadata and deep-scan the published source by default. GitHub inputs currently check the repository manifest and README.
+- The card shows the package type, resolved immutable source, overall risk, safety score, evidence rows, and actionable findings.
 - npm sources are resolved to `package@exact-version`; GitHub sources are resolved to `github:owner/repository#commit-sha`.
-- Install lifecycle scripts, shared DSH packages misplaced in `dependencies`, duplicate core packages, missing or unpublished bundle patches, incompatible peer ranges, and suspicious dependency specs are called out separately.
-- **Copy pinned command** copies a reproducible `dsh plugin ... add ...` command. Packages with install lifecycle scripts include `--ignore-scripts` as an additional guardrail.
-- This first version is advisory only: generating or copying the card never installs the package.
+- Lifecycle scripts and suspicious dependency specs are called out for all packages. DSH plugins also receive checks for misplaced or duplicated host packages, missing or unpublished bundle patches, and incompatible peer ranges.
+- **Copy pinned command** copies `npm install package@exact-version` for an ordinary package or `dsh plugin ... add ...` for a DSH plugin. Packages with install lifecycle scripts include `--ignore-scripts` as an additional guardrail.
+- Generating or copying the card never installs the package.
+
+For a CLI comparison, enable deep scanning, e.g. `npm-safe check @npm-safe/core --deep -r`, and compare the same package version. The CLI defaults to metadata scanning, so its default result can differ from the desktop preflight.
 
 ### 搜索 (Search)
 
@@ -231,7 +235,7 @@ extension → frontend:  { "event": "engineReady", "data": {} }   (on WebSocket 
 ### App Configuration (`neutralino.config.json`)
 
 - `applicationId`: `org.npmsafe.desktop`
-- Window mode: 1100×750 (min 800×550), centered, `borderless` + `transparent`, resizable.
+- Window mode: 1100×750 (min 800×550), centered, with a standard system frame and native resizing.
 - Extension: `js.npmsafe.core` → `node ${NL_PATH}/resources/extensions/core/main.mjs`.
 - `nativeAllowList`: `app.*`, `os.*`, `window.*`, `extensions.*`, `filesystem.*`, `debug.log`.
 - `tokenSecurity`: `one-time`; binary/client version 6.9.0.

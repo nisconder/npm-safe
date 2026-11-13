@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="window-native">
   <head>
     <meta charset="UTF-8" />
     <title>npm-safe</title>
@@ -79,6 +79,10 @@
             <button class="title-bar-btn title-bar-window" id="window-minimize" title="最小化" aria-label="最小化">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H4v2h16v-2z"/></svg>
             </button>
+            <button class="title-bar-btn title-bar-window" id="window-maximize" title="最大化" aria-label="最大化" aria-pressed="false">
+              <svg class="icon-window-maximize" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="5" width="14" height="14"/></svg>
+              <svg class="icon-window-restore" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 8V5h11v11h-3M5 8h11v11H5z"/></svg>
+            </button>
             <button class="title-bar-btn title-bar-close" id="window-close" title="关闭" aria-label="关闭">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
             </button>
@@ -148,9 +152,9 @@
           <section id="tab-check" class="tab-panel">
             <div class="preflight-hero">
               <div class="preflight-copy">
-                <div class="preflight-eyebrow">DSH INSTALL PREFLIGHT</div>
+                <div class="preflight-eyebrow">INSTALL PREFLIGHT</div>
                 <h2>安装之前，先看清它会带来什么。</h2>
-                <p>输入 npm 包名或 GitHub 插件地址。npm-safe 只生成风险卡和固定版本命令，不会替你安装。</p>
+                <p>输入 npm 包名或 GitHub 地址，按包类型检查安装风险并生成固定版本命令，不会执行安装。</p>
               </div>
               <div class="preflight-legend" aria-label="风险等级说明">
                 <span><i class="legend-dot low"></i>低风险</span>
@@ -162,14 +166,25 @@
             <div class="preflight-input-card">
               <div class="preflight-input-row">
                 <div class="text-field outlined preflight-field">
-                  <input id="check-name" type="text" placeholder=" " autocomplete="off" spellcheck="false" />
+                  <input id="check-name" type="text" placeholder=" " autocomplete="off" spellcheck="false" aria-describedby="check-scope-hint" />
                   <label for="check-name">npm 包名或 GitHub 地址</label>
                 </div>
                 <button id="check-btn" class="btn filled preflight-scan-btn" data-original-text="生成风险卡">生成风险卡</button>
               </div>
+              <div class="preflight-type-row">
+                <label for="check-target-kind">检查类型</label>
+                <select id="check-target-kind" class="preflight-type-select" aria-describedby="check-kind-hint">
+                  <option value="auto">自动识别</option>
+                  <option value="npm">普通 npm 包</option>
+                  <option value="dsh-plugin">DSH 插件</option>
+                </select>
+                <span id="check-kind-hint">普通 npm 包不要求 DSH bundle；检查特定插件时也可手动选择。</span>
+              </div>
+              <p id="check-scope-hint" class="preflight-scope-hint">npm 包检查元数据并深扫发布源码；GitHub 地址检查仓库清单与 README。</p>
               <div class="preflight-examples">
-                <button class="example-chip" data-example="@npm-safe/dsh-tool-npm-safe">@npm-safe/dsh-tool-npm-safe</button>
-                <button class="example-chip" data-example="https://github.com/nisconder/npm-safe-forDSH">github.com/owner/plugin</button>
+                <button class="example-chip" data-example="lodash" data-target-kind="auto">lodash</button>
+                <button class="example-chip" data-example="@npm-safe/dsh-tool-npm-safe" data-target-kind="auto">@npm-safe/dsh-tool-npm-safe</button>
+                <button class="example-chip" data-example="https://github.com/nisconder/npm-safe-forDSH" data-target-kind="auto">GitHub 插件示例</button>
               </div>
             </div>
 
@@ -177,8 +192,8 @@
               <div class="preflight-empty">
                 <div class="empty-shield" aria-hidden="true">✓</div>
                 <div>
-                  <strong>等待插件地址</strong>
-                  <p>将检查生命周期脚本、宿主核心依赖、bundle patch、peer 版本与发布完整性。</p>
+                  <strong>输入一个包，查看安装风险</strong>
+                  <p>检查安装脚本、依赖来源和发布完整性；识别为 DSH 插件时，还会检查 bundle 和宿主兼容性。</p>
                 </div>
               </div>
             </div>
@@ -319,6 +334,7 @@
     <div id="status-bar" class="status-bar">就绪</div>
 
     <script src="js/neutralino.js"></script>
+    <script src="js/window-controls.js"></script>
     <script src="js/main.js"></script>
   </body>
 </html>

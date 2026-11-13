@@ -63,6 +63,11 @@
   --md-radius-xl: 28px;
   --md-radius-full: 9999px;
 
+  /* Leave native resize edges outside the rounded application surface. */
+  --window-inset: 6px;
+  --window-radius: 14px;
+  --window-border: 1px;
+
   /* M3 type */
   --md-font: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   --md-font-mono: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
@@ -160,7 +165,6 @@ body.light-theme {
 html,
 body {
   height: 100%;
-  background: var(--bg);
   color: var(--text);
   font-family: var(--md-font);
   font-size: 14px;
@@ -170,9 +174,39 @@ body {
   overflow: hidden;
 }
 
+html {
+  padding: var(--window-inset);
+  background: transparent;
+}
+
+body {
+  position: relative;
+  background: transparent;
+  border: var(--window-border) solid color-mix(in srgb, var(--md-outline) 72%, transparent);
+  border-radius: var(--window-radius);
+}
+
+html.window-maximized,
+html.window-native {
+  --window-inset: 0px;
+  --window-radius: 0px;
+  --window-border: 0px;
+}
+
+html.window-native .title-bar-window,
+html.window-native .title-bar-close {
+  display: none;
+}
+
+html.window-native .title-bar-drag {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
 /* Layout */
 .app-layout {
   display: flex;
+  background: var(--bg);
   height: 100%;
   padding-bottom: 28px;
 }
@@ -297,8 +331,6 @@ body {
   padding: 0 0 0 12px;
   background: var(--md-elevation-2);
   border-bottom: 1px solid var(--md-outline-variant);
-  -webkit-app-region: drag;
-  app-region: drag;
 }
 
 .title-bar-drag {
@@ -328,6 +360,7 @@ body {
 
 .title-bar-controls {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   height: 100%;
   -webkit-app-region: no-drag;
@@ -385,6 +418,15 @@ body.light-theme .title-bar-btn .icon-sun {
 }
 
 .title-bar-btn .icon-moon {
+  display: block;
+}
+
+.title-bar-btn .icon-window-restore,
+html.window-maximized .title-bar-btn .icon-window-maximize {
+  display: none;
+}
+
+html.window-maximized .title-bar-btn .icon-window-restore {
   display: block;
 }
 
@@ -750,6 +792,39 @@ body.light-theme .title-bar-btn .icon-sun {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.preflight-type-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  color: var(--md-on-surface-variant);
+  font-size: 12px;
+}
+
+.preflight-type-select {
+  min-width: 146px;
+  padding: 8px 12px;
+  border: 1px solid var(--md-outline);
+  border-radius: var(--md-radius-sm);
+  background: var(--md-elevation-2);
+  color: var(--md-on-surface);
+  font: inherit;
+}
+
+.preflight-type-select:focus-visible {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+}
+
+.preflight-type-select:disabled { opacity: 0.6; }
+
+.preflight-scope-hint {
+  margin-top: 10px;
+  color: var(--md-on-surface-variant);
+  font-size: 12px;
 }
 
 .preflight-field input {
@@ -1663,7 +1738,7 @@ body.light-theme .copy-command-btn { color: #fff; }
 
 /* Status bar */
 .status-bar {
-  position: fixed;
+  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;

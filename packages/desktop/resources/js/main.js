@@ -271,20 +271,7 @@ function initTabs() {
 // ---------------------------------------------------------------------------
 
 function initTitleBar() {
-  const drag = document.getElementById("title-bar-drag");
-  if (drag && Neutralino.window && Neutralino.window.setDraggableRegion) {
-    Neutralino.window.setDraggableRegion(drag);
-  }
-
-  const minimize = document.getElementById("window-minimize");
-  if (minimize && Neutralino.window && Neutralino.window.minimize) {
-    minimize.addEventListener("click", () => Neutralino.window.minimize());
-  }
-
-  const close = document.getElementById("window-close");
-  if (close) {
-    close.addEventListener("click", () => Neutralino.app.exit());
-  }
+  globalThis.NpmSafeWindowControls?.init();
 
   const themeToggle = document.getElementById("theme-toggle");
   if (themeToggle) {
@@ -313,6 +300,7 @@ const CHECK_STATUS = {
 
 function renderInstallRisk(result) {
   const area = document.getElementById("check-result");
+  const isDshPlugin = result.packageKind === "dsh-plugin";
   const risk = RISK_LABELS[result.riskLevel] ?? RISK_LABELS.medium;
   const checks = result.checks ?? [];
   const findings = result.findings ?? [];
@@ -354,7 +342,7 @@ function renderInstallRisk(result) {
       <header class="risk-card-header">
         <div>
           <div class="risk-source-line">
-            <span class="source-stamp">${escapeHtml(result.sourceKind.toUpperCase())}</span>
+            <span class="source-stamp">${isDshPlugin ? "DSH 插件" : "npm 包"}</span>
             <span>${escapeHtml(result.sourceLabel)}</span>
             <span class="source-divider">/</span>
             <button class="source-link" data-open-source="${escapeAttr(result.sourceUrl)}">查看来源</button>
@@ -380,7 +368,7 @@ function renderInstallRisk(result) {
 
       <section class="risk-section">
         <div class="risk-section-heading">
-          <span>DSH 安装契约</span>
+          <span>${isDshPlugin ? "DSH 安装契约" : "npm 安装检查"}</span>
           <small>${checks.length} 项证据</small>
         </div>
         <div class="risk-check-grid">${checksHtml}</div>
@@ -401,7 +389,7 @@ function renderInstallRisk(result) {
         </div>
         <div class="command-row">
           <code>${escapeHtml(result.safeInstallCommand)}</code>
-          <button class="copy-command-btn" data-copy-command="${escapeAttr(result.safeInstallCommand)}">复制安全命令</button>
+          <button class="copy-command-btn" data-copy-command="${escapeAttr(result.safeInstallCommand)}">复制安装命令</button>
         </div>
       </section>
 
@@ -416,7 +404,7 @@ function renderInstallRisk(result) {
     try {
       await Neutralino.clipboard.writeText(button.dataset.copyCommand);
       button.textContent = "已复制";
-      setTimeout(() => { button.textContent = "复制安全命令"; }, 1600);
+      setTimeout(() => { button.textContent = "复制安装命令"; }, 1600);
       setStatus("固定来源安装命令已复制；npm-safe 没有执行安装", "success");
     } catch (err) {
       setStatus(err.message ?? "复制失败", "error");
@@ -467,23 +455,29 @@ function toOpenableUrl(text) {
 }
 
 async function handleCheck() {
-  const input = document.getElementById("check-name").value.trim();
+  const btn = document.getElementById("check-btn");
+  if (btn.disabled) return;
+  const inputField = document.getElementById("check-name");
+  const kindField = document.getElementById("check-target-kind");
+  const input = inputField.value.trim();
+  const targetKind = kindField.value;
   if (!input) {
-    setStatus("请输入 npm 包名或 GitHub 插件地址", "error");
-    document.getElementById("check-name").focus();
+    setStatus("请输入 npm 包名或 GitHub 地址", "error");
+    inputField.focus();
     return;
   }
 
-  const btn = document.getElementById("check-btn");
   setBusy(btn, true);
+  inputField.disabled = true;
+  kindField.disabled = true;
   setStatus(`正在生成安装风险卡: ${input} ...`);
   document.getElementById("check-result").innerHTML = `
     <div class="preflight-loading">
       <span class="loading-pulse" aria-hidden="true"></span>
-      <div><strong>正在核对发布内容</strong><p>解析来源、检查 package.json、验证 bundle patch 与固定版本。</p></div>
+      <div><strong>正在核对发布内容</strong><p>识别包类型，检查安装脚本、依赖来源与发布完整性。</p></div>
     </div>`;
   try {
-    const result = await callEngine("assessInstallRisk", { input, profile: "web" });
+    const result = await callEngine("assessInstallRisk", { input, profile: "web", targetKind });
     renderInstallRisk(result);
     const historyLevel = result.riskLevel === "low" ? "safe" : result.riskLevel === "medium" ? "suspicious" : "dangerous";
     await callEngine("addHistory", {
@@ -492,13 +486,16 @@ async function handleCheck() {
       score: result.safetyScore,
       timestamp: result.inspectedAt,
     });
-    setStatus(`风险卡已生成: ${result.packageName}@${result.version}`, "success");
+    const kindLabel = result.packageKind === "dsh-plugin" ? "DSH 插件" : "npm 包";
+    setStatus(`${kindLabel}风险卡已生成: ${result.packageName}@${result.version}`, "success");
   } catch (err) {
     document.getElementById("check-result").innerHTML =
       `<div class="preflight-error"><strong>无法生成风险卡</strong><p>${escapeHtml(err.message)}</p><span>请确认包名、公开仓库地址和网络连接后重试。</span></div>`;
     setStatus(err.message, "error");
   } finally {
     setBusy(btn, false);
+    inputField.disabled = false;
+    kindField.disabled = false;
   }
 }
 
@@ -1066,7 +1063,9 @@ Neutralino.events.on("windowClose", () => {
   });
   document.querySelectorAll("[data-example]").forEach((chip) => {
     chip.addEventListener("click", () => {
+      if (document.getElementById("check-btn").disabled) return;
       document.getElementById("check-name").value = chip.dataset.example;
+      document.getElementById("check-target-kind").value = chip.dataset.targetKind ?? "auto";
       handleCheck();
     });
   });

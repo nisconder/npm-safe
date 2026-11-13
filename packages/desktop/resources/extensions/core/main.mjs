@@ -32,6 +32,7 @@ const NL_EXTID = processInput.nlExtensionId;
 // ---------------------------------------------------------------------------
 
 const DB_PATH = path.join(os.homedir(), ".npm-safe", "npm-safe.db");
+fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
 /**
  * Read the persisted `proxy` setting so the desktop app honours the same
@@ -178,7 +179,7 @@ function log(message, type = "INFO") {
 async function invoke(method, data) {
   switch (method) {
     case "assessInstallRisk":
-      return await engine.assessInstallRisk(data.input, data.profile ?? "web");
+      return await engine.assessInstallRisk(data.input, data.profile ?? "web", data.targetKind ?? "auto");
     case "checkPackage": {
       const result = await engine.checkPackage(data.name);
       if (result.exists && result.security) {

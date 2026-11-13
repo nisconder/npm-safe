@@ -130,6 +130,71 @@ describe("CLI doctor", () => {
     }
   });
 
+  it("recognizes complete PowerShell wrappers without requiring persistent shim PATH", { skip: process.platform !== "win32" }, () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-doctor-"));
+    try {
+      assert.strictEqual(runCli(["gate", "enable", "--no-shell"], home).status, 0);
+      const shell = runCli(["gate", "shell"], home, { SHELL: "pwsh.exe" });
+      assert.strictEqual(shell.status, 0, shell.stderr);
+      assert.ok(shell.stdout.includes("PowerShell profile wrappers do not need a persistent PATH change"), shell.stdout);
+      const { status, stdout } = runCli(["doctor"], home, {
+        APPDATA: home,
+        PATH: `${path.join(home, "npm")};${process.env.PATH ?? ""}`,
+        SHELL: "bash.exe",
+      });
+      assert.strictEqual(status, 0, stdout);
+      assert.ok(stdout.includes("PowerShell profile wrappers configured:"), stdout);
+      assert.ok(stdout.includes("Reopen the corresponding PowerShell"), stdout);
+      assert.ok(stdout.includes("(Get-Command npm).CommandType should be Function"), stdout);
+      assert.ok(stdout.includes("does not verify functions in the current terminal"), stdout);
+      assert.ok(stdout.includes("i CMD only: The shim directory is not in PATH"), stdout);
+      assert.ok(!stdout.includes("problem(s) found"), stdout);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it("reports CMD precedence as information when PowerShell wrappers are configured", { skip: process.platform !== "win32" }, () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-doctor-"));
+    try {
+      assert.strictEqual(runCli(["gate", "enable", "--no-shell"], home).status, 0);
+      assert.strictEqual(runCli(["gate", "shell"], home, { SHELL: "powershell.exe" }).status, 0);
+      const globalBin = path.join(home, "npm");
+      mkdirSync(globalBin, { recursive: true });
+      writeFileSync(path.join(globalBin, "npm.cmd"), "@echo off\r\necho real npm\r\n");
+      const { status, stdout } = runCli(["doctor"], home, {
+        APPDATA: home,
+        PATH: `${globalBin};${path.join(home, ".npm-safe", "bin")};${process.env.PATH ?? ""}`,
+      });
+      assert.strictEqual(status, 0, stdout);
+      assert.ok(stdout.includes("WindowsPowerShell"), stdout);
+      assert.ok(stdout.includes("i CMD only: npm.cmd resolves ahead of the gate shim"), stdout);
+      assert.ok(!stdout.includes("✓ npm resolves to the gate shim first"), stdout);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it("does not treat marker-only or incomplete PowerShell wrappers as configured", { skip: process.platform !== "win32" }, () => {
+    const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-doctor-"));
+    try {
+      assert.strictEqual(runCli(["gate", "enable", "--no-shell"], home).status, 0);
+      assert.strictEqual(runCli(["gate", "shell"], home, { SHELL: "pwsh.exe" }).status, 0);
+      const profile = path.join(home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1");
+      writeFileSync(profile, "# >>> npm-safe gate >>>\nfunction npm { Write-Output sample }\n# <<< npm-safe gate <<<\n");
+      const { status, stdout } = runCli(["doctor"], home, {
+        APPDATA: home,
+        PATH: `${path.join(home, "npm")};${process.env.PATH ?? ""}`,
+      });
+      assert.strictEqual(status, 1, stdout);
+      assert.ok(stdout.includes("✗ Shim directory present in PATH"), stdout);
+      assert.ok(!stdout.includes("PowerShell profile wrappers configured:"), stdout);
+      assert.ok(stdout.includes("problem(s) found"), stdout);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
   it("checks prefix/bin rather than the npm prefix on Unix", { skip: process.platform === "win32" }, () => {
     const home = mkdtempSync(path.join(os.tmpdir(), "npm-safe-doctor-"));
     try {

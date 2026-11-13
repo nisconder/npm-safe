@@ -30,6 +30,35 @@ describe('connected network execution signals', () => {
     assert.equal(find(`let cp=require('child_process');${response}cp=logger;cp.exec(body);`), undefined);
   });
 
+  it('does not apply unused function writes to the enclosing process/body bindings', () => {
+    for (const overwrite of ['cp=console;', 'cp.exec=console.log;', "cp['exec']=console.log;", "body='echo safe';"]) {
+      assert.ok(find(`let cp=require('child_process');${response}function unused(){${overwrite}}cp.exec(body);`), overwrite);
+    }
+    assert.equal(find(`let cp=require('child_process');${response}{cp=console;}cp.exec(body);`), undefined);
+    assert.equal(find(`let cp=require('child_process');${response}{body='fixed';}cp.exec(body);`), undefined);
+  });
+
+  it('does not apply object-property writes to same-named lexical body/process bindings', () => {
+    assert.ok(find(`const cp=require('child_process');${response}const other={};other.body='echo safe';cp.exec(body);`));
+    assert.equal(find(`const cp=require('child_process');${response}const command='echo safe';const other={};other.command=body;cp.exec(command);`), undefined);
+    assert.equal(find(`${response}const other={};other.cp=require('child_process');cp.exec(body);`), undefined);
+  });
+
+  it('isolates expression-arrow writes while retaining connected calls inside their bodies', () => {
+    for (const overwrite of ['cp=console', 'cp.exec=console.log', "body='echo safe'"]) {
+      assert.ok(find(`let cp=require('child_process');${response}const unused=()=>${overwrite};cp.exec(body);`), overwrite);
+    }
+    assert.equal(find(`const cp=require('child_process');${response}let command='echo safe';const unused=()=>command=body;cp.exec(command);`), undefined);
+    assert.ok(find(`const cp=require('child_process');${response}const sample=()=>cp.exec(body);`));
+  });
+
+  it('honors var process aliases hoisted within a function even when declared in a block', () => {
+    for (const statements of [
+      `if(true){var cp=console;}${response}cp.exec(body);`,
+      `${response}cp.exec(body);if(true){var cp=console;}`,
+    ]) assert.equal(find(`const cp=require('child_process');function sample(){${statements}}`), undefined);
+  });
+
   it('honors local process, require and fetch parameters', () => {
     assert.equal(find(`const cp=require('child_process');function inspect(cp){${response}cp.exec(body);}`), undefined);
     assert.equal(find(`function inspect(require){const cp=require('child_process');${response}cp.exec(body);}`), undefined);

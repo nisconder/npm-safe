@@ -1,8 +1,11 @@
-import { describe, it, afterEach } from "node:test";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { mkdtempSync, realpathSync, rmSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { gzipSync } from "node:zlib";
-import { NpmSafeEngine } from "../src/index.js";
+import { NpmSafeEngine, type NpmSafeEngineOptions } from "../src/index.js";
 import { SecurityLevel } from "../src/scanner/types.js";
 import type { PackageMetadata } from "../src/registry/types.js";
 
@@ -48,17 +51,36 @@ const mockMaliciousMeta: PackageMetadata = {
 
 describe("NpmSafeEngine", () => {
   let engine: NpmSafeEngine;
+  let directory: string | undefined;
+  const temporaryRoot = realpathSync(os.tmpdir());
+  const temporaryPrefix = "npm-safe-engine-tests-";
+  const openEngine = (options: NpmSafeEngineOptions = {}) => {
+    assert.ok(directory, "Each test requires its own engine configuration directory.");
+    return new NpmSafeEngine({
+      ...options,
+      dbPath: ":memory:",
+      llmConfigPath: path.join(directory, "llm.json"),
+      rulesConfigPath: path.join(directory, "rules.json"),
+      rulesDir: path.join(directory, "plugins"),
+    });
+  };
 
-  afterEach(async () => {
+  beforeEach(() => {
+    directory = mkdtempSync(path.join(temporaryRoot, temporaryPrefix));
+  });
+
+  afterEach(() => {
     try {
       engine?.close();
     } catch { /* */ }
-    // Clean up any test db files.
-    try {
-      const fs = await import("node:fs/promises");
-      await fs.rm("./test-integration.db", { force: true });
-    } catch { /* */ }
     globalThis.fetch = ORIGINAL_FETCH;
+    if (directory) {
+      const target = realpathSync(directory);
+      assert.equal(path.dirname(target), temporaryRoot, "Cleanup must remain inside the resolved temporary root.");
+      assert.ok(path.basename(target).startsWith(temporaryPrefix), "Cleanup requires the dedicated test-directory prefix.");
+      rmSync(target, { recursive: true, force: true });
+      directory = undefined;
+    }
   });
 
   describe("checkPackage", () => {
@@ -87,7 +109,7 @@ describe("NpmSafeEngine", () => {
         return Promise.resolve(new Response(JSON.stringify(deepMeta), { status: 200 }));
       }) as typeof fetch;
 
-      engine = new NpmSafeEngine({ dbPath: ":memory:" });
+      engine = openEngine();
       const shallow = await engine.checkPackage("safe-lib");
       const deep = await engine.checkPackage("safe-lib", { deep: true });
       const cachedDeep = await engine.checkPackage("safe-lib", { deep: true });
@@ -121,8 +143,7 @@ describe("NpmSafeEngine", () => {
         return Promise.resolve(new Response(JSON.stringify(mockPackageMeta), { status: 200 }));
       }) as typeof fetch;
 
-      engine = new NpmSafeEngine({
-        dbPath: ":memory:",
+      engine = openEngine({
         llm: { apiKey: "test-key", baseUrl: "https://llm.example/v1" },
       });
 
@@ -147,7 +168,7 @@ describe("NpmSafeEngine", () => {
         });
       }) as typeof fetch;
 
-      engine = new NpmSafeEngine({ dbPath: ":memory:" });
+      engine = openEngine();
 
       const r1 = await engine.checkPackage("safe-lib");
       const r2 = await engine.checkPackage("safe-lib");
@@ -173,7 +194,7 @@ describe("NpmSafeEngine", () => {
         });
       }) as typeof fetch;
 
-      engine = new NpmSafeEngine({ dbPath: ":memory:" });
+      engine = openEngine();
 
       const result = await engine.checkPackage("react-utils");
 
@@ -196,7 +217,7 @@ describe("NpmSafeEngine", () => {
         });
       }) as typeof fetch;
 
-      engine = new NpmSafeEngine({ dbPath: ":memory:" });
+      engine = openEngine();
 
       const result = await engine.checkPackage("no-such-pkg");
       assert.strictEqual(result.exists, false);
@@ -215,7 +236,7 @@ describe("NpmSafeEngine", () => {
         });
       }) as typeof fetch;
 
-      engine = new NpmSafeEngine({ dbPath: ":memory:" });
+      engine = openEngine();
 
       const result = await engine.checkPackage("safe-lib");
       assert.ok(result.registryInfo);
@@ -226,7 +247,7 @@ describe("NpmSafeEngine", () => {
 
   describe("watchlist", () => {
     it("supports full CRUD lifecycle", async () => {
-      engine = new NpmSafeEngine({ dbPath: ":memory:" });
+      engine = openEngine();
 
       let list = await engine.getWatchlist();
       assert.deepStrictEqual(list, []);
@@ -256,7 +277,7 @@ describe("NpmSafeEngine", () => {
 
   describe("settings", () => {
     it("stores and retrieves settings", async () => {
-      engine = new NpmSafeEngine({ dbPath: ":memory:" });
+      engine = openEngine();
 
       let val = await engine.getSetting("language");
       assert.strictEqual(val, null);
@@ -269,12 +290,12 @@ describe("NpmSafeEngine", () => {
 
   describe("lifecycle", () => {
     it("close releases resources without error", () => {
-      engine = new NpmSafeEngine({ dbPath: ":memory:" });
+      engine = openEngine();
       engine.close();
     });
 
     it("startAutoRefresh and stopAutoRefresh succeed", () => {
-      engine = new NpmSafeEngine({ dbPath: ":memory:" });
+      engine = openEngine();
       engine.startAutoRefresh(10000);
       engine.stopAutoRefresh();
     });

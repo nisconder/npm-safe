@@ -267,7 +267,8 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
         );
       }
       const json = sourceReview ? await readSourceResponse(response) : await response.json() as unknown;
-      const content = readResponseContent(json);
+      const jsonMode = (body.response_format as { type?: unknown } | null | undefined)?.type === "json_object";
+      const content = readResponseContent(json, this.maxTokens, jsonMode);
       if (!content) throw new LlmProviderError("LLM response contained no content.");
       if (sourceReview) assertSourceResponse(content);
       return content;
@@ -299,14 +300,53 @@ export class OpenAICompatibleLlmProvider implements LlmScanProvider {
  * match.
  *
  * @param value - The parsed JSON response body.
- * @returns The content string, or `undefined`.
+ * Incomplete generations and reasoning-only replies are never final answers.
+ * Only completion state is included in errors, never provider response text.
+ *
+ * @returns The content string, or `undefined` for a missing final answer.
  */
-function readResponseContent(value: unknown): string | undefined {
+function readResponseContent(value: unknown, maxTokens: number, jsonMode: boolean): string | undefined {
   if (!value || typeof value !== "object") return undefined;
   const choices = (value as { choices?: unknown }).choices;
   if (!Array.isArray(choices) || choices.length === 0) return undefined;
-  const message = choices[0];
-  if (!message || typeof message !== "object") return undefined;
-  const content = (message as { message?: { content?: unknown } }).message?.content;
+  const choice = choices[0];
+  if (!choice || typeof choice !== "object") return undefined;
+  const { finish_reason: finishReason, message } = choice as {
+    finish_reason?: unknown;
+    message?: { content?: unknown; reasoning_content?: unknown };
+  };
+  const content = message?.content;
+  const hasReasoning = typeof message?.reasoning_content === "string" && message.reasoning_content.trim().length > 0;
+  if (finishReason === "length") {
+    throw new LlmProviderError(
+      `LLM output budget was exhausted or the context limit was reached (finish_reason=length; max_tokens=${maxTokens}). ` +
+      (hasReasoning && (typeof content !== "string" || !content.trim())
+        ? "Only reasoning content was returned; the final answer is empty. " : "") +
+      "Increase max output tokens or reduce the request.",
+    );
+  }
+  if (finishReason === "content_filter") {
+    throw new LlmProviderError("LLM response was blocked by the provider's content filter (finish_reason=content_filter).");
+  }
+  if (finishReason === "insufficient_system_resource") {
+    throw new LlmProviderError("LLM generation was interrupted by provider resource limits (finish_reason=insufficient_system_resource).");
+  }
+  if (finishReason === "aborted") {
+    throw new LlmProviderError("LLM generation was aborted by the provider (finish_reason=aborted).");
+  }
+  if (finishReason === "tool_calls" || finishReason === "function_call") {
+    throw new LlmProviderError("LLM returned a tool call instead of a final answer.");
+  }
+  if (finishReason !== undefined && finishReason !== null && finishReason !== "stop") {
+    throw new LlmProviderError("LLM generation ended with an unsupported completion state.");
+  }
+  if (typeof content === "string" && content.length > 0 && !content.trim()) {
+    throw new LlmProviderError(jsonMode
+      ? "LLM response contained only whitespace in JSON mode. The provider returned no usable JSON final answer."
+      : "LLM response contained only whitespace and no usable final answer.");
+  }
+  if ((typeof content !== "string" || !content) && hasReasoning) {
+    throw new LlmProviderError("LLM returned reasoning content but no final answer.");
+  }
   return typeof content === "string" ? content : undefined;
 }

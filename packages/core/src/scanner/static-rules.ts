@@ -22,7 +22,7 @@ import { findEncodedShell } from './readme-shell-signals.js';
 import { findExecutableLinks } from './readme-url-signals.js';
 
 // Bump whenever scanner/content semantics change, including policy and limits.
-export const SCANNER_CACHE_VERSION = '5';
+export const SCANNER_CACHE_VERSION = '7';
 
 /** Severity weights subtracted from the base score (100) per finding. */
 const SEVERITY_WEIGHT: Readonly<Record<Severity, number>> = {
@@ -573,6 +573,11 @@ const suspiciousBuildMetadataRule: ScanRule = {
     for (const key of Object.keys(packageJson)) {
       if (!key.startsWith('_')) continue;
       if (knownUnderscoreKeys.has(key)) continue;
+      // npm's registry metadata specification defines this boolean for both
+      // shrinkwrapped and non-shrinkwrapped releases. Neither value is an
+      // unknown build-tool field; malformed values still need inspection.
+      // https://github.com/npm/registry/blob/main/docs/responses/package-metadata.md
+      if (key === '_hasShrinkwrap' && typeof packageJson[key] === 'boolean') continue;
       findings.push({
         ruleId: 'suspicious-build-metadata',
         ruleName: 'Suspicious build metadata',

@@ -1,13 +1,13 @@
 /** Small, bounded expression shapes; no execution, general JS parser or full taint engine. */
 import type { SourceToken } from './source-tokens.js';
 
-export type FlowTag = 'response' | 'body' | 'module' | 'exec' | 'execSync' | 'spawn' | 'spawnSync' | 'blocked';
+export type FlowTag = 'response' | 'body' | 'module' | 'exec' | 'execSync' | 'spawn' | 'spawnSync' | 'execFile' | 'execFileSync' | 'blocked';
 export interface FlowContext {
   readonly pairs: ReadonlyMap<number, number>;
   readonly binding: (name: string) => FlowTag | undefined;
   readonly global: (index: number, name: string) => boolean;
 }
-const METHODS = new Set(['exec', 'execSync', 'spawn', 'spawnSync']);
+const METHODS = new Set(['exec', 'execSync', 'spawn', 'spawnSync', 'execFile', 'execFileSync']);
 const MAX_EXPRESSION_TOKENS = 256;
 
 export function delimiterPairs(tokens: readonly SourceToken[]): ReadonlyMap<number, number> {

@@ -36,6 +36,7 @@ Thumbs.db
 .env.local
 
 # Internal planning/tooling
+.review/
 .omo/
 .codegraph/
 

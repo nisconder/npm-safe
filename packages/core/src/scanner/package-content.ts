@@ -12,6 +12,7 @@ import { scanBrowserContent } from './browser-signals.js';
 import { scanProcessContent } from './content-process-signals.js';
 import { findDynamicExecution, hasDynamicExecutionCandidate } from './content-dynamic-signals.js';
 import { findNetworkExecution } from './content-network-signals.js';
+import { findRemoteShellExecution, hasRemoteShellCandidate, REMOTE_SHELL_PATTERN } from './content-remote-shell.js';
 import { hasSecretFlowCandidate, findSecretExfiltration } from './content-secret-flow.js';
 import { hasDownloadExecutionCandidate, scanDownloadExecution } from './content-download-exec.js';
 import { hasConcealedCodeCandidate, scanConcealedContent } from './content-concealed-code.js';
@@ -87,8 +88,6 @@ const NATIVE_EXTENSIONS = new Set([
 ]);
 const JAVASCRIPT_EXTENSIONS = new Set(['.js', '.cjs', '.mjs', '.jsx', '.ts', '.cts', '.mts', '.tsx']);
 
-const REMOTE_SHELL_PATTERN =
-  /(?:\b(?:curl|wget)\b[^\r\n]{0,400}(?:\||&&|;)\s*(?:sudo\s+)?(?:sh|bash|zsh|powershell|pwsh|cmd)\b|(?:Invoke-WebRequest|DownloadString|WebClient)[^\r\n]{0,500}(?:Invoke-Expression|\biex\b|Start-Process))/i;
 const PROCESS_EXEC_PATTERN =
   /(?:require\s*\(\s*['"](?:node:)?child_process['"]\s*\)|from\s+['"](?:node:)?child_process['"]|\bchild_process\s*\.\s*(?:exec|execFile|spawn|fork|execSync|spawnSync)\s*\()/i;
 const NETWORK_PATTERN =
@@ -407,12 +406,13 @@ export function analyzePackageTarball(
       const browserCandidate = content.includes('fetch') && content.includes('XMLHttpRequest') && content.includes('Response');
       const dynamicCandidate = hasDynamicExecutionCandidate(content);
       const networkCandidate = content.includes('fetch') && (content.includes('require') || content.includes('import'));
+      const remoteShellCandidate = hasRemoteShellCandidate(content);
       const secretCandidate = hasSecretFlowCandidate(content);
       const downloadCandidate = hasDownloadExecutionCandidate(content);
       const concealedCandidate = hasConcealedCodeCandidate(content);
       let sourceTokens: readonly SourceToken[] | undefined;
       // Each gate is a necessary condition of its lexical detector, not an allowlist.
-      if (javascript && (processCandidate || browserCandidate || dynamicCandidate || networkCandidate || secretCandidate || downloadCandidate || concealedCandidate)) {
+      if (javascript && (processCandidate || browserCandidate || dynamicCandidate || networkCandidate || remoteShellCandidate || secretCandidate || downloadCandidate || concealedCandidate)) {
         const lexical = tokenizeSourceDetailed(content, { maxTokens: options.maxTokensPerFile });
         sourceTokens = lexical.tokens;
         if (lexical.truncated) {
@@ -438,7 +438,15 @@ export function analyzePackageTarball(
           recommendation: 'Do not install until the private-material transmission and destination have been independently reviewed.',
         });
       }
-      const remoteShell = lineForMatch(content, REMOTE_SHELL_PATTERN);
+      const shellExecution = javascript && remoteShellCandidate && sourceTokens
+        ? findRemoteShellExecution(content, sourceTokens)
+        : undefined;
+      const remoteShell = javascript
+        ? shellExecution && {
+          line: content.slice(0, shellExecution.start).split(/\r?\n/).length,
+          snippet: content.slice(shellExecution.start, shellExecution.end).slice(0, 240),
+        }
+        : lineForMatch(content, REMOTE_SHELL_PATTERN);
       if (remoteShell) {
         emit({
           ruleId: 'content-remote-shell',

@@ -57,12 +57,14 @@ pnpm -F @npm-safe/core run build
 cd packages/core && npm link
 ```
 
-> **Windows PATH note:** `npm link` installs `npm-safe` into the npm global
-> bin directory (`%APPDATA%\npm`), which must be on your `PATH` for external
-> terminals to find it. The official Node.js MSI adds it automatically; for
-> custom installs (e.g. Node unpacked to a custom folder) add it yourself:
-> `setx PATH "%APPDATA%\npm;%PATH%"`, then reopen the terminal. If anything
-> looks off, run `npm-safe doctor` for a diagnosis.
+> **Windows PATH note:** `npm link` places the CLI in the npm global bin
+> directory, normally `%APPDATA%\npm`. If needed, open **Environment Variables
+> → User variables → Path → Edit → New** and add only that directory, keeping
+> all existing entries. Do not copy the current process's entire `%PATH%`
+> into the user value. For a custom npm prefix, use its actual global bin
+> directory. Reopen the terminal and run `npm-safe doctor`; the
+> [CLI usage instructions](README.md#cli-usage) include a guarded full-path
+> invocation if the command is not yet resolvable.
 
 ## Project Structure
 

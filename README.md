@@ -16,9 +16,9 @@
 
 <br>
 
-<img src="docs/assets/dsh-risk-states.svg" alt="npm-safe low, medium, and high DSH plugin installation risk states" width="100%">
+<img src="docs/assets/npm-safe-desktop.jpg" alt="Actual npm-safe desktop scan of lodash, identified as an npm package with a low-risk verdict" width="100%">
 
-<sub>Three DSH installation verdicts at a glance. The desktop app analyzes and generates a pinned command; it does not install from this screen.</sub>
+<sub>Actual desktop screenshot: a live lodash scan with npm package checks and a pinned installation command. This screen does not execute installations.</sub>
 
 </div>
 
@@ -30,10 +30,12 @@ obfuscation, process execution, networking, and sensitive environment access.
 Every run returns an explainable 0–100 security score.
 
 The desktop app turns that evidence into a red/yellow/green installation risk
-card for npm package names and public GitHub plugin repositories. It checks DSH
-bundle declarations, shipped patch files, lifecycle scripts, host-owned core
-dependencies, dependency sources, and peer compatibility, then produces a
-version- or commit-pinned command without running it.
+card for npm packages and public GitHub repositories. It identifies ordinary
+packages and DSH plugins automatically, with a manual override. Both receive
+lifecycle-script and dependency-source checks. npm tarballs receive integrity
+verification; DSH plugins also receive bundle, shipped-patch, host-dependency,
+and peer checks. It generates
+a version- or commit-pinned command without running it.
 
 Static analysis and caching run locally with no account or hosted backend.
 Optional LLM analysis is disabled by default and only runs when you configure
@@ -60,7 +62,7 @@ metadata and supply-chain attack signals before or during installation.
 | Check a package before choosing it | `npm-safe check <package>` | Rule findings, explanations, and a security score |
 | Guard a package-manager install | `npm-safe install <package>` | An opt-in confirmation gate below your score threshold |
 | Protect an existing project | `npm-safe ci --lockfile` | Direct and transitive dependency scanning with CI exit codes |
-| Review DSH plugins visually | [Desktop app](#desktop-gui) | Installation risk card, DSH contract checks, and a pinned command |
+| Review packages and DSH plugins visually | [Desktop app](#desktop-gui) | Installation risk card, checks for the package type, and a pinned command |
 | Give coding agents a safety check | `npm-safe skill install` | A skill for Codex, Claude Code, OpenCode, Gemini CLI, and more |
 
 The scanner is transparent by design: the 10 metadata rules and 17 deep-scan
@@ -149,7 +151,8 @@ npm-safe report lodash express     # Export security reports (JSON/CSV)
 npm-safe telemetry status          # Show telemetry status (opt-in, local only)
 npm-safe gate status               # Show install gate status (opt-in)
 npm-safe gate enable               # Enable the gate + auto-install wrappers/shims
-npm-safe gate shell                # Install shell wrappers + PATH shims
+npm-safe gate shell                # Install wrappers/shims; leave persistent PATH unchanged
+npm-safe gate shell --user         # Windows: explicitly prepend shims to user PATH
 npm-safe gate shell --machine      # Windows (admin): prepend shims to system PATH
 npm-safe install axios             # Install with the security gate (if enabled)
 npm-safe doctor                    # Diagnose PATH / gate / shim setup
@@ -189,12 +192,25 @@ official lodash 4.17.21 and 4.18.1 tarballs returned 97/100 with only the existi
 Low metadata finding. This targeted regression fix does not establish overall
 detection accuracy; see [2.0.0 changes](CHANGELOG.md#200---2026-11-12).
 
-> **Windows PATH note:** a global install places `npm-safe` in the npm global
-> bin directory (`%APPDATA%\npm`), which must be on your `PATH` for external
-> terminals to find it. The official Node.js MSI adds it automatically; for
-> custom installs (e.g. Node unpacked to a custom folder) add it yourself:
-> `setx PATH "%APPDATA%\npm;%PATH%"`, then reopen the terminal. If anything
-> looks off, run `npm-safe doctor` for a diagnosis.
+> **Windows PATH note:** The default npm global bin directory is
+> `%APPDATA%\npm`; a custom npm prefix uses its own directory. If the directory
+> is missing from PATH, open **Environment Variables → User variables → Path →
+> Edit → New** and add only `%APPDATA%\npm` (or your actual global bin directory).
+> Keep the existing entries; do not paste the current process's entire `%PATH%`
+> into the user value. Reopen the terminal, then run `npm-safe doctor`.
+
+If `npm-safe` cannot be found but the default-prefix command file exists, you
+can invoke it directly from PowerShell for diagnosis:
+
+```powershell
+$npmSafeCommand = Join-Path $env:APPDATA 'npm\npm-safe.cmd'
+if (Test-Path -LiteralPath $npmSafeCommand -PathType Leaf) {
+  & $npmSafeCommand doctor
+}
+```
+
+If that file is absent, locate the installed CLI in your actual npm global
+bin directory before invoking it.
 
 The deeper features (proxy details, custom rule plugins, LLM scanning, CI/CD,
 batch operations, report export, telemetry, the shared check history, the
@@ -563,21 +579,25 @@ manager. The gate's own `--yes` must appear before that separator; an npm
 `--yes` forwarded by a wrapper never approves a security warning. The enabled
 gate rejects sources and registry configurations it cannot inspect.
 
-`gate enable` does everything in one step: it enables the check, installs
+`gate enable` enables the check, installs
 **PATH shims** into `~/.npm-safe/bin` (npm.cmd / pnpm.cmd / yarn.cmd; they
-work in every shell), and appends wrapper functions for `npm`, `pnpm`, and
+can be used by any shell), and appends wrapper functions for `npm`, `pnpm`, and
 `yarn` to your shell config (PowerShell `$PROFILE` on Windows,
-`~/.zshrc`/`~/.bashrc` otherwise). How to activate:
+`~/.zshrc`/`~/.bashrc` otherwise). Plain `gate shell` refreshes these files
+without changing persistent Windows PATH values. PATH activation requires
+the explicit `--user` or `--machine` option:
 
 | Your shell | Activation |
 |---|---|
 | PowerShell / bash / zsh | Just restart the shell; the profile wrappers load automatically |
-| **Windows cmd** (or any shell where the shim dir isn't first in PATH) | Run **once as administrator**: `npm-safe gate shell --machine`; this prepends the shim directory to the **system** PATH, so every new terminal (incl. cmd) is intercepted. Reopen terminals afterwards. |
+| Windows user PATH | Run `npm-safe gate shell --user` to prepend shims to the **user** PATH; administrator privileges are not required. Reopen terminals, then check resolution with `npm-safe doctor`. |
+| **Windows cmd** when the Node installation takes precedence | Run **once as administrator**: `npm-safe gate shell --machine` to prepend shims to the **system** PATH. Reopen terminals afterwards. |
 
-On Windows, only the system PATH reliably precedes the Node.js installation
-directory; user-PATH edits are not enough when a tool puts the machine PATH
-first. `npm-safe doctor` verifies that `where npm.cmd` resolves to the shim
-first and prints the exact fix.
+Windows can place machine PATH entries before user entries, so `--user` may
+not put shims ahead of a system-wide Node installation. `--machine` changes
+the machine value and requires administrator privileges. Neither option
+copies the current process PATH into persistent configuration. `npm-safe doctor`
+verifies whether `where npm.cmd` resolves to the shim first and prints the fix.
 
 Pass `--shell-file <path>` to target a specific config file, `--no-shell` to
 skip. After activation, any `pnpm add <pkg>` or `npm install <pkg>` first
@@ -587,6 +607,8 @@ Remove everything with:
 
 ```bash
 npm-safe gate shell --remove
+# If user PATH activation was used, remove that entry:
+npm-safe gate shell --user --remove
 # If machine PATH activation was used, remove that entry as administrator:
 npm-safe gate shell --machine --remove
 ```

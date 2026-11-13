@@ -33,13 +33,14 @@ import type { SourceReviewReport } from './llm/source-review.js';
 import { analyzePackageTarball, CONTENT_SCAN_RULES } from './scanner/package-content.js';
 import type { PackageContentScanResult } from './scanner/package-content.js';
 import {
-  analyzeDshPluginManifest,
+  analyzeInstallManifest,
+  classifyInstallRiskPackage,
   getBundlePatchPath,
   isJsonObject,
   manifestToRecord,
   parsePluginSource,
 } from './dsh/plugin-risk.js';
-import type { InstallRiskAssessment } from './dsh/plugin-risk.js';
+import type { InstallRiskAssessment, InstallRiskTargetKind } from './dsh/plugin-risk.js';
 import { assertExactReleaseVersion, compareReleaseSnapshots } from './release-diff.js';
 import type { ReleaseDiffReport, ReleaseSnapshot } from './release-diff.js';
 
@@ -447,13 +448,14 @@ export class NpmSafeEngine {
   }
 
   /**
-   * Resolve an npm package or public GitHub repository and build a DSH
-   * installation risk card. This never installs the plugin.
+   * Resolve an npm package or public GitHub repository and build an
+   * installation risk card for its package contract. This never installs it.
    */
-  async assessInstallRisk(input: string, profile = 'web'): Promise<InstallRiskAssessment> {
+  async assessInstallRisk(input: string, profile = 'web', targetKind: InstallRiskTargetKind = 'auto'): Promise<InstallRiskAssessment> {
+    // Validate a runtime caller's override before resolving any remote source.
+    classifyInstallRiskPackage({}, targetKind);
     await this.rulesReady;
     const source = parsePluginSource(input);
-    const currentDshToolsVersion = await this.getCurrentDshToolsVersion();
 
     if (source.kind === 'npm') {
       const packageName = source.packageName!;
@@ -477,6 +479,10 @@ export class NpmSafeEngine {
       }
 
       const manifestRecord = manifestToRecord(manifest);
+      const packageKind = classifyInstallRiskPackage(manifestRecord, targetKind);
+      const currentDshToolsVersion = packageKind === 'dsh-plugin'
+        ? await this.getCurrentDshToolsVersion()
+        : undefined;
       const staticScan = this.analyzer.analyze(
         meta.readme ?? '',
         manifestRecord,
@@ -484,7 +490,7 @@ export class NpmSafeEngine {
         content?.summary,
       );
 
-      return analyzeDshPluginManifest({
+      return analyzeInstallManifest({
         input,
         sourceKind: 'npm',
         sourceLabel: 'npm registry',
@@ -492,6 +498,7 @@ export class NpmSafeEngine {
         manifest: manifestRecord,
         pinnedSpec: `${packageName}@${version}`,
         profile,
+        targetKind,
         availableFiles: content?.filePaths,
         currentDshToolsVersion,
         staticScan,
@@ -503,14 +510,19 @@ export class NpmSafeEngine {
       source.owner!,
       source.repository!,
       source.requestedRef,
+      targetKind,
     );
+    const packageKind = classifyInstallRiskPackage(repository.manifest, targetKind);
+    const currentDshToolsVersion = packageKind === 'dsh-plugin'
+      ? await this.getCurrentDshToolsVersion()
+      : undefined;
     const staticScan = this.analyzer.analyze(repository.readme, repository.manifest);
     const patch = getBundlePatchPath(repository.manifest);
     const patchFileExists = patch
       ? repository.files.some((file) => normalizeGitHubPath(file) === normalizeGitHubPath(patch))
       : undefined;
 
-    return analyzeDshPluginManifest({
+    return analyzeInstallManifest({
       input,
       sourceKind: 'github',
       sourceLabel: 'GitHub commit',
@@ -518,6 +530,7 @@ export class NpmSafeEngine {
       manifest: repository.manifest,
       pinnedSpec: `github:${source.owner}/${source.repository}#${repository.commitSha}`,
       profile,
+      targetKind,
       availableFiles: repository.files,
       patchFileExists,
       currentDshToolsVersion,
@@ -1199,6 +1212,7 @@ async function resolveGitHubPlugin(
   owner: string,
   repository: string,
   requestedRef?: string,
+  targetKind: InstallRiskTargetKind = 'auto',
 ): Promise<GitHubPluginSource> {
   const repoPath = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}`;
   const repo = await fetchGitHubJson(repoPath);
@@ -1241,7 +1255,9 @@ async function resolveGitHubPlugin(
     }
   }
 
-  const patch = getBundlePatchPath(manifest);
+  const patch = classifyInstallRiskPackage(manifest, targetKind) === 'dsh-plugin'
+    ? getBundlePatchPath(manifest)
+    : undefined;
   if (patch) {
     const normalizedPatch = normalizeGitHubPath(patch);
     try {
@@ -1314,18 +1330,23 @@ export type {
 } from './scanner/package-content.js';
 export {
   analyzeDshPluginManifest,
+  analyzeInstallManifest,
+  classifyInstallRiskPackage,
   getBundlePatchPath,
   parsePluginSource,
   peerRangeIncludes,
 } from './dsh/plugin-risk.js';
 export type {
   DshManifestRiskInput,
+  InstallManifestRiskInput,
   InstallRiskAssessment,
   InstallRiskCheck,
   InstallRiskFinding,
   InstallRiskLevel,
+  InstallRiskPackageKind,
   InstallRiskSourceKind,
   InstallRiskStatus,
+  InstallRiskTargetKind,
   ParsedPluginSource,
 } from './dsh/plugin-risk.js';
 export type { ContentScanSummary, ScanFinding, StaticScanReport } from './scanner/types.js';

@@ -1,5 +1,4 @@
 ﻿import { Command } from "commander";
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
@@ -12,6 +11,7 @@ import {
   shimHelperContent, bashWrapperBlock, powershellWrapperBlock,
 } from "./install-gate-shell.js";
 import { assertPublicInstallRegistry } from "./install-registry.js";
+import { updateWindowsPath } from "./windows-path.js";
 
 const GATE_ENABLED_KEY = "installGate.enabled";
 const GATE_THRESHOLD_KEY = "installGate.threshold";
@@ -157,41 +157,35 @@ export function registerInstallGateCommands(program: Command): void {
     .description("Install shell wrappers + PATH shims so npm/pnpm/yarn go through the gate automatically")
     .option("--file <path>", "Target a specific shell config file (default: auto-detected)")
     .option("--remove", "Remove the previously installed wrappers and shims")
+    .option("--user", "Windows: prepend the shim dir to the current user's PATH without setx")
     .option("--machine", "Windows: prepend the shim dir to the system PATH (run as administrator)")
-    .action(async (options: { file?: string; remove?: boolean; machine?: boolean }) => {
-      if (options.machine) {
+    .action(async (options: { file?: string; remove?: boolean; user?: boolean; machine?: boolean }) => {
+      if (options.user || options.machine) {
+        if ((options.user && options.machine) || options.file !== undefined) {
+          console.error(t("gate.shell.pathOptionConflict"));
+          process.exitCode = 1;
+          return;
+        }
         if (process.platform !== "win32") {
-          console.error(t("gate.shell.machineWinOnly"));
+          console.error(t("gate.shell.pathWinOnly"));
           process.exitCode = 1;
           return;
         }
         try {
           if (!options.remove) installShims();
           const dir = getShimDir();
-          const encodedDir = Buffer.from(dir, "utf8").toString("base64");
-          const script =
-            `$ErrorActionPreference = 'Stop'; ` +
-            `$s = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${encodedDir}')); ` +
-            `$m = [Environment]::GetEnvironmentVariable('Path', 'Machine'); ` +
-            `$rest = @(($m -split ';') | Where-Object { $_ -and $_.Trim('"').TrimEnd('\\') -ine $s.TrimEnd('\\') }); ` +
-            (options.remove
-              ? `[Environment]::SetEnvironmentVariable('Path', ($rest -join ';'), 'Machine'); 'removed'`
-              : `$next = (@($s) + $rest) -join ';'; if ($next -ceq $m) { 'already' } else { ` +
-                `[Environment]::SetEnvironmentVariable('Path', $next, 'Machine'); 'ok' }`);
-          const out = execFileSync("powershell", ["-NoProfile", "-Command", script], {
-            encoding: "utf8",
-          }).trim();
+          const out = updateWindowsPath(dir, { scope: options.machine ? "Machine" : "User", remove: options.remove });
           if (options.remove) {
             removeShims();
             console.log(t("gate.shell.shimsRemoved", { path: dir }));
           } else if (out === "already") {
-            console.log(t("gate.shell.machineAlready", { path: dir }));
+            console.log(t(options.machine ? "gate.shell.machineAlready" : "gate.shell.userAlready", { path: dir }));
           } else {
-            console.log(t("gate.shell.machineInstalled", { path: dir }));
+            console.log(t(options.machine ? "gate.shell.machineInstalled" : "gate.shell.userInstalled", { path: dir }));
           }
         } catch (err) {
           console.error(
-            t("gate.shell.machineFailed", {
+            t(options.machine ? "gate.shell.machineFailed" : "gate.shell.userFailed", {
               message: err instanceof Error ? err.message : String(err),
             }),
           );

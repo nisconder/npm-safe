@@ -16,7 +16,7 @@ reference for evidence matching, manifest fields and incomplete comparisons.
 - [NpmSafeEngine](#npmsafeengine)
 - [NpmSafeEngineOptions](#npmsafeengineoptions)
 - [CheckResult](#checkresult)
-- [DSH Installation Risk](#dsh-installation-risk)
+- [Installation Risk](#installation-risk)
   - [InstallRiskAssessment](#installriskassessment)
   - [InstallRiskCheck](#installriskcheck)
   - [InstallRiskFinding](#installriskfinding)
@@ -142,26 +142,40 @@ When the package does not exist on the registry (HTTP 404), the returned `CheckR
 #### assessInstallRisk
 
 ```ts
-assessInstallRisk(input: string, profile?: string): Promise<InstallRiskAssessment>
+assessInstallRisk(input: string, profile?: string, targetKind?: InstallRiskTargetKind): Promise<InstallRiskAssessment>
 ```
 
 Resolve an npm package spec or public GitHub repository and return the data for
-a red / amber / green DSH installation risk card. npm tags are resolved to an
+a red / amber / green installation risk card. npm tags are resolved to an
 exact published version and their tarballs are downloaded, integrity-checked,
 and inspected in memory. GitHub refs are resolved to a commit SHA through the
 public GitHub API.
 
 The assessment checks install lifecycle scripts, suspicious dependency specs,
-DSH core packages bundled in `dependencies`, duplicate core declarations,
-`dsh.bundle.patch`, the presence of the declared patch file, and the
-`@deepseek-ai/dsh-tools` peer range. `safeInstallCommand` always uses the
-resolved immutable source and adds `--ignore-scripts` when install lifecycle
-scripts are present. The method is advisory and never executes the command or
-installs a package. `profile` defaults to `web`.
+and the available static source evidence. GitHub sources also check `prepack`,
+`prepare`, and `postpack`, which can run while a git dependency is packaged.
+`targetKind` defaults to `auto`:
+packages declaring a `dsh` field (including malformed declarations),
+`engines.dsh`, the exact `dsh-plugin` keyword, or an
+`@deepseek-ai/dsh-tools` peer are classified as DSH plugins. The package name
+and npm/GitHub source do not determine its type. Pass `npm` or `dsh-plugin`
+to explicitly select the contract; other values are rejected before requests.
+
+Only DSH plugin targets check duplicated host runtime dependencies,
+`dsh.bundle.patch`, published patch files, and the `@deepseek-ai/dsh-tools`
+peer range. Ordinary npm packages do not fetch the DSH compatibility baseline.
+The report's `packageKind` records the selected contract independently of
+`sourceKind`. `safeInstallCommand` uses `npm install` for ordinary npm packages
+or `dsh plugin --profile ... add` for plugins, always with the resolved immutable
+source and `--ignore-scripts` when install lifecycle scripts are present.
+The method is advisory and never executes the command or installs a package.
+`profile` defaults to `web` and applies to DSH plugin commands.
 
 ```ts
 const card = await engine.assessInstallRisk('@scope/dsh-plugin');
 console.log(card.riskLevel, card.safeInstallCommand);
+const npmCard = await engine.assessInstallRisk('lodash', 'web', 'npm');
+console.log(npmCard.packageKind, npmCard.safeInstallCommand);
 ```
 
 #### checkPackages
@@ -424,7 +438,14 @@ Send a test request to the configured LLM provider. Returns `true` if the provid
 
 ---
 
-## DSH Installation Risk
+## Installation Risk
+
+`InstallRiskTargetKind` is `'auto' | 'npm' | 'dsh-plugin'` and
+`InstallRiskPackageKind` is `'npm' | 'dsh-plugin'`. The pure
+`classifyInstallRiskPackage(manifest, targetKind?)` and
+`analyzeInstallManifest(input)` exports use the same classification as the
+engine. `analyzeDshPluginManifest(input)` retains its strict DSH-only behavior
+for existing callers, regardless of whether the manifest declares a bundle.
 
 ### InstallRiskAssessment
 
@@ -432,6 +453,7 @@ Send a test request to the configured LLM provider. Returns `true` if the provid
 interface InstallRiskAssessment {
   readonly input: string;
   readonly sourceKind: 'npm' | 'github';
+  readonly packageKind: 'npm' | 'dsh-plugin';
   readonly sourceLabel: string;
   readonly sourceUrl: string;
   readonly packageName: string;
@@ -927,6 +949,15 @@ Talks to any endpoint that implements the `/chat/completions` surface
 
 Env-var fallback: `apiKey` defaults to `process.env.OPENAI_API_KEY`. Default
 base URL `https://api.openai.com/v1`, default model `gpt-4o-mini`.
+
+Completion diagnostics distinguish output/context limits (`finish_reason=length`),
+provider filtering or interrupted generation, reasoning-only replies, and blank
+JSON output. A length-limited response is rejected even if it contains parseable
+JSON; `reasoning_content` is never used as the final review. Errors include the
+configured output limit where relevant, without including reasoning text or API
+keys. No automatic retry or output-budget increase is performed. A successful
+`testConnection()` requires a nonblank final answer, but does not validate the
+source-review JSON schema or prove that a large source request will complete.
 
 ### GeminiLlmProvider
 

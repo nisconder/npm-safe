@@ -3,6 +3,26 @@
 All notable user-facing changes are documented here. The project follows
 semantic versioning for `@npm-safe/core`.
 
+## 2.0.1 - 2026-11-13
+
+### Fixed
+
+- Distinguish ordinary npm packages from DSH plugins during desktop install
+  checks. Only plugins require a bundle patch and DSH host compatibility.
+- Require executable shell-command evidence for remote-shell findings rather
+  than matching scanner signatures, comments or documentation. Keep unrelated
+  object assignments and uncalled function bodies out of command bindings.
+- Accept npm's standard boolean `_hasShrinkwrap` metadata without a suspicious
+  build-field finding. Invalidate older cached scans; retain malformed fields
+  and actual process-execution capabilities as separate evidence.
+- Use native desktop window borders and controls so edge resizing, maximize,
+  restore and the Windows taskbar work correctly.
+- Preserve long Windows PATH values and variable references when explicitly
+  configuring `gate shell --user` or `--machine`. Recognize PowerShell profile
+  wrappers in diagnostics without requiring persistent PATH changes.
+- Explain truncated, filtered and empty model responses without accepting
+  reasoning-only output as a completed source review.
+
 ## 2.0.0 - 2026-11-12
 
 ### Added

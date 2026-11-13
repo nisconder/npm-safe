@@ -28,6 +28,35 @@ function runCheck(
   }
 }
 
+/** Detect configuration only; a child process cannot inspect its parent's functions. */
+function configuredPowerShellProfiles(): string[] {
+  const home = process.env.USERPROFILE ?? process.env.HOME;
+  if (!home) return [];
+  const detected = detectShellConfig();
+  const candidates = new Set([
+    path.join(home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1"),
+    path.join(home, "Documents", "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1"),
+    ...(detected?.toLowerCase().endsWith(".ps1") ? [detected] : []),
+  ]);
+  return [...candidates].filter((file) => {
+    if (!hasShellBlock(file)) return false;
+    try {
+      const content = fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
+      const blocks = content.matchAll(/^# >>> npm-safe gate >>>\n([\s\S]*?)^# <<< npm-safe gate <<</gm);
+      return [...blocks].some((block) => ["npm", "pnpm", "yarn"].every((pm) => {
+        const body = new RegExp(`^function ${pm} \\{\\n([\\s\\S]*?)\\n\\}`, "m").exec(block[1])?.[1];
+        // Recognize the complete generated functions, not just marker comments
+        // or an unrelated function with the same name elsewhere in the profile.
+        return body !== undefined &&
+          /^  \$npmSafePayload = \[Convert\]::ToBase64String\(/m.test(body) &&
+          new RegExp(`^  & .+runGateShim\\(.+ '${pm}' \\$npmSafePayload$`, "m").test(body);
+      }));
+    } catch {
+      return false;
+    }
+  });
+}
+
 export function registerDoctorCommand(program: Command): void {
   program
     .command("doctor")
@@ -90,23 +119,38 @@ export function registerDoctorCommand(program: Command): void {
 
       // 3. Shell wrappers / PATH shims.
       if (process.platform === "win32") {
+        const profiles = configuredPowerShellProfiles();
+        const powerShellConfigured = profiles.length > 0;
+        if (powerShellConfigured) {
+          runCheck(true, `PowerShell profile wrappers configured: ${profiles.join(", ")}`);
+          console.log("      Reopen the corresponding PowerShell, then verify: (Get-Command npm).CommandType should be Function.");
+          console.log("      Profile configuration does not verify functions in the current terminal; persistent PATH changes are not required for these wrappers.");
+        }
+        const checkCmd = (ok: boolean, label: string, limitation: string, fix: string): void => {
+          if (!ok && powerShellConfigured) {
+            console.log(`  i CMD only: ${limitation}`);
+            console.log("      For CMD interception, optionally run: npm-safe gate shell --user, then reopen CMD.");
+          } else {
+            runCheck(ok, label, fix, problems);
+          }
+        };
         const shimDir = getShimDir();
         const shimsExist = ["npm", "pnpm", "yarn"].every((pm) =>
           fs.existsSync(path.join(shimDir, `${pm}.cmd`)),
         );
-        runCheck(
+        checkCmd(
           shimsExist,
           `Command shims installed: ${shimDir}`,
+          `Command shims are not installed: ${shimDir}`,
           "Run: npm-safe gate shell",
-          problems,
         );
         if (shimsExist) {
           const shimIndex = pathParts.indexOf(normalizePath(shimDir));
-          runCheck(
+          checkCmd(
             shimIndex >= 0,
             "Shim directory present in PATH",
-            `Add ${shimDir} to PATH, then reopen the terminal`,
-            problems,
+            "The shim directory is not in PATH; CMD commands are not intercepted.",
+            "Run: npm-safe gate shell for PowerShell wrappers, or npm-safe gate shell --user for CMD PATH interception; then reopen the terminal",
           );
           if (shimIndex >= 0) {
             // Authoritative check: `where npm.cmd` must resolve to the shim
@@ -125,11 +169,11 @@ export function registerDoctorCommand(program: Command): void {
             const intercepted =
               first.length > 0 &&
               normalizePath(first) === normalizePath(shimFile);
-            runCheck(
+            checkCmd(
               intercepted,
               "npm resolves to the gate shim first (gate intercepts)",
-              `Add ${shimDir} as an unquoted PATH entry ahead of the real npm, then reopen the terminal`,
-              problems,
+              "npm.cmd resolves ahead of the gate shim or could not be resolved; CMD interception is not verified.",
+              "Run: npm-safe gate shell for PowerShell wrappers, or npm-safe gate shell --user to place the CMD shims first; then reopen the terminal",
             );
           }
         }

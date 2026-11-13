@@ -1,5 +1,5 @@
 /**
- * DSH plugin installation risk assessment.
+ * npm package and DSH plugin installation risk assessment.
  *
  * The analyzer is deliberately pure: callers resolve an npm manifest or a
  * GitHub package.json, provide the files that are actually available from the
@@ -12,6 +12,8 @@ import { Severity, type ScanFinding, type StaticScanReport } from '../scanner/ty
 export type InstallRiskLevel = 'low' | 'medium' | 'high';
 export type InstallRiskStatus = 'pass' | 'warning' | 'danger' | 'unknown';
 export type InstallRiskSourceKind = 'npm' | 'github';
+export type InstallRiskTargetKind = 'auto' | 'npm' | 'dsh-plugin';
+export type InstallRiskPackageKind = Exclude<InstallRiskTargetKind, 'auto'>;
 
 export interface ParsedPluginSource {
   readonly kind: InstallRiskSourceKind;
@@ -41,6 +43,7 @@ export interface InstallRiskFinding {
 export interface InstallRiskAssessment {
   readonly input: string;
   readonly sourceKind: InstallRiskSourceKind;
+  readonly packageKind: InstallRiskPackageKind;
   readonly sourceLabel: string;
   readonly sourceUrl: string;
   readonly packageName: string;
@@ -71,7 +74,12 @@ export interface DshManifestRiskInput {
   readonly integrityVerified?: boolean | null;
 }
 
+export interface InstallManifestRiskInput extends DshManifestRiskInput {
+  readonly targetKind?: InstallRiskTargetKind;
+}
+
 const LIFECYCLE_SCRIPTS = ['preinstall', 'install', 'postinstall'] as const;
+const GIT_PACK_SCRIPTS = ['prepack', 'prepare', 'postpack'] as const;
 const REMOTE_OR_SHELL = /(?:\bcurl\b|\bwget\b|Invoke-WebRequest|DownloadString|\|\s*(?:sh|bash|zsh|pwsh|powershell)\b|child_process|\beval\s*\()/i;
 const UNSAFE_SPEC = /^(?:git(?:\+[^:]+)?:|https?:|file:|link:|workspace:)|^(?:latest|next|\*)$/i;
 const SHARED_DSH_PACKAGE = /^(?:@deepseek-ai\/cordis|@deepseek-ai\/dsh(?:$|-))/;
@@ -104,6 +112,26 @@ export function getBundlePatchPath(manifest: Readonly<Record<string, unknown>>):
   const bundle = asRecord(dsh.bundle);
   const patch = bundle.patch;
   return typeof patch === 'string' && patch.trim() ? patch.trim() : undefined;
+}
+
+/** Classify the package contract independently of whether it came from npm or GitHub. */
+export function classifyInstallRiskPackage(
+  manifest: Readonly<Record<string, unknown>>,
+  targetKind: InstallRiskTargetKind = 'auto',
+): InstallRiskPackageKind {
+  if (targetKind !== 'auto' && targetKind !== 'npm' && targetKind !== 'dsh-plugin') {
+    throw new Error('安装目标类型必须是 auto、npm 或 dsh-plugin。');
+  }
+  if (targetKind !== 'auto') return targetKind;
+
+  // Presence matters: a malformed DSH declaration must still be checked as a
+  // plugin instead of escaping its missing/invalid bundle contract.
+  const keywords = Array.isArray(manifest.keywords) ? manifest.keywords : [];
+  const isPlugin = Object.hasOwn(manifest, 'dsh') ||
+    Object.hasOwn(asRecord(manifest.engines), 'dsh') ||
+    Object.hasOwn(asRecord(manifest.peerDependencies), '@deepseek-ai/dsh-tools') ||
+    keywords.some((keyword) => typeof keyword === 'string' && keyword.trim().toLowerCase() === 'dsh-plugin');
+  return isPlugin ? 'dsh-plugin' : 'npm';
 }
 
 function scoreRisk(findings: readonly InstallRiskFinding[], staticScore?: number): number {
@@ -213,7 +241,7 @@ export function peerRangeIncludes(range: string, version: string): boolean {
 /** Parse an npm package spec or a public GitHub repository URL/shorthand. */
 export function parsePluginSource(input: string): ParsedPluginSource {
   const raw = input.trim();
-  if (!raw) throw new Error('请输入 npm 包名或 GitHub 插件地址。');
+  if (!raw) throw new Error('请输入 npm 包名或 GitHub 仓库地址。');
 
   const github = raw.match(/^(?:https?:\/\/github\.com\/|github:)([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?(?:#([^\s]+))?(?:\/)?$/i);
   if (github) {
@@ -246,8 +274,18 @@ export function parsePluginSource(input: string): ParsedPluginSource {
 
 /** Produce the red/yellow/green card data for one resolved DSH plugin manifest. */
 export function analyzeDshPluginManifest(input: DshManifestRiskInput): InstallRiskAssessment {
+  return analyzeManifest(input, 'dsh-plugin');
+}
+
+/** Assess common package risks and apply DSH contracts only to plugin targets. */
+export function analyzeInstallManifest(input: InstallManifestRiskInput): InstallRiskAssessment {
+  return analyzeManifest(input, classifyInstallRiskPackage(input.manifest, input.targetKind));
+}
+
+function analyzeManifest(input: DshManifestRiskInput, packageKind: InstallRiskPackageKind): InstallRiskAssessment {
   const manifest = input.manifest;
-  const packageName = typeof manifest.name === 'string' ? manifest.name : '<unnamed-plugin>';
+  const packageName = typeof manifest.name === 'string' ? manifest.name
+    : packageKind === 'dsh-plugin' ? '<unnamed-plugin>' : '<unnamed-package>';
   const version = typeof manifest.version === 'string' ? manifest.version : 'unversioned';
   const dependencies = asStringRecord(manifest.dependencies);
   const peerDependencies = asStringRecord(manifest.peerDependencies);
@@ -255,7 +293,12 @@ export function analyzeDshPluginManifest(input: DshManifestRiskInput): InstallRi
   const findings: InstallRiskFinding[] = [];
   const checks: InstallRiskCheck[] = [];
 
-  const lifecycle = LIFECYCLE_SCRIPTS.filter((name) => scripts[name]);
+  // npm packs git dependencies before installing them, so these build hooks
+  // also execute for GitHub sources, but not for an already-published tarball.
+  const installScripts = input.sourceKind === 'github'
+    ? [...LIFECYCLE_SCRIPTS, ...GIT_PACK_SCRIPTS]
+    : LIFECYCLE_SCRIPTS;
+  const lifecycle = installScripts.filter((name) => scripts[name]);
   if (lifecycle.length === 0) {
     checks.push({ id: 'lifecycle', label: '生命周期脚本', status: 'pass', detail: '未声明安装时自动执行脚本' });
   } else {
@@ -271,33 +314,35 @@ export function analyzeDshPluginManifest(input: DshManifestRiskInput): InstallRi
     });
   }
 
-  const runtimeDshDeps = Object.keys(dependencies).filter((name) => SHARED_DSH_PACKAGE.test(name));
-  const duplicated = runtimeDshDeps.filter((name) => name in peerDependencies);
-  if (runtimeDshDeps.length === 0) {
-    checks.push({ id: 'host-dependencies', label: 'DSH 核心依赖', status: 'pass', detail: '未把宿主核心包打进运行时依赖' });
-  } else {
-    checks.push({
-      id: 'host-dependencies',
-      label: 'DSH 核心依赖',
-      status: 'danger',
-      detail: `${runtimeDshDeps.join(', ')} 位于 dependencies`,
-    });
-    findings.push({
-      id: 'duplicate-dsh-runtime',
-      title: '@deepseek-ai 运行时可能被重复安装',
-      detail: `${runtimeDshDeps.join(', ')} 应由 DSH 宿主提供，而不是随插件复制。`,
-      severity: 'danger',
-      recommendation: '把宿主提供的核心包移到 peerDependencies，并仅在 devDependencies 中保留开发版本。',
-    });
-  }
-  if (duplicated.length > 0) {
-    findings.push({
-      id: 'duplicate-dependency-declaration',
-      title: '同一核心包同时出现在 dependencies 与 peerDependencies',
-      detail: duplicated.join(', '),
-      severity: 'danger',
-      recommendation: '删除 dependencies 中的重复声明，避免 Loader、工具注册表或上下文类型出现多份实例。',
-    });
+  if (packageKind === 'dsh-plugin') {
+    const runtimeDshDeps = Object.keys(dependencies).filter((name) => SHARED_DSH_PACKAGE.test(name));
+    const duplicated = runtimeDshDeps.filter((name) => name in peerDependencies);
+    if (runtimeDshDeps.length === 0) {
+      checks.push({ id: 'host-dependencies', label: 'DSH 核心依赖', status: 'pass', detail: '未把宿主核心包打进运行时依赖' });
+    } else {
+      checks.push({
+        id: 'host-dependencies',
+        label: 'DSH 核心依赖',
+        status: 'danger',
+        detail: `${runtimeDshDeps.join(', ')} 位于 dependencies`,
+      });
+      findings.push({
+        id: 'duplicate-dsh-runtime',
+        title: '@deepseek-ai 运行时可能被重复安装',
+        detail: `${runtimeDshDeps.join(', ')} 应由 DSH 宿主提供，而不是随插件复制。`,
+        severity: 'danger',
+        recommendation: '把宿主提供的核心包移到 peerDependencies，并仅在 devDependencies 中保留开发版本。',
+      });
+    }
+    if (duplicated.length > 0) {
+      findings.push({
+        id: 'duplicate-dependency-declaration',
+        title: '同一核心包同时出现在 dependencies 与 peerDependencies',
+        detail: duplicated.join(', '),
+        severity: 'danger',
+        recommendation: '删除 dependencies 中的重复声明，避免 Loader、工具注册表或上下文类型出现多份实例。',
+      });
+    }
   }
 
   const unsafeDependencies = Object.entries(dependencies)
@@ -316,66 +361,68 @@ export function analyzeDshPluginManifest(input: DshManifestRiskInput): InstallRi
     checks.push({ id: 'dependency-specs', label: '依赖来源', status: 'pass', detail: '运行时依赖均使用 registry 版本范围' });
   }
 
-  const patch = getBundlePatchPath(manifest);
-  if (!patch) {
-    checks.push({ id: 'bundle-manifest', label: 'Bundle 声明', status: 'danger', detail: '缺少 dsh.bundle.patch' });
-    findings.push({
-      id: 'missing-bundle-patch',
-      title: '缺少 dsh.bundle.patch',
-      detail: '该包会被安装成普通依赖，但不会成为可激活的 DSH bundle。',
-      severity: 'danger',
-      recommendation: '在 package.json 中声明 dsh.bundle.patch，并发布对应的 patch 文件。',
-    });
-  } else {
-    checks.push({ id: 'bundle-manifest', label: 'Bundle 声明', status: 'pass', detail: patch });
-    const normalizedPatch = normalizeArchivePath(patch);
-    const unsafePatch = patch.startsWith('/') || /^[A-Za-z]:[\\/]/.test(patch) || normalizedPatch.split('/').includes('..');
-    let exists = input.patchFileExists;
-    if (exists === undefined && input.availableFiles) {
-      const files = new Set(input.availableFiles.map(normalizeArchivePath));
-      exists = files.has(normalizedPatch);
-    }
-    if (unsafePatch) {
-      checks.push({ id: 'patch-file', label: 'Patch 文件', status: 'danger', detail: 'patch 路径越出包目录' });
+  if (packageKind === 'dsh-plugin') {
+    const patch = getBundlePatchPath(manifest);
+    if (!patch) {
+      checks.push({ id: 'bundle-manifest', label: 'Bundle 声明', status: 'danger', detail: '缺少 dsh.bundle.patch' });
       findings.push({
-        id: 'unsafe-patch-path',
-        title: 'Bundle patch 路径不安全',
-        detail: patch,
+        id: 'missing-bundle-patch',
+        title: '缺少 dsh.bundle.patch',
+        detail: '该包会被安装成普通依赖，但不会成为可激活的 DSH bundle。',
         severity: 'danger',
-        recommendation: '使用包内相对路径，例如 ./cordis.patch.yml。',
-      });
-    } else if (exists === true) {
-      checks.push({ id: 'patch-file', label: 'Patch 文件', status: 'pass', detail: `${patch} 已包含在发布内容中` });
-    } else if (exists === false) {
-      checks.push({ id: 'patch-file', label: 'Patch 文件', status: 'danger', detail: `${patch} 不存在` });
-      findings.push({
-        id: 'missing-patch-file',
-        title: '声明的 patch 文件未发布',
-        detail: `${patch} 不在已检查的包内容中。`,
-        severity: 'danger',
-        recommendation: '把 patch 文件加入 package.json 的 files 列表并重新发布。',
+        recommendation: '在 package.json 中声明 dsh.bundle.patch，并发布对应的 patch 文件。',
       });
     } else {
-      checks.push({ id: 'patch-file', label: 'Patch 文件', status: 'unknown', detail: '当前来源无法确认文件是否存在' });
+      checks.push({ id: 'bundle-manifest', label: 'Bundle 声明', status: 'pass', detail: patch });
+      const normalizedPatch = normalizeArchivePath(patch);
+      const unsafePatch = patch.startsWith('/') || /^[A-Za-z]:[\\/]/.test(patch) || normalizedPatch.split('/').includes('..');
+      let exists = input.patchFileExists;
+      if (exists === undefined && input.availableFiles) {
+        const files = new Set(input.availableFiles.map(normalizeArchivePath));
+        exists = files.has(normalizedPatch);
+      }
+      if (unsafePatch) {
+        checks.push({ id: 'patch-file', label: 'Patch 文件', status: 'danger', detail: 'patch 路径越出包目录' });
+        findings.push({
+          id: 'unsafe-patch-path',
+          title: 'Bundle patch 路径不安全',
+          detail: patch,
+          severity: 'danger',
+          recommendation: '使用包内相对路径，例如 ./cordis.patch.yml。',
+        });
+      } else if (exists === true) {
+        checks.push({ id: 'patch-file', label: 'Patch 文件', status: 'pass', detail: `${patch} 已包含在发布内容中` });
+      } else if (exists === false) {
+        checks.push({ id: 'patch-file', label: 'Patch 文件', status: 'danger', detail: `${patch} 不存在` });
+        findings.push({
+          id: 'missing-patch-file',
+          title: '声明的 patch 文件未发布',
+          detail: `${patch} 不在已检查的包内容中。`,
+          severity: 'danger',
+          recommendation: '把 patch 文件加入 package.json 的 files 列表并重新发布。',
+        });
+      } else {
+        checks.push({ id: 'patch-file', label: 'Patch 文件', status: 'unknown', detail: '当前来源无法确认文件是否存在' });
+      }
     }
-  }
 
-  const toolsPeer = peerDependencies['@deepseek-ai/dsh-tools'];
-  if (!toolsPeer) {
-    checks.push({ id: 'peer-version', label: 'DSH peer 版本', status: 'unknown', detail: '未声明 @deepseek-ai/dsh-tools peer' });
-  } else if (!input.currentDshToolsVersion) {
-    checks.push({ id: 'peer-version', label: 'DSH peer 版本', status: 'unknown', detail: `声明 ${toolsPeer}，未取得当前版本` });
-  } else if (peerRangeIncludes(toolsPeer, input.currentDshToolsVersion)) {
-    checks.push({ id: 'peer-version', label: 'DSH peer 版本', status: 'pass', detail: `${toolsPeer} 包含当前预览基线 ${input.currentDshToolsVersion}` });
-  } else {
-    checks.push({ id: 'peer-version', label: 'DSH peer 版本', status: 'danger', detail: `${toolsPeer} 不包含当前预览基线 ${input.currentDshToolsVersion}` });
-    findings.push({
-      id: 'incompatible-dsh-tools-peer',
-      title: '@deepseek-ai/dsh-tools peer 版本不兼容',
-      detail: `插件声明 ${toolsPeer}，npm 的 DSH next 基线为 ${input.currentDshToolsVersion}。`,
-      severity: 'danger',
-      recommendation: '在与当前 DSH 版本完成真实调用测试后更新 peerDependencies。',
-    });
+    const toolsPeer = peerDependencies['@deepseek-ai/dsh-tools'];
+    if (!toolsPeer) {
+      checks.push({ id: 'peer-version', label: 'DSH peer 版本', status: 'unknown', detail: '未声明 @deepseek-ai/dsh-tools peer' });
+    } else if (!input.currentDshToolsVersion) {
+      checks.push({ id: 'peer-version', label: 'DSH peer 版本', status: 'unknown', detail: `声明 ${toolsPeer}，未取得当前版本` });
+    } else if (peerRangeIncludes(toolsPeer, input.currentDshToolsVersion)) {
+      checks.push({ id: 'peer-version', label: 'DSH peer 版本', status: 'pass', detail: `${toolsPeer} 包含当前预览基线 ${input.currentDshToolsVersion}` });
+    } else {
+      checks.push({ id: 'peer-version', label: 'DSH peer 版本', status: 'danger', detail: `${toolsPeer} 不包含当前预览基线 ${input.currentDshToolsVersion}` });
+      findings.push({
+        id: 'incompatible-dsh-tools-peer',
+        title: '@deepseek-ai/dsh-tools peer 版本不兼容',
+        detail: `插件声明 ${toolsPeer}，npm 的 DSH next 基线为 ${input.currentDshToolsVersion}。`,
+        severity: 'danger',
+        recommendation: '在与当前 DSH 版本完成真实调用测试后更新 peerDependencies。',
+      });
+    }
   }
 
   const staticFindings = input.staticScan?.findings ?? [];
@@ -422,20 +469,27 @@ export function analyzeDshPluginManifest(input: DshManifestRiskInput): InstallRi
   const safetyScore = scoreRisk(findings, input.staticScan?.score);
   const riskLevel = riskFrom(safetyScore, findings);
   const profile = input.profile?.trim() || 'web';
-  if (!SAFE_PROFILE_NAME.test(profile)) {
+  if (packageKind === 'dsh-plugin' && !SAFE_PROFILE_NAME.test(profile)) {
     throw new Error('DSH profile 名称只能包含字母、数字、点、下划线和连字符。');
   }
   const ignoreScripts = lifecycle.length > 0 ? ' --ignore-scripts' : '';
-  const safeInstallCommand = `dsh plugin --profile ${profile} add ${input.pinnedSpec}${ignoreScripts}`;
+  const safeInstallCommand = packageKind === 'dsh-plugin'
+    ? `dsh plugin --profile ${profile} add ${input.pinnedSpec}${ignoreScripts}`
+    : `npm install ${input.pinnedSpec}${ignoreScripts}`;
   const summary = riskLevel === 'high'
-    ? '发现会阻止可靠加载或需要人工审查的高风险项。'
+    ? packageKind === 'dsh-plugin'
+      ? '发现会阻止可靠加载或需要人工审查的高风险项。'
+      : '发现需要人工审查的高风险项，安装前应处理。'
     : riskLevel === 'medium'
       ? '可以继续评估，但安装前应处理黄色警告。'
-      : '未发现明显的 DSH 安装契约问题，仍建议先在隔离 profile 中验证。';
+      : packageKind === 'dsh-plugin'
+        ? '未发现明显的 DSH 安装契约问题，仍建议先在隔离 profile 中验证。'
+        : '本次检查未发现明显的 npm 安装风险，仍建议先在隔离环境中验证。';
 
   return {
     input: input.input,
     sourceKind: input.sourceKind,
+    packageKind,
     sourceLabel: input.sourceLabel,
     sourceUrl: input.sourceUrl,
     packageName,
