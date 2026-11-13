@@ -16,9 +16,9 @@
 
 <br>
 
-<img src="docs/assets/npm-safe-desktop.jpg" alt="npm-safe 桌面端真实扫描 lodash，识别为普通 npm 包并显示低风险结果" width="100%">
+<img src="docs/assets/npm-safe-desktop.jpg" alt="npm-safe 桌面端真实复核 @npm-safe/core 2.0.1，本次提供的源码证据复核完成且未发现恶意行为" width="100%">
 
-<sub>桌面端真实截图：在线扫描 lodash，展示 npm 包检查结果与固定版本安装命令。此页面不会执行安装。</sub>
+<sub>桌面端真实截图：对 @npm-safe/core@2.0.1 发起 LLM 源码复核，展示完成状态、模型调用次数和有限的证据覆盖范围。此页面不会执行安装。</sub>
 
 </div>
 

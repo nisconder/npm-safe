@@ -16,9 +16,9 @@
 
 <br>
 
-<img src="docs/assets/npm-safe-desktop.jpg" alt="Actual npm-safe desktop scan of lodash, identified as an npm package with a low-risk verdict" width="100%">
+<img src="docs/assets/npm-safe-desktop.jpg" alt="Actual npm-safe desktop source review of @npm-safe/core 2.0.1, completed with a benign verdict for the supplied evidence" width="100%">
 
-<sub>Actual desktop screenshot: a live lodash scan with npm package checks and a pinned installation command. This screen does not execute installations.</sub>
+<sub>Actual desktop screenshot: a live LLM source review of @npm-safe/core@2.0.1, including status, model calls and bounded evidence coverage. This screen does not execute installations.</sub>
 
 </div>
 
