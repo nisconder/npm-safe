@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to create or update (for example: v1.1.1)"
+        description: "Release tag to create or update (for example: v2.0.2)"
         required: true
         type: string
       source_ref:

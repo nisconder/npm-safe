@@ -16,9 +16,9 @@
 
 <br>
 
-<img src="docs/assets/npm-safe-desktop.jpg" alt="npm-safe 桌面端真实复核 @npm-safe/core 2.0.1，本次提供的源码证据复核完成且未发现恶意行为" width="100%">
+<a href="docs/assets/npm-safe-desktop.png"><img src="docs/assets/npm-safe-desktop.png" alt="npm-safe 桌面端真实复核 @npm-safe/core 2.0.1，本次提供的源码证据复核完成且未发现恶意行为" width="1094"></a>
 
-<sub>桌面端真实截图：对 @npm-safe/core@2.0.1 发起 LLM 源码复核，展示完成状态、模型调用次数和有限的证据覆盖范围。此页面不会执行安装。</sub>
+<sub>桌面端真实截图：对 @npm-safe/core@2.0.1 发起 LLM 源码复核，展示完成状态、模型调用次数和有限的证据覆盖范围。此页面不会执行安装。<a href="docs/assets/npm-safe-desktop.png">查看 PNG 原图</a>。</sub>
 
 </div>
 

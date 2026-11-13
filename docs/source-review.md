@@ -8,7 +8,7 @@ It runs on explicit deep checks (`check --deep`, `ci --deep`, or
 refresh retain the existing metadata-only behavior.
 
 To upgrade the global CLI to this release, run
-`npm install -g @npm-safe/core@2.0.0`. Confirm `npm-safe --version` and
+`npm install -g @npm-safe/core@2.0.2`. Confirm `npm-safe --version` and
 `npm-safe llm status` before opting in. Upgrading alone does not enable source
 review or send source to a model. The [2.0.0 upgrade notes](../CHANGELOG.md#200---2026-11-12)
 also describe the new High-finding severity floor and CI implications.

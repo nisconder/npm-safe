@@ -16,9 +16,9 @@
 
 <br>
 
-<img src="docs/assets/npm-safe-desktop.jpg" alt="Actual npm-safe desktop source review of @npm-safe/core 2.0.1, completed with a benign verdict for the supplied evidence" width="100%">
+<a href="docs/assets/npm-safe-desktop.png"><img src="docs/assets/npm-safe-desktop.png" alt="Actual npm-safe desktop source review of @npm-safe/core 2.0.1, completed with a benign verdict for the supplied evidence" width="1094"></a>
 
-<sub>Actual desktop screenshot: a live LLM source review of @npm-safe/core@2.0.1, including status, model calls and bounded evidence coverage. This screen does not execute installations.</sub>
+<sub>Actual desktop screenshot: a live LLM source review of @npm-safe/core@2.0.1, including status, model calls and bounded evidence coverage. This screen does not execute installations. <a href="docs/assets/npm-safe-desktop.png">View original PNG</a>.</sub>
 
 </div>
 

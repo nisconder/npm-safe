@@ -3,7 +3,7 @@
 All notable user-facing changes are documented here. The project follows
 semantic versioning for `@npm-safe/core`.
 
-## Unreleased
+## 2.0.2 - 2026-11-14
 
 ### Fixed
 
