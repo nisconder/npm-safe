@@ -71,6 +71,11 @@
   /* M3 type */
   --md-font: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   --md-font-mono: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+  --type-caption: 13px;
+  --type-body: 14px;
+  --type-reading: 15px;
+  --type-heading: 16px;
+  --type-line-height: 1.55;
 
   /* Semantic aliases */
   --bg: var(--md-surface);
@@ -167,8 +172,8 @@ body {
   height: 100%;
   color: var(--text);
   font-family: var(--md-font);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--type-reading);
+  line-height: var(--type-line-height);
   user-select: none;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
@@ -236,17 +241,20 @@ html.window-native .title-bar-drag {
 }
 
 .nav-subtitle {
-  font-size: 12px;
+  font-size: var(--type-caption);
   font-weight: 400;
   letter-spacing: 0.5px;
   color: var(--md-on-surface-variant);
   margin-top: 4px;
-  line-height: 16px;
+  line-height: 1.5;
 }
 
 .nav-items {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   gap: 4px;
 }
 
@@ -497,7 +505,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 }
 
 .dashboard-card .card-title {
-  font-size: 16px;
+  font-size: var(--type-heading);
   font-weight: 500;
   line-height: 24px;
   letter-spacing: 0.15px;
@@ -548,7 +556,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 }
 
 .gauge-label {
-  font-size: 12px;
+  font-size: var(--type-caption);
   font-weight: 500;
   fill: var(--md-on-surface-variant);
   font-family: var(--md-font);
@@ -688,8 +696,8 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 }
 
 .recent-item-time {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--type-caption);
+  line-height: 1.5;
   letter-spacing: 0.4px;
   color: var(--md-on-surface-variant);
 }
@@ -727,7 +735,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
   margin-bottom: 8px;
   color: var(--risk-safe);
   font-family: var(--md-font-mono);
-  font-size: 11px;
+  font-size: var(--type-caption);
   font-weight: 600;
   letter-spacing: 1.6px;
 }
@@ -756,7 +764,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
   border-radius: var(--md-radius-sm);
   color: var(--md-on-surface-variant);
   font-family: var(--md-font-mono);
-  font-size: 10px;
+  font-size: var(--type-caption);
   white-space: nowrap;
 }
 
@@ -801,7 +809,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
   gap: 10px;
   margin-top: 16px;
   color: var(--md-on-surface-variant);
-  font-size: 12px;
+  font-size: var(--type-caption);
 }
 
 .preflight-type-select {
@@ -824,7 +832,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 .preflight-scope-hint {
   margin-top: 10px;
   color: var(--md-on-surface-variant);
-  font-size: 12px;
+  font-size: var(--type-caption);
 }
 
 .preflight-field input {
@@ -834,6 +842,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 
 .preflight-scan-btn {
   height: 48px;
+  min-height: 48px;
   min-width: 132px;
   border-radius: var(--md-radius-sm);
   font-weight: 600;
@@ -853,7 +862,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
   background: transparent;
   color: var(--md-on-surface-variant);
   font-family: var(--md-font-mono);
-  font-size: 11px;
+  font-size: var(--type-caption);
   cursor: pointer;
   transition: color var(--md-duration-short) var(--md-ease-standard),
     border-color var(--md-duration-short) var(--md-ease-standard),
@@ -930,7 +939,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 }
 
 .preflight-error strong { color: var(--risk-danger); }
-.preflight-error span { font-size: 12px; }
+.preflight-error span { font-size: var(--type-caption); }
 
 @keyframes preflight-pulse {
   70% { box-shadow: 0 0 0 10px rgba(241, 189, 90, 0); }
@@ -970,11 +979,12 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 
 .risk-source-line {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   color: var(--md-on-surface-variant);
   font-family: var(--md-font-mono);
-  font-size: 10px;
+  font-size: var(--type-caption);
   letter-spacing: 0.3px;
 }
 
@@ -1009,13 +1019,16 @@ html.window-maximized .title-bar-btn .icon-window-restore {
   font-weight: 600;
   letter-spacing: -0.7px;
   user-select: text;
+  overflow-wrap: anywhere;
 }
+
+.risk-card-header > :first-child { min-width: 0; }
 
 .risk-version {
   margin-top: 4px;
   color: var(--md-on-surface-variant);
   font-family: var(--md-font-mono);
-  font-size: 12px;
+  font-size: var(--type-caption);
 }
 
 .risk-verdict {
@@ -1031,7 +1044,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 
 .risk-verdict-label {
   font-family: var(--md-font-mono);
-  font-size: 9px;
+  font-size: var(--type-caption);
   font-weight: 600;
   letter-spacing: 2px;
 }
@@ -1042,7 +1055,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 }
 
 .risk-verdict span:last-child {
-  font-size: 11px;
+  font-size: var(--type-caption);
   opacity: 0.82;
 }
 
@@ -1075,7 +1088,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 
 .risk-score-denominator {
   margin-left: 2px;
-  font-size: 12px;
+  font-size: var(--type-caption);
   opacity: 0.75;
 }
 
@@ -1083,7 +1096,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
   margin-left: 9px;
   color: var(--md-on-surface-variant);
   font-family: var(--md-font);
-  font-size: 11px;
+  font-size: var(--type-caption);
 }
 
 .risk-section {
@@ -1096,14 +1109,14 @@ html.window-maximized .title-bar-btn .icon-window-restore {
   justify-content: space-between;
   margin-bottom: 12px;
   color: var(--md-on-surface);
-  font-size: 13px;
+  font-size: var(--type-reading);
   font-weight: 600;
 }
 
 .risk-section-heading small {
   color: var(--md-on-surface-variant);
   font-family: var(--md-font-mono);
-  font-size: 10px;
+  font-size: var(--type-caption);
   font-weight: 400;
 }
 
@@ -1115,7 +1128,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 
 .risk-check {
   display: grid;
-  grid-template-columns: 26px 1fr auto;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
   align-items: center;
   gap: 9px;
   min-height: 62px;
@@ -1134,7 +1147,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
   border-radius: 50%;
   color: var(--risk-quiet);
   font-family: var(--md-font-mono);
-  font-size: 12px;
+  font-size: var(--type-caption);
   font-weight: 600;
 }
 
@@ -1143,20 +1156,19 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 .risk-check.danger .risk-check-icon { color: var(--risk-danger); }
 
 .risk-check-copy { min-width: 0; }
-.risk-check-label { color: var(--md-on-surface); font-size: 12px; font-weight: 600; }
+.risk-check-label { color: var(--md-on-surface); font-size: var(--type-reading); font-weight: 600; }
 .risk-check-detail {
-  overflow: hidden;
   margin-top: 2px;
   color: var(--md-on-surface-variant);
   font-family: var(--md-font-mono);
-  font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: var(--type-body);
+  line-height: var(--type-line-height);
+  overflow-wrap: anywhere;
 }
 
 .risk-check-status {
   color: var(--md-on-surface-variant);
-  font-size: 10px;
+  font-size: var(--type-caption);
 }
 
 .risk-findings {
@@ -1167,7 +1179,7 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 
 .risk-finding {
   display: grid;
-  grid-template-columns: 5px 1fr;
+  grid-template-columns: 5px minmax(0, 1fr);
   gap: 12px;
   padding: 12px;
   border: 1px solid var(--md-outline-variant);
@@ -1185,22 +1197,25 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 
 .risk-finding-title {
   color: var(--md-on-surface);
-  font-size: 12px;
+  font-size: var(--type-reading);
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .risk-finding p {
   margin-top: 3px;
   color: var(--md-on-surface-variant);
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: var(--type-body);
+  line-height: var(--type-line-height);
+  overflow-wrap: anywhere;
   user-select: text;
 }
 
 .risk-finding-action {
   margin-top: 6px;
   color: var(--md-on-surface-variant);
-  font-size: 10px;
+  font-size: var(--type-body);
+  overflow-wrap: anywhere;
 }
 
 .risk-clear {
@@ -1223,16 +1238,19 @@ html.window-maximized .title-bar-btn .icon-window-restore {
 
 .command-label {
   display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
   justify-content: space-between;
   margin-bottom: 9px;
   color: var(--md-on-surface);
-  font-size: 11px;
+  font-size: var(--type-body);
   font-weight: 600;
 }
 
 .command-label small {
   color: var(--md-on-surface-variant);
   font-weight: 400;
+  font-size: var(--type-caption);
 }
 
 .command-row {
@@ -1250,21 +1268,23 @@ html.window-maximized .title-bar-btn .icon-window-restore {
   background: color-mix(in srgb, var(--md-shadow) 26%, transparent);
   color: var(--md-on-surface);
   font-family: var(--md-font-mono);
-  font-size: 11px;
+  font-size: var(--type-body);
   line-height: 1.5;
   user-select: text;
   white-space: nowrap;
 }
 
 .copy-command-btn {
-  min-height: 38px;
-  padding: 0 14px;
+  min-height: 42px;
+  padding: 8px 14px;
+  flex-shrink: 0;
   border: 1px solid var(--risk-tone);
   border-radius: 7px;
   background: var(--risk-tone);
   color: #111714;
   font-family: var(--md-font);
-  font-size: 11px;
+  font-size: var(--type-body);
+  line-height: var(--type-line-height);
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
@@ -1277,12 +1297,32 @@ body.light-theme .copy-command-btn { color: #fff; }
 
 .risk-card-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px;
   padding: 0 26px 18px 30px;
   color: var(--md-on-surface-variant);
   font-family: var(--md-font-mono);
-  font-size: 9px;
+  font-size: var(--type-caption);
+  overflow-wrap: anywhere;
+}
+
+/* The navigation takes 260px, so compact windows need readable single cards. */
+@media (max-width: 1000px) {
+  .preflight-hero,
+  .preflight-input-row,
+  .risk-card-header,
+  .risk-summary-row,
+  .command-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .preflight-legend { align-self: flex-start; flex-wrap: wrap; }
+  .preflight-scan-btn { width: 100%; }
+  .risk-check-grid { grid-template-columns: 1fr; }
+  .risk-verdict { align-self: flex-start; text-align: left; }
+  .risk-score-block { min-width: 0; }
 }
 
 @keyframes risk-card-in {
@@ -1332,8 +1372,8 @@ body.light-theme .copy-command-btn { color: #fff; }
   top: 0;
   left: 12px;
   transform: translateY(-50%);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--type-caption);
+  line-height: 1.5;
   background: var(--md-surface);
   padding: 0 4px;
   color: var(--md-on-surface-variant);
@@ -1445,8 +1485,8 @@ body.light-theme .copy-command-btn { color: #fff; }
   height: 32px;
   min-height: 32px;
   padding: 0 16px;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--type-caption);
+  line-height: 1.5;
 }
 
 .btn-danger {
@@ -1481,7 +1521,7 @@ body.light-theme .copy-command-btn { color: #fff; }
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: var(--type-heading);
   font-weight: 500;
   line-height: 24px;
   letter-spacing: 0.15px;
@@ -1548,8 +1588,8 @@ body.light-theme .copy-command-btn { color: #fff; }
   background: transparent;
   color: var(--md-primary);
   font-family: inherit;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--type-caption);
+  line-height: 1.5;
   letter-spacing: 0.4px;
   cursor: pointer;
   transition: background-color var(--md-duration-short) var(--md-ease-standard),
@@ -1568,9 +1608,9 @@ body.light-theme .copy-command-btn { color: #fff; }
   height: 24px;
   padding: 0 12px;
   border-radius: var(--md-radius-sm);
-  font-size: 12px;
+  font-size: var(--type-caption);
   font-weight: 500;
-  line-height: 16px;
+  line-height: 1.5;
   letter-spacing: 0.5px;
 }
 
@@ -1660,8 +1700,8 @@ body.light-theme .copy-command-btn { color: #fff; }
 
 .finding-meta {
   color: var(--md-on-surface-variant);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--type-caption);
+  line-height: 1.5;
   letter-spacing: 0.4px;
 }
 
@@ -1730,8 +1770,8 @@ body.light-theme .copy-command-btn { color: #fff; }
 
 .search-item .pkg-meta {
   color: var(--md-on-surface-variant);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--type-caption);
+  line-height: 1.5;
   letter-spacing: 0.4px;
   margin-top: 8px;
 }
@@ -1749,8 +1789,8 @@ body.light-theme .copy-command-btn { color: #fff; }
   background: var(--md-elevation-2);
   border-top: 1px solid var(--md-outline-variant);
   color: var(--md-on-surface-variant);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--type-caption);
+  line-height: 1.5;
   letter-spacing: 0.4px;
   z-index: 100;
 }
@@ -1789,11 +1829,11 @@ pre.json-output {
   border-radius: var(--md-radius-md);
   padding: 16px;
   overflow: auto;
-  font-size: 12px;
+  font-size: var(--type-caption);
   font-family: var(--md-font-mono);
   color: var(--md-on-surface-variant);
   max-height: 400px;
-  line-height: 16px;
+  line-height: 1.5;
   letter-spacing: 0.4px;
 }
 
@@ -1828,8 +1868,8 @@ pre.json-output {
 }
 
 .rule-id {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--type-caption);
+  line-height: 1.5;
   color: var(--md-on-surface-variant);
   letter-spacing: 0.4px;
   font-family: var(--md-font-mono);
@@ -1994,8 +2034,8 @@ pre.json-output {
   top: 0;
   left: 12px;
   transform: translateY(-50%);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--type-caption);
+  line-height: 1.5;
   background: var(--md-surface);
   padding: 0 4px;
   color: var(--md-on-surface-variant);
@@ -2006,8 +2046,8 @@ pre.json-output {
 }
 
 .field-hint {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--type-caption);
+  line-height: 1.5;
   letter-spacing: 0.4px;
   color: var(--md-on-surface-variant);
   margin-top: 4px;

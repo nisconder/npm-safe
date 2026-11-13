@@ -24,6 +24,11 @@ const config = readJson(path.join(desktopRoot, "neutralino.config.json"));
 const corePackage = readJson(path.join(workspaceRoot, "packages/core/package.json"));
 assert.equal(config.version, corePackage.version, "Desktop config and core versions must match");
 assert.equal(readJson(path.join(desktopRoot, "package.json")).version, corePackage.version);
+const sourceRevision = spawnSync("git", ["rev-parse", "HEAD"], { cwd: workspaceRoot, encoding: "utf8" });
+if (sourceRevision.error) throw sourceRevision.error;
+assert.equal(sourceRevision.status, 0, "Cannot resolve the desktop source commit");
+const sourceCommit = sourceRevision.stdout.trim();
+assert.match(sourceCommit, /^[a-f0-9]{40}$/, "Invalid desktop source commit");
 
 const releaseRoot = path.join(desktopRoot, "dist/release");
 fs.mkdirSync(releaseRoot, { recursive: true });
@@ -90,7 +95,7 @@ try {
   fs.copyFileSync(path.join(workspaceRoot, "LICENSE"), path.join(runtime, "core/LICENSE"));
   fs.writeFileSync(path.join(app, "release-info.json"), `${JSON.stringify({
     version: corePackage.version, platform: process.platform, arch: process.arch,
-    node: process.versions.node, requiresFullDownload: true,
+    node: process.versions.node, sourceCommit, requiresFullDownload: true,
   }, null, 2)}\n`);
   fs.writeFileSync(path.join(app, "README.txt"),
     `npm-safe ${corePackage.version} (${target})\n\nExtract the entire ZIP before opening npm-safe-${binaryPlatform}_${process.arch}${suffix}.\n` +
@@ -114,6 +119,8 @@ try {
   const coreUrl = pathToFileURL(path.join(extracted, "runtime/core/dist/index.js")).href;
   run(bundledNode, ["--input-type=module", "-e", `
     import assert from 'node:assert/strict';
+    import fs from 'node:fs';
+    assert.equal(JSON.parse(fs.readFileSync('./release-info.json', 'utf8')).sourceCommit, ${JSON.stringify(sourceCommit)});
     const { DatabaseManager, NpmSafeEngine } = await import(${JSON.stringify(coreUrl)});
     assert.equal(typeof NpmSafeEngine, 'function');
     assert.equal(typeof WebSocket, 'function');
@@ -123,6 +130,7 @@ try {
     console.log('Extracted release smoke check passed: core import, Node WebSocket, SQLite.');
   `], extracted);
   fs.copyFileSync(path.join(app, "resources.neu"), path.join(releaseRoot, `resources-${target}.neu`));
+  fs.copyFileSync(path.join(app, "release-info.json"), path.join(releaseRoot, `release-info-${target}.json`));
   if (process.platform === "win32" && process.arch === "x64") {
     fs.copyFileSync(zip, path.join(releaseRoot, "npm-safe-release.zip"));
     fs.copyFileSync(path.join(app, "resources.neu"), path.join(releaseRoot, "resources.neu"));

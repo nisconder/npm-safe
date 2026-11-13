@@ -7,6 +7,10 @@ on:
         description: "Release tag to create or update (for example: v1.1.1)"
         required: true
         type: string
+      source_ref:
+        description: "Optional desktop source commit or ref (defaults to the release tag)"
+        required: false
+        type: string
   push:
     tags:
       - "v*"
@@ -38,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ env.RELEASE_TAG }}
+          ref: ${{ inputs.source_ref || env.RELEASE_TAG }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -90,18 +94,30 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
           import fs from 'node:fs';
           const tag = process.env.RELEASE_TAG;
+          const builds = fs.readdirSync('release-assets')
+            .filter(file => /^release-info-(?:windows|linux|macos)-(?:x64|arm64)\.json$/.test(file))
+            .map(file => JSON.parse(fs.readFileSync(`release-assets/${file}`, 'utf8')));
+          assert.equal(builds.length, 3, 'Each verified platform must provide source metadata');
+          const sourceCommit = builds[0].sourceCommit;
+          assert.match(sourceCommit, /^[a-f0-9]{40}$/, 'Missing desktop source commit');
+          for (const build of builds) {
+            assert.equal(build.version, tag.replace(/^v/, ''), 'Desktop asset version mismatch');
+            assert.equal(build.sourceCommit, sourceCommit, 'Desktop assets came from different source commits');
+          }
           const base = `https://github.com/${process.env.GH_REPO}/releases`;
           // Legacy clients cannot upgrade the Node/runtime layout using .neu.
           // A new endpoint keeps them from installing an incomplete update.
           fs.writeFileSync('release-assets/update_manifest_v2.json', JSON.stringify({
             applicationId: 'org.npmsafe.desktop',
             version: tag.replace(/^v/, ''),
+            sourceCommit,
             resourcesURL: `${base}/download/${tag}/resources.neu`,
             requiresFullDownload: true,
             downloadURL: `${base}/tag/${tag}`,
-            data: { requiresFullDownload: true, downloadURL: `${base}/tag/${tag}` },
+            data: { sourceCommit, requiresFullDownload: true, downloadURL: `${base}/tag/${tag}` },
           }, null, 2) + '\n');
           JS
 
