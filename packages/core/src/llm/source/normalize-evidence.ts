@@ -47,24 +47,33 @@ function suppliedExcerpts(file: SourceEvidenceFile): SourceExcerpt[] {
     typeof excerpt.text === 'string' && excerpt.text.length === excerpt.endOffset - excerpt.startOffset);
 }
 
-/** Find one unique absolute position, including overlapping literal matches. */
-function uniqueQuoteOffset(excerpts: readonly SourceExcerpt[], quote: string): number | undefined {
-  let unique: number | undefined;
+/** All absolute positions of the quote, including overlapping literal matches. */
+function quoteOffsets(excerpts: readonly SourceExcerpt[], quote: string): number[] {
+  const offsets = new Set<number>();
   for (const excerpt of excerpts) {
     let relative = excerpt.text.indexOf(quote);
     while (relative !== -1) {
-      const absolute = excerpt.startOffset + relative;
-      if (unique !== undefined && unique !== absolute) return undefined;
-      unique = absolute;
+      offsets.add(excerpt.startOffset + relative);
       // Advancing by quote.length would miss ambiguous overlapping matches.
       relative = excerpt.text.indexOf(quote, relative + 1);
     }
   }
-  return unique;
+  return [...offsets].sort((a, b) => a - b);
 }
 
 /**
- * Relocate only an exact quote unique within its already supplied file excerpts.
+ * A repeated quote stays ambiguous unless the model's own start offset matches
+ * exactly one literal occurrence. That keeps drifted coordinates near repeated
+ * fragments (e.g. `});`) resolvable without ever guessing between occurrences.
+ */
+function disambiguatedQuoteOffset(offsets: readonly number[], originalStartOffset: number): number | undefined {
+  if (offsets.length === 1) return offsets[0];
+  return offsets.length > 1 && offsets.includes(originalStartOffset) ? originalStartOffset : undefined;
+}
+
+/**
+ * Relocate only an exact quote within its already supplied file excerpts, using
+ * a unique literal match or the model's exact original start to disambiguate.
  * This never resolves a path, reads source, changes quote text, or drops findings.
  * The transaction is accepted only if the original strict validator accepts it.
  */
@@ -90,7 +99,7 @@ export function normalizeReviewEvidenceOffsets(
         evidence.startOffset >= excerpt.startOffset && evidence.endOffset <= excerpt.endOffset &&
         excerpt.text.slice(evidence.startOffset - excerpt.startOffset, evidence.endOffset - excerpt.startOffset) === evidence.quote);
       if (exact) continue;
-      const startOffset = uniqueQuoteOffset(excerpts, evidence.quote);
+      const startOffset = disambiguatedQuoteOffset(quoteOffsets(excerpts, evidence.quote), evidence.startOffset);
       if (startOffset === undefined) return unchanged;
       const endOffset = startOffset + evidence.quote.length;
       corrections.push({ findingIndex, evidenceIndex, originalStartOffset: evidence.startOffset,

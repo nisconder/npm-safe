@@ -48,15 +48,18 @@ export function validateSourceRequest(request: unknown, initial: SourcePacket, c
 export function collectSourceSupplement(archive: Buffer, initial: SourcePacket, request: unknown, caseId: string): SourceSupplement {
   const accounting = validateSourceRequest(request, initial, caseId);
   const parsed = readSourceArchive(archive);
-  if (parsed.status !== 'complete') throw new Error('Supplement requires complete archive inspection');
+  // Unreadable spans are validation failures so the coordinator can still offer
+  // the one final-review round instead of failing the whole source review.
+  const unreadable = (message: string): SourceRequestValidationError => new SourceRequestValidationError('invalid-source-range', message);
+  if (parsed.status !== 'complete') throw unreadable('Supplement requires complete archive inspection');
   const files = new Map<string, Omit<SourceEvidenceFile, "shownChars"> & {text: string}>();
   for (const span of (request as SourceRequest).requests) {
     let file = files.get(span.path);
     if (!file) {
       const entry = parsed.entries.find(item => item.path === span.path);
-      if (!entry || entry.data.length > ARCHIVE_LIMITS.fileBytes || entry.data.includes(0)) throw new Error('Requested source is missing or outside text bounds');
+      if (!entry || entry.data.length > ARCHIVE_LIMITS.fileBytes || entry.data.includes(0)) throw unreadable('Requested source is missing or outside text bounds');
       const text = entry.data.toString('utf8');
-      if (text.length !== initial.sourceIndex.find(item => item.path === span.path)!.totalChars) throw new Error('Source index length mismatch');
+      if (text.length !== initial.sourceIndex.find(item => item.path === span.path)!.totalChars) throw unreadable('Source index length mismatch');
       file = { path: span.path, totalChars: text.length, totalLines: sourceLineAt(text, text.length), text, excerpts: [] };
       files.set(span.path, file);
     }
