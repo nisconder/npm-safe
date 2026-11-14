@@ -355,4 +355,60 @@ describe('source-review orchestration', () => {
     assert.equal(report.calls, 1);
     assert.match(report.reason ?? '', /archive changed/);
   });
+  for (const [name, wrap] of [
+    ['a json code fence', (payload: string) => '```json\n' + payload + '\n```'],
+    ['a bare code fence', (payload: string) => '```\n' + payload + '\n```'],
+    ['a short prose lead-in', (payload: string) => 'Here is the requested source span:\n' + payload],
+    ['surrounding whitespace and trailing prose', (payload: string) => '\n' + payload + '\nDone.'],
+  ] as const) it(`accepts ${name} around a supplement request and a final review`, async () => {
+    let calls = 0;
+    const report = await reviewPackageSource(archiveFor(), manifest, providerWith(async input => {
+      const { caseId, supplement } = packetOf(input);
+      return wrap(JSON.stringify(++calls === 1
+        ? { schemaVersion: 1, caseId, requests: [{ path: 'package/index.js', startOffset: 0, endOffset: 4, reason: 'Inspect source.' }] }
+        : benign(caseId)));
+    }));
+    assert.equal(report.status, 'complete');
+    assert.equal(report.verdict, 'benign');
+    assert.equal(report.calls, 2);
+    assert.equal(report.supplementChars, 4);
+    assert.equal(report.sourceRequestFailure, undefined);
+  });
+  it('still fails without retry when a fenced payload is not parseable JSON', async () => {
+    const report = await reviewPackageSource(archiveFor(), manifest, providerWith(async () => '```json\n{broken\n```'));
+    assert.equal(report.status, 'failed');
+    assert.equal(report.calls, 1);
+    assert.match(report.reason ?? '', /not valid JSON/);
+  });
+  it('offers the final-review round when a schema-valid request cannot be served from the archive', async () => {
+    // An archive past the reader's entry budget yields 'partial' inspection
+    // while keeping the entries it read. The initial bundle still indexes
+    // those members, so a schema-valid request is possible; serving it must
+    // fail cleanly into the final round instead of failing the whole review.
+    const archive = makeTarball([
+      { path: 'package/package.json', content: JSON.stringify(manifest) },
+      { path: 'package/index.js', content: 'export const answer = 42;\n' },
+      ...Array.from({ length: 4999 }, (_, index) => ({ path: `package/note-${index}.txt`, content: 'x' })),
+    ]);
+    const inputs: LlmSourceReviewInput[] = [];
+    const report = await reviewPackageSource(archive, manifest, providerWith(async input => {
+      inputs.push(input);
+      const data = JSON.parse(input.prompt);
+      if (inputs.length === 1) {
+        assert.equal(data.packet.coverage.archiveInspection.status, 'partial');
+        assert.ok(data.packet.sourceIndex.some((file: {path: string}) => file.path === 'package/index.js'));
+        return JSON.stringify({ schemaVersion: 1, caseId: data.caseId,
+          requests: [{ path: 'package/index.js', startOffset: 0, endOffset: 4, reason: 'Inspect an indexed member of a partially read archive.' }] });
+      }
+      assert.match(input.systemPrompt, /second and FINAL model call/);
+      assert.deepEqual(data.sourceRequestFailure, { code: 'invalid-source-range', additionalSourceProvided: false, finalReviewRequired: true });
+      assert.equal(data.supplement, undefined);
+      return JSON.stringify({ ...benign(data.caseId), verdict: 'unknown', summary: 'The requested evidence was unavailable.' });
+    }));
+    assert.equal(report.status, 'complete');
+    assert.equal(report.verdict, 'unknown');
+    assert.equal(report.calls, 2);
+    assert.equal(report.sourceRequestFailure, 'invalid-source-range');
+    assert.equal(report.supplementChars, 0);
+  });
 });

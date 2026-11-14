@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { readSourceArchive } from '../src/llm/source/archive-reader.js';
 import { collectSourceBundle } from '../src/llm/source/source-bundle.js';
-import { collectSourceSupplement, combineSourceEvidence, validateSourceRequest } from '../src/llm/source/source-supplement.js';
+import { collectSourceSupplement, combineSourceEvidence, validateSourceRequest, SourceRequestValidationError } from '../src/llm/source/source-supplement.js';
 import { validateReview } from '../src/llm/source/review-contract.js';
 import type { SourcePacket, SourceReview, SourceRequest } from '../src/llm/source/types.js';
 
@@ -149,6 +149,8 @@ describe('production source evidence runtime', () => {
     supplement.files[0].excerpts[0].text = 'XXXXX';
     assert.throws(() => combineSourceEvidence(initial, supplement), /Conflicting/);
     assert.throws(() => collectSourceSupplement(Buffer.from('invalid gzip'), initial, request, initial.caseId), /complete archive/);
+    assert.throws(() => collectSourceSupplement(Buffer.from('invalid gzip'), initial, request, initial.caseId),
+      (error: unknown) => error instanceof SourceRequestValidationError && error.code === 'invalid-source-range');
     assert.deepEqual(initial, snapshot);
   });
 });

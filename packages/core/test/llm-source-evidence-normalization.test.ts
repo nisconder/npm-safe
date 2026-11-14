@@ -93,6 +93,25 @@ describe('strict unique source quote offset normalization', () => {
     }
   });
 
+  it('disambiguates a repeated quote when the original start matches exactly one occurrence', () => {
+    const source = 'run();\nrun();\n', input = packet(source), quote = 'run()';
+    const second = source.lastIndexOf(quote);
+    const raw = review(input, quote, second, second + quote.length + 3);
+    assert.equal(validateReview(raw, input, input.caseId).valid, false);
+    const result = normalize(raw, input), corrected = result.review as SourceReview;
+    assert.equal(validateReview(corrected, input, input.caseId).valid, true);
+    assert.equal(corrected.findings[0].evidence[0].startOffset, second);
+    assert.equal(corrected.findings[0].evidence[0].endOffset, second + quote.length);
+    assert.deepEqual(result.corrections, [{ findingIndex: 0, evidenceIndex: 0,
+      originalStartOffset: second, originalEndOffset: second + quote.length + 3,
+      startOffset: second, endOffset: second + quote.length }]);
+  });
+
+  it('never picks between repeated occurrences when the original start matches none', () => {
+    const source = 'run();\nrun();\n', input = packet(source);
+    reject(review(input, 'run()', 1, 9), input);
+  });
+
   it('deduplicates the same absolute match exposed by overlapping supplied excerpts', () => {
     const source = 'xxneedlezz', input = packet(source, [[0, 8], [2, 10]]);
     const result = normalize(review(input, 'needle', 0), input);

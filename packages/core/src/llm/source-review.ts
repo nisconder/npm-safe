@@ -66,8 +66,17 @@ function parseResponse(response: string): unknown {
   if (typeof response !== 'string' || Buffer.byteLength(response, 'utf8') > SOURCE_RESPONSE_BYTES) {
     throw new Error('Source-review response exceeds the byte budget.');
   }
-  try { return JSON.parse(response) as unknown; }
-  catch { throw new Error('Source-review response was not valid JSON.'); }
+  const trimmed = response.trim();
+  // Models intermittently wrap a compliant payload in one code fence or a short
+  // prose lead-in. Only the outermost balanced JSON object is extracted; every
+  // schema, byte-budget and evidence rule still applies to the parsed payload.
+  const unfenced = /^```[^\n]*\n([\s\S]*?)\n?```$/.exec(trimmed)?.[1]?.trim() ?? trimmed;
+  const start = unfenced.indexOf('{'), end = unfenced.lastIndexOf('}');
+  if (start !== -1 && end > start) {
+    try { return JSON.parse(unfenced.slice(start, end + 1)) as unknown; }
+    catch { /* Fall through to the strict error below. */ }
+  }
+  throw new Error('Source-review response was not valid JSON.');
 }
 
 function findingsFor(review: SourceReview, evidence: SourcePacket): ScanFinding[] {
@@ -139,15 +148,17 @@ export async function reviewPackageSource(
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Object.hasOwn(parsed, 'requests')) {
       if (responseBytes > SUPPLEMENT_LIMITS.requestBytes) throw new Error('Source request exceeds the byte budget.');
       if (createHash('sha256').update(archive).digest('hex') !== archiveSha256) throw new Error('Source archive changed during review.');
-      try { validateSourceRequest(parsed, packet, caseId); }
-      catch (error) {
+      let supplement: SourceSupplement | undefined;
+      try {
+        validateSourceRequest(parsed, packet, caseId);
+        supplement = collectSourceSupplement(archive, packet, parsed, caseId);
+      } catch (error) {
         if (!(error instanceof SourceRequestValidationError)) throw error;
         sourceRequestFailure = error.code;
       }
-      if (sourceRequestFailure) {
-        parsed = await call(undefined, sourceRequestFailure);
+      if (sourceRequestFailure || !supplement) {
+        parsed = await call(undefined, sourceRequestFailure ?? 'invalid-source-range');
       } else {
-        const supplement = collectSourceSupplement(archive, packet, parsed, caseId);
         supplementChars = supplement.coverage.transmittedChars;
         newlyCoveredChars = supplement.coverage.newlyCoveredChars ?? 0;
         evidence = combineSourceEvidence(packet, supplement);
