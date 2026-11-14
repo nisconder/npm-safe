@@ -63,8 +63,8 @@ cd packages/core && npm link
 > all existing entries. Do not copy the current process's entire `%PATH%`
 > into the user value. For a custom npm prefix, use its actual global bin
 > directory. Reopen the terminal and run `npm-safe doctor`; the
-> [CLI usage instructions](README.md#cli-usage) include a guarded full-path
-> invocation if the command is not yet resolvable.
+> [CLI reference](docs/cli.md#windows-path-note) covers PATH setup and
+> diagnosis if the command is not yet resolvable.
 
 ## Project Structure
 
@@ -72,9 +72,9 @@ The repository is a pnpm workspace (`packages/*`):
 
 - `packages/core/`: the engine, the CLI, and the `npm-safe-scan` AI skill.
   Source lives in `src/` with one directory per layer (`cli/`, `llm/`,
-  `registry/`, `scanner/`, `scheduler/`, `store/`, `translator/`). See the
-  [README Directory Structure](README.md#directory-structure) for the full
-  tree.
+  `registry/`, `scanner/`, `scheduler/`, `store/`, `translator/`). See
+  [ARCHITECTURE.md](packages/core/ARCHITECTURE.md) for the layer map and
+  module layout.
 - `packages/desktop/`: the Neutralinojs desktop GUI (see
   [Desktop GUI Build](#desktop-gui-build)).
 
@@ -93,8 +93,9 @@ The repository is a pnpm workspace (`packages/*`):
 - **Test new behavior.** Add or update tests alongside any change; test files
   live in `packages/core/test/` and mirror the module they cover.
 
-The full set of design constraints is documented in the
-[Key Design Decisions](README.md#key-design-decisions) table in the README.
+The full set of design constraints is documented in
+[ARCHITECTURE.md](packages/core/ARCHITECTURE.md) (layer map and annotated
+design decisions).
 
 ## Testing
 
@@ -130,8 +131,25 @@ Two ways to add a rule:
 2. **As a plugin**: drop an ES module file (`*.mjs` / `*.js`) into
    `~/.npm-safe/rules/` on a user's machine. Plugin files are loaded at engine
    startup; each file may export `rule`, `rules`, or `default` holding one or
-   more `ScanRule` objects. See the README
-   [Rules and plugins](README.md#rules-and-plugins) section for an example.
+   more `ScanRule` objects. Bad files are skipped. Example:
+
+   ```js
+   // ~/.npm-safe/rules/my-rule.mjs
+   export const rule = {
+     id: "my-rule",
+     name: "My rule",
+     description: "Detects something bad",
+     severity: "high",
+     category: "informational",
+     enabled: true,
+     match(readme, packageJson) {
+       return packageJson?.scripts?.postinstall?.includes("wget")
+         ? [{ ruleId: "my-rule", ruleName: "My rule", severity: "high",
+              message: "postinstall uses wget", category: "informational" }]
+         : [];
+     },
+   };
+   ```
 
 The full rule API (`registerRule`, `unregisterRule`, `listRules`,
 `setRuleEnabled`, `setRuleSeverity`) is exported from `@npm-safe/core`.

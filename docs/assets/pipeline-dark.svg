@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-label="npm-safe scan pipeline: registry metadata, static rules, optional deep tarball scan, optional LLM review, explainable score">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="360" rx="20" fill="#0b1220"/>
+  <rect x="0.5" y="0.5" width="1279" height="359" rx="19.5" fill="none" stroke="#1e293b"/>
+  <g font-family="-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif">
+    <text x="64" y="64" font-size="24" font-weight="700" fill="#f1f5f9">One pipeline, two opt-in stages</text>
+    <text x="64" y="94" font-size="16" fill="#94a3b8">Static analysis runs locally. Nothing is extracted, executed or uploaded unless you enable an LLM provider.</text>
+  </g>
+  <g font-family="-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" font-size="16">
+    <g transform="translate(64,140)">
+      <rect width="200" height="120" rx="14" fill="#111a2e" stroke="#1e293b"/>
+      <text x="20" y="42" font-weight="700" fill="#f1f5f9">Registry</text>
+      <text x="20" y="70" font-size="14" fill="#94a3b8">metadata · README</text>
+      <text x="20" y="92" font-size="14" fill="#94a3b8">manifest · integrity</text>
+    </g>
+    <line x1="268" y1="200" x2="316" y2="200" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(320,140)">
+      <rect width="200" height="120" rx="14" fill="#111a2e" stroke="#1e293b"/>
+      <text x="20" y="42" font-weight="700" fill="#f1f5f9">Static rules</text>
+      <text x="20" y="70" font-size="14" fill="#94a3b8">10 metadata rules</text>
+      <text x="20" y="92" font-size="14" fill="#94a3b8">pure local analysis</text>
+    </g>
+    <line x1="524" y1="200" x2="572" y2="200" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(576,140)">
+      <rect width="200" height="120" rx="14" fill="#13233f" stroke="#1d4ed8"/>
+      <text x="20" y="42" font-weight="700" fill="#60a5fa">Deep scan</text>
+      <text x="20" y="70" font-size="14" fill="#3b82f6">opt-in · --deep</text>
+      <text x="20" y="92" font-size="14" fill="#94a3b8">17 in-memory rules</text>
+    </g>
+    <line x1="780" y1="200" x2="828" y2="200" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(832,140)">
+      <rect width="200" height="120" rx="14" fill="#13233f" stroke="#1d4ed8"/>
+      <text x="20" y="42" font-weight="700" fill="#60a5fa">LLM review</text>
+      <text x="20" y="70" font-size="14" fill="#3b82f6">opt-in · off by default</text>
+      <text x="20" y="92" font-size="14" fill="#94a3b8">metadata or source</text>
+    </g>
+    <line x1="1036" y1="200" x2="1084" y2="200" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(1088,140)">
+      <rect width="128" height="120" rx="14" fill="#0e2a22" stroke="#065f46"/>
+      <text x="20" y="42" font-weight="700" fill="#34d399">Score</text>
+      <text x="20" y="70" font-size="14" fill="#34d399">0–100</text>
+      <text x="20" y="92" font-size="14" fill="#94a3b8">explainable</text>
+    </g>
+    <text x="64" y="312" font-size="14" fill="#64748b">Deep scan verifies SRI/shasum, parses the tarball in memory within strict byte budgets, and never executes package code.</text>
+  </g>
+</svg>

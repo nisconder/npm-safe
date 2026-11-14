@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-label="npm-safe 扫描流水线：注册表元数据、静态规则、可选深度扫描、可选 LLM 复核、可解释评分">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="360" rx="20" fill="#0b1220"/>
+  <rect x="0.5" y="0.5" width="1279" height="359" rx="19.5" fill="none" stroke="#1e293b"/>
+  <g font-family="-apple-system,'Segoe UI','Microsoft YaHei','PingFang SC','Noto Sans SC',sans-serif">
+    <text x="64" y="64" font-size="24" font-weight="700" fill="#f1f5f9">一条流水线，两个可选阶段</text>
+    <text x="64" y="94" font-size="16" fill="#94a3b8">静态分析完全在本机运行；除非你启用 LLM 提供方，否则不解压、不执行、不上传任何内容。</text>
+  </g>
+  <g font-family="-apple-system,'Segoe UI','Microsoft YaHei','PingFang SC','Noto Sans SC',sans-serif" font-size="16">
+    <g transform="translate(64,140)">
+      <rect width="200" height="120" rx="14" fill="#111a2e" stroke="#1e293b"/>
+      <text x="20" y="42" font-weight="700" fill="#f1f5f9">注册表</text>
+      <text x="20" y="70" font-size="14" fill="#94a3b8">元数据 · README</text>
+      <text x="20" y="92" font-size="14" fill="#94a3b8">清单 · 完整性校验</text>
+    </g>
+    <line x1="268" y1="200" x2="316" y2="200" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(320,140)">
+      <rect width="200" height="120" rx="14" fill="#111a2e" stroke="#1e293b"/>
+      <text x="20" y="42" font-weight="700" fill="#f1f5f9">静态规则</text>
+      <text x="20" y="70" font-size="14" fill="#94a3b8">10 条元数据规则</text>
+      <text x="20" y="92" font-size="14" fill="#94a3b8">纯本地分析</text>
+    </g>
+    <line x1="524" y1="200" x2="572" y2="200" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(576,140)">
+      <rect width="200" height="120" rx="14" fill="#13233f" stroke="#1d4ed8"/>
+      <text x="20" y="42" font-weight="700" fill="#60a5fa">深度扫描</text>
+      <text x="20" y="70" font-size="14" fill="#3b82f6">可选 · --deep</text>
+      <text x="20" y="92" font-size="14" fill="#94a3b8">17 条内存规则</text>
+    </g>
+    <line x1="780" y1="200" x2="828" y2="200" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(832,140)">
+      <rect width="200" height="120" rx="14" fill="#13233f" stroke="#1d4ed8"/>
+      <text x="20" y="42" font-weight="700" fill="#60a5fa">LLM 复核</text>
+      <text x="20" y="70" font-size="14" fill="#3b82f6">可选 · 默认关闭</text>
+      <text x="20" y="92" font-size="14" fill="#94a3b8">元数据或源码</text>
+    </g>
+    <line x1="1036" y1="200" x2="1084" y2="200" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(1088,140)">
+      <rect width="128" height="120" rx="14" fill="#0e2a22" stroke="#065f46"/>
+      <text x="20" y="42" font-weight="700" fill="#34d399">评分</text>
+      <text x="20" y="70" font-size="14" fill="#34d399">0–100</text>
+      <text x="20" y="92" font-size="14" fill="#94a3b8">可解释</text>
+    </g>
+    <text x="64" y="312" font-size="14" fill="#64748b">深度扫描校验 SRI/shasum，在严格字节预算内于内存中解析 tarball，绝不执行包代码。</text>
+  </g>
+</svg>

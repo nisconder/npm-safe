@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-label="LLM source review protocol: bounded evidence packet, optional one supplement request, final review with exact quotes, at most two model calls">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="420" rx="20" fill="#f8fafc"/>
+  <rect x="0.5" y="0.5" width="1279" height="419" rx="19.5" fill="none" stroke="#e2e8f0"/>
+  <g font-family="-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif">
+    <text x="64" y="64" font-size="24" font-weight="700" fill="#0f172a">Source review: at most two model calls</text>
+    <text x="64" y="94" font-size="16" fill="#64748b">Separate opt-in switch. The model sees only bounded excerpts and must cite exact source quotes; it cannot read files or reach the network.</text>
+  </g>
+  <g font-family="-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" font-size="16">
+    <g transform="translate(64,140)">
+      <rect width="320" height="180" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+      <text x="24" y="40" font-weight="700" fill="#0f172a">Call 1 · evidence packet</text>
+      <text x="24" y="72" font-size="14" fill="#64748b">Bounded excerpts + source index</text>
+      <text x="24" y="96" font-size="14" fill="#64748b">40,000 chars · 16 files</text>
+      <text x="24" y="128" font-size="14" fill="#1d4ed8">Model: final review,</text>
+      <text x="24" y="150" font-size="14" fill="#1d4ed8">or ONE supplement request</text>
+    </g>
+    <line x1="388" y1="230" x2="468" y2="230" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="392" y="212" font-size="13" fill="#94a3b8">request</text>
+    <g transform="translate(472,140)">
+      <rect width="320" height="180" rx="14" fill="#eff6ff" stroke="#bfdbfe"/>
+      <text x="24" y="40" font-weight="700" fill="#1d4ed8">Coordinator · supplement</text>
+      <text x="24" y="72" font-size="14" fill="#64748b">Strict schema + indexed paths</text>
+      <text x="24" y="96" font-size="14" fill="#64748b">≤4 ranges · ≤40,000 chars</text>
+      <text x="24" y="128" font-size="14" fill="#64748b">Invalid request → final round</text>
+      <text x="24" y="150" font-size="14" fill="#64748b">with the original packet</text>
+    </g>
+    <line x1="796" y1="230" x2="876" y2="230" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="800" y="212" font-size="13" fill="#94a3b8">final</text>
+    <g transform="translate(880,140)">
+      <rect width="336" height="180" rx="14" fill="#ecfdf5" stroke="#a7f3d0"/>
+      <text x="24" y="40" font-weight="700" fill="#047857">Call 2 · verified review</text>
+      <text x="24" y="72" font-size="14" fill="#64748b">Exact quotes + UTF-16 offsets</text>
+      <text x="24" y="96" font-size="14" fill="#64748b">Checked against supplied text</text>
+      <text x="24" y="128" font-size="14" fill="#64748b">malicious · benign · unknown</text>
+      <text x="24" y="150" font-size="14" fill="#64748b">Never clears static alerts</text>
+    </g>
+    <text x="64" y="372" font-size="14" fill="#94a3b8">Failures stay unknown, never a silent pass. Source reviews are not cached; only the configured provider receives the selected excerpts.</text>
+  </g>
+</svg>
