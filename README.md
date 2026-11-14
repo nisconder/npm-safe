@@ -296,9 +296,12 @@ versions requires downloading the complete ZIP once; replacing only
 - **Rules / LLM / Settings**: toggle rules and severities, configure providers with a connection test, read/write engine settings including the install gate.
 - **Risk card**: red/yellow/green installation risk for npm packages and public GitHub repositories; ordinary packages vs DSH plugins identified automatically (manual override available). npm tarballs get integrity verification; DSH plugins also get bundle, shipped-patch, host-dependency, and peer checks. Generates a version- or commit-pinned command **without running it**.
 
-<a href="docs/assets/npm-safe-desktop.png"><img src="docs/assets/npm-safe-desktop.png" alt="Actual desktop source review of @npm-safe/core 2.0.1 with a benign verdict for the supplied evidence" width="880"></a>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/desktop-dark.svg">
+  <img alt="Illustrative desktop UI: source review of @npm-safe/core 2.0.1 completed with a benign verdict, two model calls and bounded evidence coverage" src="docs/assets/desktop-light.svg" width="880">
+</picture>
 
-<sub>Actual desktop screenshot: a live LLM source review of @npm-safe/core@2.0.1, including status, model calls and bounded evidence coverage. This screen does not execute installations.</sub>
+<sub>Illustrative UI mockup in the README visual style; the app never executes installations from this screen. An <a href="docs/assets/npm-safe-desktop.png">actual desktop screenshot</a> of a live source review remains available.</sub>
 
 > **Windows first run:** if the WebView2 window fails with a loopback error, run once in an administrator PowerShell:
 > `CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"`.

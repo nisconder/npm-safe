@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="780" viewBox="0 0 1280 780" role="img" aria-label="Illustrative npm-safe desktop UI: source review of a package completed with a benign verdict, two model calls and bounded evidence coverage">
+  <rect width="1280" height="780" rx="20" fill="#f8fafc"/>
+  <rect x="0.5" y="0.5" width="1279" height="779" rx="19.5" fill="none" stroke="#e2e8f0"/>
+  <g font-family="-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif">
+    <rect x="40" y="32" width="1200" height="52" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <circle cx="68" cy="58" r="6" fill="#f87171"/>
+    <circle cx="90" cy="58" r="6" fill="#fbbf24"/>
+    <circle cx="112" cy="58" r="6" fill="#34d399"/>
+    <text x="140" y="64" font-size="16" font-weight="700" fill="#0f172a">npm-safe</text>
+    <text x="1216" y="64" font-size="13" fill="#94a3b8" text-anchor="end">Light / Dark</text>
+    <rect x="40" y="104" width="210" height="636" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+    <g font-size="15" fill="#64748b">
+      <text x="64" y="146">Overview</text>
+      <rect x="52" y="166" width="186" height="40" rx="10" fill="#eff6ff"/>
+      <text x="64" y="192" fill="#1d4ed8" font-weight="700">Check</text>
+      <text x="64" y="238">Search</text>
+      <text x="64" y="280">Watch</text>
+      <text x="64" y="322">Rules</text>
+      <text x="64" y="364">LLM</text>
+      <text x="64" y="406">Settings</text>
+    </g>
+    <rect x="270" y="104" width="970" height="88" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="294" y="140" font-size="15" fill="#64748b">Package</text>
+    <text x="294" y="170" font-size="18" font-weight="700" fill="#0f172a" font-family="'SF Mono',Consolas,monospace">@npm-safe/core</text>
+    <rect x="560" y="126" width="120" height="44" rx="10" fill="#f1f5f9"/>
+    <text x="620" y="154" font-size="15" fill="#475569" text-anchor="middle" font-family="'SF Mono',Consolas,monospace">2.0.1</text>
+    <rect x="1060" y="126" width="156" height="44" rx="10" fill="#2563eb"/>
+    <text x="1138" y="154" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">Source review</text>
+    <rect x="270" y="212" width="470" height="250" rx="14" fill="#ecfdf5" stroke="#a7f3d0"/>
+    <text x="294" y="252" font-size="15" fill="#047857">LLM source review</text>
+    <text x="294" y="308" font-size="40" font-weight="700" fill="#059669">benign</text>
+    <text x="294" y="344" font-size="15" fill="#475569">No malicious behavior identified in the supplied view.</text>
+    <rect x="294" y="376" width="150" height="40" rx="20" fill="#ffffff" stroke="#a7f3d0"/>
+    <text x="369" y="402" font-size="14" fill="#047857" text-anchor="middle">complete</text>
+    <rect x="456" y="376" width="150" height="40" rx="20" fill="#ffffff" stroke="#a7f3d0"/>
+    <text x="531" y="402" font-size="14" fill="#047857" text-anchor="middle">2 model calls</text>
+    <rect x="760" y="212" width="480" height="250" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="784" y="252" font-size="15" font-weight="700" fill="#0f172a">Evidence coverage</text>
+    <g font-size="14" fill="#64748b">
+      <text x="784" y="292">Initial excerpts</text>
+      <text x="1216" y="292" text-anchor="end" fill="#0f172a" font-family="'SF Mono',Consolas,monospace">40,000 chars</text>
+      <text x="784" y="326">Supplement</text>
+      <text x="1216" y="326" text-anchor="end" fill="#0f172a" font-family="'SF Mono',Consolas,monospace">1 request served</text>
+      <text x="784" y="360">Files shown</text>
+      <text x="1216" y="360" text-anchor="end" fill="#0f172a" font-family="'SF Mono',Consolas,monospace">16</text>
+      <text x="784" y="394">Offset corrections</text>
+      <text x="1216" y="394" text-anchor="end" fill="#0f172a" font-family="'SF Mono',Consolas,monospace">0</text>
+    </g>
+    <text x="784" y="436" font-size="13" fill="#94a3b8">Bounded view only — omissions disclosed in the report.</text>
+    <rect x="270" y="482" width="970" height="180" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="294" y="520" font-size="15" font-weight="700" fill="#0f172a">Static scan (separate from the model verdict)</text>
+    <rect x="294" y="544" width="640" height="12" rx="6" fill="#e2e8f0"/>
+    <rect x="294" y="544" width="620" height="12" rx="6" fill="#10b981"/>
+    <text x="958" y="556" font-size="16" font-weight="700" fill="#059669" font-family="'SF Mono',Consolas,monospace">97/100 · safe</text>
+    <text x="294" y="596" font-size="14" fill="#64748b">1 low-severity informational finding · model results never clear static alerts.</text>
+    <rect x="270" y="682" width="970" height="58" rx="14" fill="#f1f5f9"/>
+    <text x="294" y="718" font-size="15" fill="#475569" font-family="'SF Mono',Consolas,monospace">npm install @npm-safe/core@2.0.1</text>
+    <rect x="1080" y="694" width="136" height="34" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="1148" y="716" font-size="13" fill="#64748b" text-anchor="middle">Copy · not run</text>
+  </g>
+</svg>
