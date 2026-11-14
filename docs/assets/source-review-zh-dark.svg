@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-label="LLM 源码复核协议：受限证据包、一次可选补充请求、引用精确原文的最终复核，最多两次模型调用">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="420" rx="20" fill="#0b1220"/>
+  <rect x="0.5" y="0.5" width="1279" height="419" rx="19.5" fill="none" stroke="#1e293b"/>
+  <g font-family="-apple-system,'Segoe UI','Microsoft YaHei','PingFang SC','Noto Sans SC',sans-serif">
+    <text x="64" y="64" font-size="24" font-weight="700" fill="#f1f5f9">源码复核：最多两次模型调用</text>
+    <text x="64" y="94" font-size="16" fill="#94a3b8">独立可选开关。模型只能看到受限摘录，且必须引用精确原文；不能读取文件或访问网络。</text>
+  </g>
+  <g font-family="-apple-system,'Segoe UI','Microsoft YaHei','PingFang SC','Noto Sans SC',sans-serif" font-size="16">
+    <g transform="translate(64,140)">
+      <rect width="320" height="180" rx="14" fill="#111a2e" stroke="#1e293b"/>
+      <text x="24" y="40" font-weight="700" fill="#f1f5f9">调用 1 · 证据包</text>
+      <text x="24" y="72" font-size="14" fill="#94a3b8">受限摘录 + 源码索引</text>
+      <text x="24" y="96" font-size="14" fill="#94a3b8">40,000 字符 · 16 个文件</text>
+      <text x="24" y="128" font-size="14" fill="#60a5fa">模型：直接给出最终复核，</text>
+      <text x="24" y="150" font-size="14" fill="#60a5fa">或请求一次补充材料</text>
+    </g>
+    <line x1="388" y1="230" x2="468" y2="230" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="392" y="212" font-size="13" fill="#64748b">请求</text>
+    <g transform="translate(472,140)">
+      <rect width="320" height="180" rx="14" fill="#13233f" stroke="#1d4ed8"/>
+      <text x="24" y="40" font-weight="700" fill="#60a5fa">协调器 · 补充材料</text>
+      <text x="24" y="72" font-size="14" fill="#94a3b8">严格 schema + 索引内路径</text>
+      <text x="24" y="96" font-size="14" fill="#94a3b8">≤4 个区间 · ≤40,000 字符</text>
+      <text x="24" y="128" font-size="14" fill="#94a3b8">请求非法 → 用原始证据包</text>
+      <text x="24" y="150" font-size="14" fill="#94a3b8">进入最后一轮</text>
+    </g>
+    <line x1="796" y1="230" x2="876" y2="230" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="800" y="212" font-size="13" fill="#64748b">最终</text>
+    <g transform="translate(880,140)">
+      <rect width="336" height="180" rx="14" fill="#0e2a22" stroke="#065f46"/>
+      <text x="24" y="40" font-weight="700" fill="#34d399">调用 2 · 经校验的复核</text>
+      <text x="24" y="72" font-size="14" fill="#94a3b8">精确原文 + UTF-16 偏移</text>
+      <text x="24" y="96" font-size="14" fill="#94a3b8">逐字核对已提供文本</text>
+      <text x="24" y="128" font-size="14" fill="#94a3b8">malicious · benign · unknown</text>
+      <text x="24" y="150" font-size="14" fill="#94a3b8">绝不消除静态告警</text>
+    </g>
+    <text x="64" y="372" font-size="14" fill="#64748b">失败保持 unknown，绝不静默放行。复核不缓存；只有所配置的提供方会收到所选摘录。</text>
+  </g>
+</svg>

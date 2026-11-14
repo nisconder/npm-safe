@@ -1,96 +1,76 @@
 <div align="center">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img alt="npm-safe — scan before you install" src="docs/assets/banner-light.svg" width="880">
+</picture>
+
 # npm-safe
 
-**Scan before you install.**
+**Scan before you install.** A local-first npm supply-chain scanner for the
+command line, CI, desktop, and AI coding agents.
 
-[![Version](https://img.shields.io/github/v/release/nisconder/npm-safe?label=Version&color=2196F3)](https://github.com/nisconder/npm-safe/releases)
-[![npm](https://img.shields.io/npm/v/%40npm-safe%2Fcore?logo=npm&label=npm)](https://www.npmjs.com/package/@npm-safe/core)
-[![Downloads](https://img.shields.io/npm/dm/%40npm-safe%2Fcore?logo=npm&label=downloads)](https://www.npmjs.com/package/@npm-safe/core)
-[![Stars](https://img.shields.io/github/stars/nisconder/npm-safe?logo=github&label=stars)](https://github.com/nisconder/npm-safe/stargazers)
-[![License](https://img.shields.io/badge/license-Apache--2.0-4CAF50)](./LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI)](https://github.com/nisconder/npm-safe/actions)
-[![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![npm](https://img.shields.io/npm/v/%40npm-safe%2Fcore?logo=npm&label=npm&color=2563eb)](https://www.npmjs.com/package/@npm-safe/core)
+[![CI](https://img.shields.io/github/actions/workflow/status/nisconder/npm-safe/ci.yml?branch=main&label=CI&color=10b981)](https://github.com/nisconder/npm-safe/actions)
+[![License](https://img.shields.io/badge/license-Apache--2.0-64748b)](./LICENSE)
+[![Node](https://img.shields.io/badge/Node.js-20.12%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 
-[Quick start](#quick-start) · [Why npm-safe?](#why-npm-safe) · [Security](#security-model) · [Roadmap](ROADMAP.md) · [中文版](README_zh.md)
-
-<br>
-
-<a href="docs/assets/npm-safe-desktop.png"><img src="docs/assets/npm-safe-desktop.png" alt="Actual npm-safe desktop source review of @npm-safe/core 2.0.1, completed with a benign verdict for the supplied evidence" width="1094"></a>
-
-<sub>Actual desktop screenshot: a live LLM source review of @npm-safe/core@2.0.1, including status, model calls and bounded evidence coverage. This screen does not execute installations. <a href="docs/assets/npm-safe-desktop.png">View original PNG</a>.</sub>
+[Quick start](#quick-start) · [Features](#features) · [Security model](#security-model) · [CLI reference](docs/cli.md) · [Docs](#documentation) · [中文版](README_zh.md)
 
 </div>
 
-`npm-safe` is a local-first npm supply-chain scanner for the command line,
-CI, desktop, and AI coding agents. Its fast default scan checks published
-metadata and README signals; an opt-in deep scan also verifies and inspects
-the shipped tarball for dangerous archive structure, executable content,
-obfuscation, process execution, networking, and sensitive environment access.
-Every run returns an explainable 0–100 security score.
+---
 
-The desktop app turns that evidence into a red/yellow/green installation risk
-card for npm packages and public GitHub repositories. It identifies ordinary
-packages and DSH plugins automatically, with a manual override. Both receive
-lifecycle-script and dependency-source checks. npm tarballs receive integrity
-verification; DSH plugins also receive bundle, shipped-patch, host-dependency,
-and peer checks. It generates
-a version- or commit-pinned command without running it.
+`npm-safe` checks published metadata and README signals by default; an opt-in
+deep scan also verifies and inspects the shipped tarball for dangerous archive
+structure, executable content, obfuscation, process execution, networking, and
+sensitive environment access. Every run returns an explainable 0–100 security
+score. Static analysis and caching run locally with no account or hosted
+backend; optional LLM analysis is disabled by default.
 
-Static analysis and caching run locally with no account or hosted backend.
-Optional LLM analysis is disabled by default and only runs when you configure
-a provider.
-
-**Version 2.0.0** adds optional source LLM review with a separate, default-off
-switch. Upgrades preserve that default, including for users who already enable
-metadata LLM analysis. Complete scans with High findings are now at least
-`suspicious`; review [2.0.0 upgrade notes](CHANGELOG.md#200---2026-11-12) if you
-consume scan levels in scripts or CI.
-
-> If npm-safe makes one dependency decision safer, please consider
-> [starring the repository](https://github.com/nisconder/npm-safe). It helps
-> other developers discover the project.
+> **2.0** adds optional LLM **source review** behind a separate, default-off
+> switch (upgrades preserve that default), and complete scans with High
+> findings are now at least `suspicious`. If you consume scan levels in scripts
+> or CI, review the [2.0 upgrade notes](CHANGELOG.md#200---2026-11-12).
 
 ## Why npm-safe?
 
 `npm audit` is excellent at finding published vulnerabilities in known
-dependency versions. npm-safe complements it by looking for suspicious package
-metadata and supply-chain attack signals before or during installation.
+dependency versions. npm-safe complements it by looking for **supply-chain
+attack signals** before or during installation:
+
+- **Local-first.** No account, no hosted backend; analysis and caching stay on your machine.
+- **Bounded and inert.** Deep scans parse tarballs in memory within strict byte budgets — never extracted, never executed.
+- **Opt-in intelligence.** LLM analysis is off by default; source review has its own switch. Model results can never clear static alerts or raise the static score.
+- **Explainable.** 10 metadata rules + 17 deep-scan rules, all documented, configurable, and extensible with local plugins.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/pipeline-dark.svg">
+  <img alt="Scan pipeline: registry metadata, static rules, optional deep scan, optional LLM review, explainable score" src="docs/assets/pipeline-light.svg">
+</picture>
 
 | Use case | Command | What you get |
 |---|---|---|
-| Check a package before choosing it | `npm-safe check <package>` | Rule findings, explanations, and a security score |
-| Guard a package-manager install | `npm-safe install <package>` | An opt-in confirmation gate below your score threshold |
-| Protect an existing project | `npm-safe ci --lockfile` | Direct and transitive dependency scanning with CI exit codes |
-| Review packages and DSH plugins visually | [Desktop app](#desktop-gui) | Installation risk card, checks for the package type, and a pinned command |
-| Give coding agents a safety check | `npm-safe skill install` | A skill for Codex, Claude Code, OpenCode, Gemini CLI, and more |
+| Check before choosing | `npm-safe check <package>` | Findings, explanations, security score |
+| Guard an install | `npm-safe install <package>` | Opt-in confirmation gate below your threshold |
+| Protect a project | `npm-safe ci --lockfile` | Direct + transitive scanning with CI exit codes |
+| Compare releases | `npm-safe diff <pkg> 1.0.0 1.1.0` | Added/removed/persisting evidence across two exact versions |
+| Review visually | [Desktop app](#desktop) | Red/yellow/green risk card and a pinned install command |
+| Guard AI agents | `npm-safe skill install` | A safety skill for Codex, Claude Code, Gemini CLI, and more |
 
-The scanner is transparent by design: the 10 metadata rules and 17 deep-scan
-rules are documented and configurable, and metadata analysis is extensible
-with local rule plugins.
+## Quick start
 
-## Quick Start
-
-Requires Node.js 20.12 or later.
-
-**Try it without a global install:**
+Requires Node.js 20.12+.
 
 ```bash
-npx @npm-safe/core check lodash
-npx @npm-safe/core check lodash --deep  # verify + inspect published contents
+npx @npm-safe/core check lodash          # metadata + README signals
+npx @npm-safe/core check lodash --deep   # verify + inspect published contents
 ```
 
-**Or install the CLI globally:**
+Or install globally / as a library:
 
 ```bash
-npm install -g @npm-safe/core
-npm-safe check lodash
-```
-
-**Install as a library:**
-
-```bash
-npm install @npm-safe/core
+npm install -g @npm-safe/core && npm-safe check lodash
 ```
 
 ```ts
@@ -102,233 +82,39 @@ console.log(result.security.overallLevel, result.security.overallScore);
 engine.close();
 ```
 
----
+Illustrative metadata-only output (versions and findings can change):
 
-## CLI Usage
-
-The `npm-safe` binary ships with the `@npm-safe/core` package. Global options:
-
-- `-d, --db <path>`: custom SQLite database path (default `~/.npm-safe/npm-safe.db`)
-- `-p, --proxy <url>`: HTTP proxy for registry requests
-- `-j, --json`: JSON output
-- `-v, --version`: print version
-
-```bash
-npm-safe <package>                 # Shorthand for check
-npm-safe check <package>            # Check a package's security posture
-npm-safe check <pkg1> <pkg2> ...    # Check multiple packages (batch)
-npm-safe check --file deps.txt      # Read package names from a file
-npm-safe check -r <package>         # Force re-fetch from registry (ignore cache)
-npm-safe check --deep <package>     # Verify and inspect the published tarball
-npm-safe diff <package> 1.0.0 1.1.0 # Compare two exact releases (deep scan + manifest changes)
-npm-safe search <query>            # Search the npm registry
-npm-safe search <query> -s 10      # Limit the number of results
-npm-safe watch list                # List watched packages
-npm-safe watch add <package>       # Add a package to the watchlist
-npm-safe watch remove <package>    # Remove a package from the watchlist
-npm-safe refresh [package]         # Refresh one (or all watched) packages
-npm-safe settings get <key>        # Read a setting
-npm-safe settings set <key> <val>  # Write a setting
-npm-safe lang [en|zh]              # Get or set the output language
-npm-safe rules list                # List scan rules with effective status
-npm-safe rules enable <rule-id>    # Enable a scan rule (persisted)
-npm-safe rules disable <rule-id>   # Disable a scan rule (persisted)
-npm-safe rules severity <rule-id> <severity>  # Override a rule's severity
-npm-safe llm status                # Show LLM provider status
-npm-safe llm enable                # Enable LLM scanning
-npm-safe llm disable               # Disable LLM scanning
-npm-safe llm enable-source         # Opt into source review on deep checks
-npm-safe llm disable-source        # Disable source review (default)
-npm-safe llm set-provider <openai|gemini|anthropic>
-npm-safe llm set-key <api-key>     # Set the LLM API key
-npm-safe llm set-model <model>     # Set the LLM model identifier
-npm-safe llm set-base-url <url>    # Set a custom LLM API base URL
-npm-safe llm test-connection       # Test the LLM connection
-npm-safe ci                        # Scan dependencies, fail the build on severe findings
-npm-safe ci --lockfile             # Scan every dependency (incl. transitive) in package-lock.json
-npm-safe ci --lockfile --deep      # Also inspect each published tarball; fail closed if incomplete
-npm-safe report lodash express     # Export security reports (JSON/CSV)
-npm-safe telemetry status          # Show telemetry status (opt-in, local only)
-npm-safe gate status               # Show install gate status (opt-in)
-npm-safe gate enable               # Enable the gate + auto-install wrappers/shims
-npm-safe gate shell                # Install wrappers/shims; leave persistent PATH unchanged
-npm-safe gate shell --user         # Windows: explicitly prepend shims to user PATH
-npm-safe gate shell --machine      # Windows (admin): prepend shims to system PATH
-npm-safe install axios             # Install with the security gate (if enabled)
-npm-safe doctor                    # Diagnose PATH / gate / shim setup
+```text
+Package: lodash
+Security level: safe
+Score: 97/100
+Findings: 1 low-severity informational signal
 ```
 
-A few everyday examples:
-
-```bash
-npm-safe check react                # check a single package
-npm-safe search "web framework"     # search the npm registry
-npm-safe watch add lodash           # watch a package for changes
-npm-safe refresh                    # refresh all watched packages
-npm-safe settings set lang zh       # persist a setting
-```
-
-Illustrative metadata-only output (version and findings can change):
-
-```bash
-npm-safe check lodash
-# Package: lodash
-# Latest version: 4.18.1
-# Security level: safe
-# Score: 97/100
-# Findings: 1 low-severity informational signal
-```
-
-`safe` can still include Medium or Low findings. Complete scans with HIGH
-findings are at least `suspicious`. Review each finding; the score is not a
-probability of safety. See [Security Model](#security-model) for interpretation
-and limits.
-
-**Known lodash example:** older scans can pair `safe`, 82/100 with a HIGH
-`content-obfuscated-exec` alert on the ordinary `Function('return this')`
-global-object probe. Version 2.0.0 requires encoding evidence
-inside the execution argument. The recorded complete deep-scan regressions on
-official lodash 4.17.21 and 4.18.1 tarballs returned 97/100 with only the existing
-Low metadata finding. This targeted regression fix does not establish overall
-detection accuracy; see [2.0.0 changes](CHANGELOG.md#200---2026-11-12).
-
-> **Windows PATH note:** The default npm global bin directory is
-> `%APPDATA%\npm`; a custom npm prefix uses its own directory. If the directory
-> is missing from PATH, open **Environment Variables → User variables → Path →
-> Edit → New** and add only `%APPDATA%\npm` (or your actual global bin directory).
-> Keep the existing entries; do not paste the current process's entire `%PATH%`
-> into the user value. Reopen the terminal, then run `npm-safe doctor`.
-
-If `npm-safe` cannot be found but the default-prefix command file exists, you
-can invoke it directly from PowerShell for diagnosis:
-
-```powershell
-$npmSafeCommand = Join-Path $env:APPDATA 'npm\npm-safe.cmd'
-if (Test-Path -LiteralPath $npmSafeCommand -PathType Leaf) {
-  & $npmSafeCommand doctor
-}
-```
-
-If that file is absent, locate the installed CLI in your actual npm global
-bin directory before invoking it.
-
-The deeper features (proxy details, custom rule plugins, LLM scanning, CI/CD,
-batch operations, report export, telemetry, the shared check history, the
-command log, and the install-time security gate) are covered in the
-[Features](#features) section below.
-
----
-
-## Desktop GUI
-
-A Neutralinojs desktop app (Material You dashboard with check, search, watch,
-rules, LLM, and settings tabs) is distributed as a portable ZIP asset on each
-GitHub Release, not as an npm package. To download:
-
-1. Open the [Releases page](https://github.com/nisconder/npm-safe/releases).
-2. Pick the latest release and download the portable ZIP
-   (`npm-safe-release.zip`).
-3. Unzip and run the `npm-safe` executable (Windows) or `npm-safe` binary
-   (macOS/Linux). The app bundles the `@npm-safe/core` engine and stores data
-   in `~/.npm-safe/`.
-
-From version 1.1.1, platform ZIPs include Node.js and the core engine. The app
-checks for updates on startup and opens the release page when a complete
-download is required. Users upgrading from older versions must download and
-extract the complete ZIP once; replacing only `resources.neu` cannot update
-the bundled runtime or native dependencies.
-
-What the GUI offers:
-
-- **Overview dashboard**: average security score with a half-circle gauge,
-  recent checks list, 7-day check histogram, total count, and risk breakdown.
-- **Check**: enter a package name and view the security level, score, and
-  findings.
-- **Search**: keyword search against the npm registry; click a result to jump
-  straight to Check.
-- **Watch**: manage the watchlist and refresh individual packages or all
-  watched packages.
-- **Rules**: list all registered rules, toggle each rule, and override its
-  severity; reload custom rule plugins from `~/.npm-safe/rules/`.
-- **LLM**: configure optional LLM scanning with a test-connection button.
-- **Settings**: read/write arbitrary engine settings (e.g. `proxy`, `lang`),
-  including the install gate.
-- **Light/Dark themes** and **custom window chrome**: two independent Material
-  You palettes from the custom title bar, with the theme and last active tab
-  remembered across sessions.
-
-Check history is persisted by the Node.js extension process to the shared
-SQLite database (`~/.npm-safe/npm-safe.db`, `check_history` table); see
-[Shared check history](#shared-check-history).
-
-> **Windows first run:** if the WebView2 window fails to load with a loopback
-> error, run once in an administrator PowerShell:
-> `CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"`.
-
-Developer instructions for running and building the desktop app live in
-[CONTRIBUTING.md](CONTRIBUTING.md); the app itself is documented in the
-[Desktop README](packages/desktop/README.md).
-
----
-
-## AI Skill
-
-The `npm-safe-scan` agent skill (for AI agents that auto-load
-`~/.agents/skills/`) is bundled with the package but is never installed
-automatically. Installing `@npm-safe/core` does not run a postinstall hook or
-write to any agent configuration directory. Use the explicit commands below
-when you want to install the skill.
-
-To manage the skill manually:
-
-- `npm-safe skill install` — install to the generic `~/.agents/skills/npm-safe-scan/` directory
-- `npm-safe skill install --agent <ids>` — install into one or more specific AI agents (comma-separated: `codex,claude-code,opencode,trae,qoder,zcode,gemini-cli`)
-- `npm-safe skill status` — check whether it is installed (including per-agent status)
-- `npm-safe skill uninstall` — remove it (supports `--agent` to remove per agent)
-- `npm-safe skill` — open the interactive installation-wizard TUI in a terminal
-
-Installation targets per agent:
-
-| Agent | Install target | Kind |
-|---|---|---|
-| Generic (`~/.agents/skills/`) | `~/.agents/skills/npm-safe-scan/SKILL.md` | skill |
-| OpenCode | `~/.config/opencode/AGENTS.md` | instructions |
-| Claude Code | `~/.claude/skills/npm-safe-scan/SKILL.md` | skill |
-| Qoder | `~/.qoder/skills/npm-safe-scan/SKILL.md` | skill |
-| Zcode | `~/.zcode/skills/npm-safe-scan/SKILL.md` | skill |
-| Codex | `~/.codex/AGENTS.md` | instructions |
-| Gemini CLI | `~/.gemini/GEMINI.md` | instructions |
-| Trae | `~/.trae/skills/npm-safe-scan/SKILL.md` | skill |
-
-The skill lets AI agents invoke `npm-safe` commands (check, search, watch,
-refresh, settings, lang, and more) to scan npm packages before installing
-them, acting as a "check before you install" safety gate.
-
----
+`safe` can still include Medium or Low findings; complete scans with High
+findings are at least `suspicious`. The score is not a probability of safety —
+see [Security model](#security-model).
 
 ## Features
 
-### Release signal comparison
-
-`npm-safe diff <package> <from-version> <to-version> --json` compares two exact
-published releases using the same static rules. It retains added, removed and
-persisting evidence, registry-manifest changes, and both deep-scan reports.
-Incomplete scans produce an inconclusive comparison instead of claiming a
-finding disappeared. See [release diff and exit codes](docs/release-diff.md).
-This command is available when building the current source.
-
-### Bounded package-content scanning
+### Deep scan
 
 `--deep` downloads the selected version's tarball from the configured registry,
 verifies npm SRI/`shasum` metadata when present, parses the archive entirely in
 memory, and reports file paths and line numbers for high-confidence findings.
 It never extracts package files or executes package code.
 
-Safety limits are enforced before and during parsing: 20 MiB compressed,
-50 MiB unpacked, 5,000 archive entries, 4 MiB per text file, and 8 MiB total
-text inspected. Tarball URLs and redirects must remain on the configured
-registry origin. Reaching a limit produces a visible partial result; `ci
---deep` fails closed when any requested deep scan is partial or unavailable.
+| Limit | Value |
+|---|---|
+| Compressed archive | 20 MiB |
+| Unpacked archive | 50 MiB |
+| Archive entries | 5,000 |
+| Per text file | 4 MiB |
+| Total text inspected | 8 MiB |
+
+Tarball URLs and redirects must remain on the configured registry origin.
+Reaching a limit produces a visible partial result; `ci --deep` fails closed
+when any requested deep scan is partial or unavailable.
 
 ```bash
 npm-safe check lodash --deep
@@ -336,38 +122,114 @@ npm-safe ci --lockfile --deep
 npm-safe install axios --deep --dry-run
 ```
 
-### Proxy
+### LLM analysis and source review
 
-On restricted networks the registry may only be reachable through a proxy.
-Proxy resolution order: `--proxy` flag > persisted `proxy` setting >
-`HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` environment variables. The
-`NO_PROXY` variable (exact match, `.suffix` match, or `*`) bypasses the proxy.
+LLM-based semantic scanning is optional and disabled by default; without an
+API key, static analysis continues normally. Providers: OpenAI, Gemini,
+Anthropic. Configuration persists in `~/.npm-safe/llm.json` and can also come
+from `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`.
 
 ```bash
-# Persist a proxy (recommended)
-npm-safe settings set proxy http://127.0.0.1:7897
-
-# Or pass it per invocation
-npm-safe --proxy http://127.0.0.1:7897 check react
+npm-safe llm enable
+npm-safe llm set-provider openai
+npm-safe llm set-key $OPENAI_API_KEY
+npm-safe llm set-model gpt-4o-mini
+npm-safe llm test-connection
 ```
+
+**Source review** (2.0) has a separate switch, off by default. On a deep check
+it replaces the metadata-only model call: the model reviews bounded source
+excerpts from the same verified tarball and must cite exact quotes with
+original-file UTF-16 offsets. It may request one supplement; the coordinator
+enforces strict schemas, indexed paths, and character budgets. At most two
+model calls.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/source-review-dark.svg">
+  <img alt="Source review protocol: bounded evidence packet, one optional supplement, verified final review" src="docs/assets/source-review-light.svg">
+</picture>
+
+```bash
+npm-safe llm enable-source
+npm-safe check lodash --deep
+```
+
+Only the configured provider receives the selected excerpts; latency and model
+charges increase. Reports retain exact evidence, omissions, and `unknown`
+outcomes. Model results cannot clear static alerts or raise the static score;
+requested review failures make an otherwise safe result `unknown`. Source
+reviews are not cached. [Behavior and limits →](docs/source-review.md)
+
+### Install gate
+
+Opt-in and disabled by default. Once enabled, every target package is checked
+first; anything scoring **below the threshold (default 85)** requires manual
+confirmation before the install proceeds. The inspected version is the
+installed version.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/install-gate-dark.svg">
+  <img alt="Install gate: check first, confirm below threshold, then install" src="docs/assets/install-gate-light.svg">
+</picture>
+
+```bash
+npm-safe gate enable            # installs shell wrappers + PATH shims
+npm-safe gate set-threshold 90
+npm-safe install axios          # gated install (prompts below threshold)
+npm-safe install axios --yes    # auto-confirm
+npm-safe install axios --dry-run
+npm-safe doctor                 # diagnose wrappers / PATH
+```
+
+- Wrappers retain your manager and subcommand: `pnpm install` stays an install, `yarn add` stays an add. A bare install scans direct manifest dependencies and always confirms.
+- EOF declines confirmation with exit code 3. The enabled gate rejects sources and registry configurations it cannot inspect.
+- Put package-manager options after `--` when they overlap gate options (`npm-safe install -- lodash --dry-run`); the gate's own `--yes` must appear before the separator.
+- `gate enable` installs PATH shims into `~/.npm-safe/bin` and appends wrapper functions to your shell profile (PowerShell `$PROFILE`, `~/.zshrc`/`~/.bashrc`). Persistent Windows PATH changes require explicit `gate shell --user` or `--machine` (admin); `npm-safe doctor` verifies resolution. Remove everything with `gate shell --remove`.
+
+The gate shares its settings with the desktop GUI, so CLI and GUI toggles stay
+in sync. [Full gate reference →](docs/cli.md#install-gate-opt-in)
+
+### CI/CD
+
+`npm-safe ci` scans a project's dependencies and fails the build when any
+dependency reaches a configurable security level:
+
+```bash
+npm-safe ci --dir ./packages/core      # default fail level: dangerous
+npm-safe ci --fail-level suspicious    # stricter gate
+npm-safe ci --prod                     # skip devDependencies
+npm-safe ci --lockfile                 # all lockfile deps (incl. transitive)
+npm-safe ci --lockfile --deep          # inspect tarballs; fail closed if incomplete
+npm-safe ci --json --rate-limit 50
+```
+
+Exit codes: `0` pass · `1` usage/config error · `2` a dependency reached the
+fail level or the scan errored. Critical findings always block, even at a high
+numerical score; unknown packages and incomplete deep scans fail closed.
+Lockfile scans check each distinct name at its exact locked version; production
+mode follows dependencies, optional dependencies, and installed peers through
+the locked tree. Unsupported local/Git/custom-registry archives stop the scan
+with an error instead of substituting the latest public package.
+
+A ready-to-use workflow lives at
+[`examples/github-actions/npm-safe.yml`](examples/github-actions/npm-safe.yml).
 
 ### Rules and plugins
 
 Ten metadata rules and seventeen opt-in content rules detect install scripts,
 obfuscation, typosquatting, secret exposure, unsafe archives, executable
-content, process/network combinations, and more. Rules can be managed at runtime;
-configuration is persisted in `~/.npm-safe/rules.json`:
+content, process/network combinations, and more. Configuration persists in
+`~/.npm-safe/rules.json`:
 
 ```bash
-npm-safe rules list                          # Show every rule and its status
-npm-safe rules disable install-script        # Disable a rule
-npm-safe rules enable install-script         # Re-enable it
-npm-safe rules severity typosquatting critical  # Override a rule's severity
+npm-safe rules list
+npm-safe rules disable install-script
+npm-safe rules severity typosquatting critical
 ```
 
-Third-party rule plugins can be dropped into `~/.npm-safe/rules/` as ES module
-files (`*.mjs` / `*.js`). Each file may export `rule`, `rules`, or `default`
-holding one or more rules conforming to the `ScanRule` interface:
+Third-party plugins are ES module files (`*.mjs` / `*.js`) dropped into
+`~/.npm-safe/rules/`, loaded at engine startup; bad files are skipped. Each
+file may export `rule`, `rules`, or `default` conforming to `ScanRule`:
 
 ```js
 // ~/.npm-safe/rules/my-rule.mjs
@@ -387,402 +249,196 @@ export const rule = {
 };
 ```
 
-Plugin files are loaded at engine startup and bad files are skipped. The
-`ScanRule` interface and the full engine rule API (`registerRule`,
-`unregisterRule`, `listRules`, `setRuleEnabled`, `setRuleSeverity`) are
-exported from `@npm-safe/core` for programmatic use. See
-[SCANNER_RULES.md](packages/core/SCANNER_RULES.md) for the built-in rule
-reference.
+The full rule API (`registerRule`, `unregisterRule`, `listRules`,
+`setRuleEnabled`, `setRuleSeverity`) is exported from `@npm-safe/core`.
+[Rule reference →](packages/core/SCANNER_RULES.md)
 
-### LLM scanning
+### Release diff
 
-LLM-based semantic scanning is optional and disabled by default. When no API
-key is configured, static analysis continues normally. Providers: OpenAI,
-Gemini, Anthropic. Configuration is persisted in `~/.npm-safe/llm.json` and
-can also be supplied via environment variables (`OPENAI_API_KEY`,
-`GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`).
+`npm-safe diff <package> <from> <to> --json` compares two exact published
+releases with the same static rules, retaining added, removed, and persisting
+evidence, registry-manifest changes, and both deep-scan reports. Incomplete
+scans produce an inconclusive comparison instead of claiming a finding
+disappeared. [Release diff and exit codes →](docs/release-diff.md)
 
-```bash
-npm-safe llm status                 # Show the current provider and status
-npm-safe llm enable                 # Turn LLM scanning on
-npm-safe llm set-provider openai    # Select provider
-npm-safe llm set-key $OPENAI_API_KEY
-npm-safe llm set-model gpt-4o-mini
-npm-safe llm set-base-url <url>     # Custom API base URL (optional)
-npm-safe llm test-connection        # Verify the provider works
-```
-
-Source review, added in 2.0.0, has a **separate switch, off by default**:
+### Batch, reports, history
 
 ```bash
-npm-safe llm enable-source
-npm-safe check lodash --deep
-npm-safe llm disable-source
-```
-
-With a configured, enabled provider, this reviews bounded source from the same
-tarball as the static scan, replacing the metadata-only model call for that deep
-check. It can request one source supplement (at most two API calls). Selected
-source goes to your configured endpoint; latency and model charges increase.
-Reports retain exact source evidence, omissions and `unknown` outcomes. Model
-results cannot clear static alerts or raise the static score. Requested review
-failures make an otherwise safe result `unknown`. Source reviews are not cached.
-See [source review behavior and limits](docs/source-review.md).
-
-### CI/CD integration
-
-`npm-safe ci` scans a project's direct dependencies and fails the build when
-any dependency reaches a configurable security level:
-
-```bash
-npm-safe ci --dir ./packages/core          # default fail level: dangerous
-npm-safe ci --fail-level suspicious        # stricter gate
-npm-safe ci --prod                         # skip devDependencies
-npm-safe ci --lockfile                     # scan all lockfile deps (incl. transitive)
-npm-safe ci --lockfile --prod              # scan the full production dependency tree
-npm-safe ci --lockfile --deep              # inspect tarballs; fail if any deep scan is incomplete
-npm-safe ci --json                         # machine-readable report
-npm-safe ci --rate-limit 50                # registry requests per second
-```
-
-Exit codes: `0` pass, `1` usage/config error, `2` one or more dependencies
-reached the fail level (or the scan errored). A ready-to-use GitHub Actions
-workflow lives at `.github/workflows/ci.yml`; it runs the test suite, type
-checks, and a dependency security scan on every push/PR.
-
-Lockfile scans check each distinct package name and exact locked version;
-multiple installed versions are checked separately. Production mode follows
-dependencies, optional dependencies and installed peers through the locked
-tree, including nested and hoisted packages. Unsupported local, Git or custom
-registry archives and missing exact versions stop the scan with an error
-instead of substituting the latest public registry package.
-
-Critical findings always block CI, including at a high numerical score.
-Unknown or missing packages and incomplete deep scans also fail closed.
-Adding findings can lower the score to zero without turning established
-danger into an inconclusive result. Static report cache identities include
-the scanner revision, registered rules and effective configuration; changing
-rule enablement, severity or options triggers re-evaluation against cached
-metadata, and repeats a previous deep scan when necessary.
-For external or runtime registered rules, reports are re-evaluated on every
-check because a function's source text cannot identify its closures or imported
-helpers. Fresh package metadata is still reused. Automatic refresh waits for
-configured rule plugins to finish loading before its first scan.
-
-For another repository, copy the minimal workflow from
-[`examples/github-actions/npm-safe.yml`](examples/github-actions/npm-safe.yml).
-
-### Batch operations
-
-`check` accepts any number of package names and reads lists from files,
-scanning concurrently (default 5) while still respecting the rate limiter:
-
-```bash
-npm-safe check lodash express axios       # batch check
+npm-safe check lodash express axios          # concurrent batch (default 5)
 npm-safe check --file deps.txt --concurrency 10
-npm-safe check lodash express --json      # machine-readable batch report
-npm-safe check detail 2                   # full report of the 2nd package of the last batch
+npm-safe check detail 2                      # re-render the 2nd package of the last batch
+npm-safe report --format csv lodash express  # JSON/CSV export, stdout or file
+npm-safe report --batch
 ```
 
-Programmatic consumers can use `NpmSafeEngine.checkPackages(names, options)`
-with a `concurrency` cap and an `onProgress` callback. The most recent batch
-is saved to `~/.npm-safe/last-batch.json`; `check detail <n>` re-renders one
-package's full report (findings, recommendations, snippets) from it without
-re-fetching.
+Every CLI and desktop check is written to the shared SQLite database
+(`~/.npm-safe/npm-safe.db`, `check_history`, newest-first, capped at 1000), so
+packages scanned on the command line appear in the desktop dashboard and vice
+versa. Programmatic access: `engine.getCheckHistory()`,
+`engine.recordCheckHistory()`, `engine.clearCheckHistory()`.
 
-### Report export
+### Proxy, telemetry, command log
 
-Export security reports for any set of packages as JSON or CSV, to stdout or
-a file:
+- **Proxy** resolution order: `--proxy` flag > persisted `proxy` setting > `HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY`; `NO_PROXY` bypasses. `npm-safe settings set proxy http://127.0.0.1:7897`.
+- **Telemetry** is local and opt-in (disabled by default, nothing is sent anywhere): `npm-safe telemetry enable|status|export|reset`, stored in `~/.npm-safe/telemetry.json`.
+- **Command log**: every CLI invocation appends one JSONL line to `~/.npm-safe/commands.jsonl` (`timestamp, command, argv, exitCode, durationMs`). API keys, proxy credentials, and tokens are replaced with `[REDACTED]`; the file is restricted to the current user where supported. Redirect with `NPM_SAFE_COMMAND_LOG`.
+
+## Desktop
+
+A portable Neutralinojs app (Material You dashboard, light/dark themes)
+distributed as a ZIP on each [GitHub Release](https://github.com/nisconder/npm-safe/releases) —
+unzip and run; Node.js and the engine are bundled. Upgrading from older
+versions requires downloading the complete ZIP once; replacing only
+`resources.neu` cannot update the bundled runtime.
+
+- **Overview**: average-score gauge, recent checks, 7-day histogram, risk breakdown.
+- **Check / Search / Watch**: scan packages, search the registry, manage and refresh the watchlist.
+- **Rules / LLM / Settings**: toggle rules and severities, configure providers with a connection test, read/write engine settings including the install gate.
+- **Risk card**: red/yellow/green installation risk for npm packages and public GitHub repositories; ordinary packages vs DSH plugins identified automatically (manual override available). npm tarballs get integrity verification; DSH plugins also get bundle, shipped-patch, host-dependency, and peer checks. Generates a version- or commit-pinned command **without running it**.
+
+<a href="docs/assets/npm-safe-desktop.png"><img src="docs/assets/npm-safe-desktop.png" alt="Actual desktop source review of @npm-safe/core 2.0.1 with a benign verdict for the supplied evidence" width="880"></a>
+
+<sub>Actual desktop screenshot: a live LLM source review of @npm-safe/core@2.0.1, including status, model calls and bounded evidence coverage. This screen does not execute installations.</sub>
+
+> **Windows first run:** if the WebView2 window fails with a loopback error, run once in an administrator PowerShell:
+> `CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"`.
+
+[Desktop README →](packages/desktop/README.md) · [Build instructions →](CONTRIBUTING.md#desktop-gui-build)
+
+## AI skill
+
+The `npm-safe-scan` skill ships with the package but is **never installed
+automatically** — installing `@npm-safe/core` runs no postinstall hook and
+writes no agent configuration. It lets agents invoke npm-safe as a
+"check before you install" safety gate.
 
 ```bash
-npm-safe report lodash express                    # JSON to stdout
-npm-safe report --format csv lodash express       # CSV
-npm-safe report --file deps.txt --format csv --output report.csv
-npm-safe report --batch                           # export the last batch check
+npm-safe skill install                          # generic ~/.agents/skills/
+npm-safe skill install --agent codex,claude-code
+npm-safe skill status                           # per-agent status
+npm-safe skill uninstall
+npm-safe skill                                  # interactive wizard
 ```
 
-JSON output includes the full per-package results (`BatchPackageResult[]`);
-CSV rows are `name,version,level,score,findingCount`.
+| Agent | Install target | Kind |
+|---|---|---|
+| Generic | `~/.agents/skills/npm-safe-scan/SKILL.md` | skill |
+| Claude Code | `~/.claude/skills/npm-safe-scan/SKILL.md` | skill |
+| Codex | `~/.codex/AGENTS.md` | instructions |
+| Gemini CLI | `~/.gemini/GEMINI.md` | instructions |
+| OpenCode | `~/.config/opencode/AGENTS.md` | instructions |
+| Trae / Qoder / Zcode | `~/.trae|.qoder|.zcode/skills/npm-safe-scan/SKILL.md` | skill |
 
-### Telemetry and analytics
+## Security model
 
-Local, opt-in usage telemetry (disabled by default, nothing is sent anywhere):
+npm-safe is an early-warning heuristic, **not a safety certification**. The
+default scan inspects registry metadata, the selected manifest, and README;
+`--deep` additionally verifies and heuristically inspects the shipped tarball
+within strict resource limits.
 
-```bash
-npm-safe telemetry status         # show whether enabled + aggregated stats
-npm-safe telemetry enable         # start collecting (local only)
-npm-safe telemetry disable        # stop collecting (keeps existing data)
-npm-safe telemetry export         # dump the collected data as JSON
-npm-safe telemetry reset          # clear all collected data
-```
-
-When enabled, `check` and `ci` runs are recorded to
-`~/.npm-safe/telemetry.json`: per-event counters, total packages scanned,
-security-level distribution, error counts, and a rolling window of the last
-200 events.
-
-### Shared check history
-
-Every package checked via the CLI (`check` / `ci`), and every check run
-inside the desktop GUI, is written to the shared SQLite database
-(`~/.npm-safe/npm-safe.db`, `check_history` table, newest-first, capped at
-1000). The desktop GUI's overview dashboard loads this history directly, so
-packages scanned on the command line appear in the app, and vice versa.
-Legacy `~/.npm-safe/history.json` data is migrated into the database once on
-first launch. Programmatic access: `engine.recordCheckHistory(result)`,
-`engine.getCheckHistory()`, `engine.clearCheckHistory()`.
-
-The desktop extension also honours the persisted `proxy` setting: on startup
-it reads the settings table and configures the engine, so a proxy configured
-in the GUI or via `npm-safe settings set proxy ...` applies to desktop scans
-too.
-
-### Command log
-
-Every CLI invocation appends one JSONL line to
-`~/.npm-safe/commands.jsonl` with `{ timestamp, command, argv, exitCode,
-durationMs }`, written on process exit. API keys, proxy credentials, auth
-tokens, and generic setting values are replaced with `[REDACTED]` before they
-are persisted. The file is restricted to the current user (`0600`) where the
-platform supports it. The location can be redirected with the
-`NPM_SAFE_COMMAND_LOG` environment variable.
-
-### Install-time security gate (opt-in)
-
-`npm-safe install` wraps `npm install` with an optional security gate: every
-target package is checked first, and any package scoring **below the
-threshold (default 85)** requires manual confirmation before the install
-proceeds. The gate is **disabled by default** and can be turned on via the
-CLI or the desktop GUI (Settings → 安装安全检查):
-
-```bash
-npm-safe gate status               # show enabled state + threshold
-npm-safe gate enable               # turn the gate on (auto-installs shell wrappers)
-npm-safe gate disable              # turn it off
-npm-safe gate set-threshold 90     # raise the bar
-npm-safe install axios             # gated install (prompts below threshold)
-npm-safe install axios --yes       # auto-confirm
-npm-safe install axios --dry-run   # check + prompt without installing
-```
-
-Explicit names, versions, tags, and semver ranges are resolved to a published
-version; the gate installs that inspected version. Wrappers retain the chosen
-manager and subcommand, so `pnpm install` stays an install and `yarn add` stays
-an add. A bare install scans direct manifest dependencies and always asks for
-confirmation because its lockfile versions and project scripts are not bound
-to a complete installation plan. EOF declines confirmation with exit code 3.
-
-Put package-manager options after `--` when they overlap gate options, for
-example `npm-safe install -- lodash --dry-run`. This passes `--dry-run` to the
-manager. The gate's own `--yes` must appear before that separator; an npm
-`--yes` forwarded by a wrapper never approves a security warning. The enabled
-gate rejects sources and registry configurations it cannot inspect.
-
-`gate enable` enables the check, installs
-**PATH shims** into `~/.npm-safe/bin` (npm.cmd / pnpm.cmd / yarn.cmd; they
-can be used by any shell), and appends wrapper functions for `npm`, `pnpm`, and
-`yarn` to your shell config (PowerShell `$PROFILE` on Windows,
-`~/.zshrc`/`~/.bashrc` otherwise). Plain `gate shell` refreshes these files
-without changing persistent Windows PATH values. PATH activation requires
-the explicit `--user` or `--machine` option:
-
-| Your shell | Activation |
+| Level | Meaning |
 |---|---|
-| PowerShell / bash / zsh | Just restart the shell; the profile wrappers load automatically |
-| Windows user PATH | Run `npm-safe gate shell --user` to prepend shims to the **user** PATH; administrator privileges are not required. Reopen terminals, then check resolution with `npm-safe doctor`. |
-| **Windows cmd** when the Node installation takes precedence | Run **once as administrator**: `npm-safe gate shell --machine` to prepend shims to the **system** PATH. Reopen terminals afterwards. |
+| `safe` | Score 80–100, no High/Critical finding, complete scan |
+| `suspicious` | Score ≥ 50, or any High finding on a complete scan |
+| `dangerous` | Any Critical finding, or score < 50 |
+| `unknown` | Incomplete scan without established danger |
 
-Windows can place machine PATH entries before user entries, so `--user` may
-not put shims ahead of a system-wide Node installation. `--machine` changes
-the machine value and requires administrator privileges. Neither option
-copies the current process PATH into persistent configuration. `npm-safe doctor`
-verifies whether `where npm.cmd` resolves to the shim first and prints the fix.
+Score = 100 minus severity weights (Critical 25 · High 15 · Medium 8 · Low 3).
+Medium/Low findings may appear in a `safe` report; neither the score nor the
+label is a probability or guarantee of runtime safety. False positives and
+missed detections are possible — passing the automated tests establishes
+tested behavior, not real-world detection accuracy. Use npm-safe alongside
+vulnerability databases, lockfiles, code review, and least-privilege builds.
 
-Pass `--shell-file <path>` to target a specific config file, `--no-shell` to
-skip. After activation, any `pnpm add <pkg>` or `npm install <pkg>` first
-runs `npm-safe install ...`; the gate checks the package and asks for
-confirmation below the threshold before the real package manager runs.
-Remove everything with:
-
-```bash
-npm-safe gate shell --remove
-# If user PATH activation was used, remove that entry:
-npm-safe gate shell --user --remove
-# If machine PATH activation was used, remove that entry as administrator:
-npm-safe gate shell --machine --remove
-```
-
-After upgrading npm-safe, run `npm-safe gate shell` and restart the shell to
-refresh previously installed wrappers and shims.
-
-The gate shares the same settings table as the GUI, so the CLI switch and the
-GUI toggle stay in sync.
-
----
-
-## Security Model
-
-npm-safe is an early-warning heuristic, not a safety certification. The
-default scan inspects registry metadata, the selected manifest, and README.
-Passing `--deep` additionally verifies and heuristically inspects the shipped
-tarball within strict resource limits, without extracting or executing it.
-
-`safe` requires a score of 80–100, no High or Critical finding, and no
-incomplete scan. A High finding makes a complete scan at least `suspicious`;
-a Critical finding makes it `dangerous`. Medium and Low findings may still
-appear in a `safe` report. Review the evidence for every finding; neither the
-score nor the label is a probability or guarantee of runtime safety.
-
-False positives and missed detections are possible. Passing the automated
-tests establishes tested behavior, not real-world detection accuracy. The
-[evaluation reports](docs/evaluation.md) describe the samples and their limits.
-
-Use it alongside vulnerability databases, lockfiles, code review, and
-least-privilege build environments. See the full [threat model](docs/THREAT_MODEL.md),
-[security policy](SECURITY.md), and [product roadmap](ROADMAP.md).
-
----
+[Threat model →](docs/THREAT_MODEL.md) · [Evaluation reports →](docs/evaluation.md) · [Security policy →](SECURITY.md)
 
 ## Architecture
 
-The engine is composed of five layers. Each layer depends only on the layers
-below it. The `index.ts` facade composes every dependency and exposes the
-result as a single `NpmSafeEngine` class.
+Five layers, each depending only on the layers below; the `index.ts` facade
+composes them into a single `NpmSafeEngine` class (29 public methods).
 
-```
-                           +-----------------------+
-                           |      index.ts          |
-                           |  NpmSafeEngine facade  |
-                           |  29 public methods     |
-                           +-----------+-----------+
-                                       |
-              +------------------------+------------------------+
-              |                        |                        |
-     +--------v--------+     +---------v---------+     +--------v--------+
-     |   Registry      |     |    Scanner        |     |   Scheduler     |
-     |  NpmRegistryClient|   |  StaticAnalyzer   |     | RefreshScheduler|
-     |  Validator       |     |  10 rules         |     |  TokenBucket    |
-     |  (HTTP fetch)    |     |  (pure analysis)  |     |  (rate-limit)   |
-     +--------+---------+     +---------+---------+     +--------+--------+
-              |                          |                        |
-              |                          |                        |
-              +--------------------------+------------------------+
-                                         |
-                                +--------v--------+
-                                |     Store       |
-                                | DatabaseManager |
-                                |  CacheManager   |
-                                |  SQLite (WAL)   |
-                                +-----------------+
+```text
+                        +------------------------+
+                        |        index.ts        |
+                        |   NpmSafeEngine facade |
+                        +-----------+------------+
+              +---------------------+---------------------+
+              |                     |                     |
+     +--------v--------+   +--------v--------+   +--------v--------+
+     |     Registry    |   |     Scanner     |   |    Scheduler    |
+     | client/validator|   | StaticAnalyzer  |   | RefreshScheduler|
+     | (HTTP fetch)    |   | 10 rules, pure  |   | TokenBucket     |
+     +--------+--------+   +--------+--------+   +--------+--------+
+              +---------------------+---------------------+
+                        +-----------v------------+
+                        |         Store          |
+                        | DatabaseManager/Cache  |
+                        | SQLite (WAL)           |
+                        +------------------------+
 ```
 
-### Layer responsibilities
+| Layer | Role |
+|---|---|
+| **Registry** | HTTP communication with the npm registry; name/version validation; registry-facing types. |
+| **Scanner** | Pure static analysis of metadata/README; rule config overrides and plugin discovery. No network during analysis. |
+| **Scheduler** | Periodic refresh of watched packages; token bucket (5 tokens/s, 10 burst) limits registry frequency. |
+| **Store** | better-sqlite3 with WAL; migrations, TTL caching of metadata/reports, watchlist, key-value settings. |
+| **Facade** | `NpmSafeEngine`: checks, search, watchlist, refresh, settings, rules, LLM configuration, lifecycle. |
 
-| Layer | Module(s) | Role |
-|---|---|---|
-| **Registry** | `registry/client.ts`, `registry/validator.ts`, `registry/types.ts` | HTTP communication with the npm registry API. Fetches packuments, validates package names and versions, defines all registry-facing TypeScript types. |
-| **Scanner** | `scanner/static-rules.ts`, `scanner/rule-config.ts`, `scanner/rule-loader.ts`, `scanner/types.ts` | Pure static analysis of package metadata and README content. Ten built-in rules detect install scripts, obfuscation, typosquatting, secret exposure, homograph attacks, and more; plus runtime rule registration, per-rule config overrides, and plugin discovery. |
-| **Scheduler** | `scheduler/refresh-scheduler.ts`, `scheduler/rate-limiter.ts` | Manages periodic refresh cycles for watched packages. A token bucket (5 tokens/s, 10 burst) limits registry request frequency. |
-| **Store** | `store/database.ts`, `store/cache-manager.ts`, `store/schema.ts` | Persistent storage via better-sqlite3 with WAL mode. Handles migrations, TTL-based caching of metadata and scan reports, watchlist persistence, and key-value settings. |
-| **Facade** | `index.ts` | The `NpmSafeEngine` class composes all four layers. Exposes 29 public methods: `checkPackage`, `searchPackages`, watchlist CRUD, refresh operations, settings access, lifecycle, rule management, and LLM configuration (`startAutoRefresh`, `stopAutoRefresh`, `close`). |
+A sixth auxiliary **Translator** layer provides a pluggable translation
+interface; it is typed and importable but not wired into the scan pipeline.
+[Full architecture →](packages/core/ARCHITECTURE.md)
 
-A sixth auxiliary layer, **Translator** (`translator/types.ts`,
-`translator/provider.ts`), provides a pluggable translation interface for
-converting findings and summaries into different languages. It is not wired
-into the core scan pipeline but is fully typed and importable.
-
----
-
-## Documentation
-
-Detailed documentation is available under `packages/core/`:
-
-- **[SECURITY.md](SECURITY.md)**: private vulnerability reporting process and supported-version policy.
-- **[THREAT_MODEL.md](docs/THREAT_MODEL.md)**: inspection boundary, trust assumptions, out-of-scope threats, and score interpretation.
-- **[Scanner evaluation](docs/evaluation.md)**: [initial pilot](docs/evaluation/pilot-2026-10-31.md), [known-miss repairs](docs/evaluation/round2-2026-10-31.md), and [precision/performance fixes on the same sixteen versions](docs/evaluation/round3-2026-10-31.md), including coverage limits, remaining alerts, partial scans, and fresh serial timings.
-- **[New evaluation splits](docs/evaluation-splits.md)**: deterministic family partitioning, observed-data exclusions, split-only runs and a harmless synthetic workflow demonstration. These do not claim new real-world accuracy results.
-- **[ROADMAP.md](ROADMAP.md)**: AST analysis, SARIF, policy, benchmark, and integration priorities.
-- **[CHANGELOG.md](CHANGELOG.md)**: user-facing changes by release.
-- **[ARCHITECTURE.md](packages/core/ARCHITECTURE.md)**: layer map, module dependency graph, data flow diagrams (hot path and refresh path), database schema (ERD), migration system, error taxonomy, and annotated design decisions.
-- **[API.md](packages/core/API.md)**: complete public API reference covering the `NpmSafeEngine` class (all 29 public methods), exported interfaces, and all type definitions (`SecurityLevel`, `Severity`, `FindingCategory`, `CheckResult`, `ScanFinding`, `StaticScanReport`, etc.).
-- **[SCANNER_RULES.md](packages/core/SCANNER_RULES.md)**: reference for all metadata and deep package-content rules, including categories, severities, limits, and mitigations.
-- **[CONTRIBUTING.md](CONTRIBUTING.md)**: developer guide covering development setup, code conventions, testing, the publishing workflow, and the desktop GUI build.
-- **[README_zh.md](README_zh.md)**: Chinese translation of the project README.
-
-The desktop GUI lives under `packages/desktop/` and is documented in the
-[Desktop README](packages/desktop/README.md).
-
----
-
-## Directory Structure
-
-```
-npm-safe/
-  LICENSE                  # Apache-2.0
-  README.md                # project README (English)
-  README_zh.md             # project README (Chinese)
-  CONTRIBUTING.md          # developer guide (setup, conventions, publishing)
-  CHANGELOG.md             # user-facing release history
-  SECURITY.md              # private reporting and security support policy
-  ROADMAP.md               # product and scanner priorities
-  CODE_OF_CONDUCT.md       # project participation standards
-  docs/THREAT_MODEL.md     # inspection boundary and trust assumptions
-  pnpm-workspace.yaml      # workspace = packages/*
-  tsconfig.base.json       # shared TypeScript config (ESNext, strict)
-  .github/
-    workflows/
-      ci.yml               # CI: typecheck + tests + dependency security scan
-      publish.yml          # npm publish (SLSA provenance, tag-triggered)
-      desktop-release.yml  # desktop ZIP assets on GitHub Releases
-  packages/
-    core/
-      package.json         # @npm-safe/core v1.0.5, ESM, publishConfig (public, provenance)
-      .npmignore           # publish exclude rules
-      tsconfig.json        # extends ../../tsconfig.base.json
-      API.md               # public API reference
-      ARCHITECTURE.md      # layer map, data flows, DB schema
-      SCANNER_RULES.md     # 10 static rule reference
-      skill/
-        npm-safe-scan/
-          SKILL.md         # AI skill, installed only via an explicit `skill install`
-      src/
-        index.ts           # NpmSafeEngine facade, unified public API
-        cli/               # command implementations, command log, i18n
-        llm/               # LLM providers (OpenAI / Gemini / Anthropic)
-        registry/          # registry client, validator, types
-        scanner/           # StaticAnalyzer, rule config, plugin loader
-        scheduler/         # rate limiter + refresh scheduler
-        store/             # SQLite database, migrations, cache manager
-        translator/        # pluggable translation interface
-      test/                # module tests (see CONTRIBUTING.md)
-    desktop/               # @npm-safe/desktop (Neutralinojs GUI)
-      package.json         # desktop workspace package
-      neutralino.config.json  # Neutralino app config (borderless, extensions)
-      resources/           # index.html, styles.css, js/, icons/, extensions/core/main.mjs
-```
-
----
-
-## Key Design Decisions
+### Key design decisions
 
 | Decision | Rationale |
 |---|---|
-| **ESM-only** (`"type": "module"`) | Aligns with the modern Node.js ecosystem. All imports use `.js` specifiers as required by native ESM. |
-| **Strict TypeScript, no `any`** | Every function and interface is fully typed. The project compiles with `--strict` and zero implicit `any`. |
-| **250-LOC ceiling per module** | Keeps each file focused and reviewable. The facade (`index.ts`) is the only module that modestly exceeds this limit due to its composition responsibilities. |
-| **SQLite via better-sqlite3** | Zero-configuration embedded database. WAL mode, `busy_timeout=5000`, `synchronous=NORMAL`, and foreign keys are enabled on open. |
-| **Pure static analysis (no network)** | The scanner inspects only metadata and README text already fetched by the registry client. No external API calls during analysis. |
-| **TokenBucket rate limiter (5 tokens/s, 10 burst)** | Prevents registry throttling. Tokens refill at 5 per second; burst allows up to 10 immediate requests. |
-| **Cache-first `checkPackage` with TTL staleness** | Reuses fresh metadata and reports under the current scanner/rule fingerprint. Stale metadata is fetched before returning; changed rules invalidate the report. Default metadata TTL is 1 hour. |
-| **String enums for `SecurityLevel` / `Severity`** | Unlike numeric enums, string enums are safe to log, serialize, and use in `switch` statements without reverse-mapping surprises. |
-| **Score: 100 minus severity weights** | Critical = 25, High = 15, Medium = 8, Low = 3. A report with no findings starts at 100; scan completeness and Critical findings also affect the level. |
-| **Level thresholds** | Critical findings or scores below 50 are Dangerous. Incomplete scans without established danger are Unknown. Complete scans with High findings are at least Suspicious; otherwise `>=80` Safe and `>=50` Suspicious. One shared policy covers live scans, cached reports, the engine and CI. LLM analysis cannot raise a static safety score. |
+| ESM-only, strict TypeScript, no `any` | Modern Node ecosystem; fully typed public surface. |
+| 250-LOC ceiling per module | Focused, reviewable files; only the facade modestly exceeds it. |
+| Pure static analysis, no network | The scanner inspects only already-fetched metadata/README text. |
+| Cache-first with scanner fingerprint | Changed rules/severity invalidate cached reports; metadata TTL 1 h. |
+| String enums for levels/severities | Safe to log, serialize, and switch on. |
+| One shared level policy | Live scans, cached reports, engine, and CI agree; LLM cannot raise the static score. |
 
----
+## Configuration and data
+
+Everything lives under `~/.npm-safe/`:
+
+| Path | Purpose |
+|---|---|
+| `npm-safe.db` | SQLite: cache, watchlist, settings, shared check history |
+| `llm.json` | LLM provider configuration (keys redacted in logs) |
+| `rules.json` | Rule enablement/severity overrides |
+| `rules/` | Local rule plugins (`*.mjs` / `*.js`) |
+| `telemetry.json` | Opt-in local telemetry |
+| `commands.jsonl` | Redacted command log |
+| `last-batch.json` | Most recent batch check |
+| `bin/` | Install-gate PATH shims |
+
+Environment: `OPENAI_API_KEY` / `GEMINI_API_KEY` / `ANTHROPIC_API_KEY`,
+`HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` / `NO_PROXY`,
+`NPM_SAFE_COMMAND_LOG`.
+
+## Documentation
+
+| Topic | Link |
+|---|---|
+| Full CLI reference | [docs/cli.md](docs/cli.md) |
+| Source review behavior & limits | [docs/source-review.md](docs/source-review.md) |
+| Release diff & exit codes | [docs/release-diff.md](docs/release-diff.md) |
+| Threat model | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) |
+| Scanner evaluation & splits | [docs/evaluation.md](docs/evaluation.md) · [docs/evaluation-splits.md](docs/evaluation-splits.md) |
+| Architecture & design decisions | [packages/core/ARCHITECTURE.md](packages/core/ARCHITECTURE.md) |
+| Public API | [packages/core/API.md](packages/core/API.md) |
+| Rule reference | [packages/core/SCANNER_RULES.md](packages/core/SCANNER_RULES.md) |
+| Desktop app | [packages/desktop/README.md](packages/desktop/README.md) |
+| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Changelog / Roadmap / Security policy | [CHANGELOG](CHANGELOG.md) · [ROADMAP](ROADMAP.md) · [SECURITY](SECURITY.md) |
 
 ## Acknowledgements
-Weifang Leimingyun Network Technology Co., Ltd. provided the AI automatic promotion tool Bizbot (http://bizbot.zvo.cn) for this project.
+
+Weifang Leimingyun Network Technology Co., Ltd. provided the AI automatic
+promotion tool Bizbot (http://bizbot.zvo.cn) for this project.
 
 Questions and collaboration: 1031402408@qq.com.
 

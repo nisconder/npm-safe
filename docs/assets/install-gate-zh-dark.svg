@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="380" viewBox="0 0 1280 380" role="img" aria-label="安装门禁流程：先检查 npm/pnpm/yarn 安装目标，低于阈值需确认，然后才交给真正的包管理器">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="380" rx="20" fill="#0b1220"/>
+  <rect x="0.5" y="0.5" width="1279" height="379" rx="19.5" fill="none" stroke="#1e293b"/>
+  <g font-family="-apple-system,'Segoe UI','Microsoft YaHei','PingFang SC','Noto Sans SC',sans-serif">
+    <text x="64" y="64" font-size="24" font-weight="700" fill="#f1f5f9">安装门禁：先检查，后安装</text>
+    <text x="64" y="94" font-size="16" fill="#94a3b8">可选、默认关闭。包装器保留你的包管理器与子命令；被检查的版本即被安装的版本。</text>
+  </g>
+  <g font-family="-apple-system,'Segoe UI','Microsoft YaHei','PingFang SC','Noto Sans SC',sans-serif" font-size="16">
+    <g transform="translate(64,150)">
+      <rect width="230" height="130" rx="14" fill="#111a2e" stroke="#1e293b"/>
+      <text x="22" y="42" font-weight="700" fill="#f1f5f9">你的安装命令</text>
+      <text x="22" y="72" font-size="14" fill="#94a3b8" font-family="'SF Mono',Consolas,monospace">npm install axios</text>
+      <text x="22" y="96" font-size="14" fill="#94a3b8" font-family="'SF Mono',Consolas,monospace">pnpm add · yarn add</text>
+    </g>
+    <line x1="298" y1="215" x2="356" y2="215" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(360,150)">
+      <rect width="230" height="130" rx="14" fill="#13233f" stroke="#1d4ed8"/>
+      <text x="22" y="42" font-weight="700" fill="#60a5fa">npm-safe 检查</text>
+      <text x="22" y="72" font-size="14" fill="#94a3b8">精确的已发布版本</text>
+      <text x="22" y="96" font-size="14" fill="#94a3b8">评分 + 发现项</text>
+    </g>
+    <line x1="594" y1="215" x2="652" y2="215" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(656,150)">
+      <path d="M115 0 L230 65 L115 130 L0 65 Z" fill="#2a2111" stroke="#92400e"/>
+      <text x="115" y="58" font-weight="700" fill="#fbbf24" text-anchor="middle" font-size="15">评分 ≥ 85？</text>
+      <text x="115" y="84" fill="#d97706" text-anchor="middle" font-size="13">阈值可配置</text>
+    </g>
+    <line x1="890" y1="185" x2="960" y2="185" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="898" y="172" font-size="13" fill="#34d399">是</text>
+    <line x1="890" y1="245" x2="960" y2="245" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="898" y="232" font-size="13" fill="#fbbf24">否 → 需确认</text>
+    <g transform="translate(964,130)">
+      <rect width="252" height="80" rx="14" fill="#0e2a22" stroke="#065f46"/>
+      <text x="22" y="34" font-weight="700" fill="#34d399">继续安装</text>
+      <text x="22" y="60" font-size="14" fill="#94a3b8">真正的包管理器执行</text>
+    </g>
+    <g transform="translate(964,230)">
+      <rect width="252" height="80" rx="14" fill="#2a1518" stroke="#7f1d1d"/>
+      <text x="22" y="34" font-weight="700" fill="#f87171">拒绝 → 退出码 3</text>
+      <text x="22" y="60" font-size="14" fill="#94a3b8">不安装任何内容</text>
+    </g>
+    <text x="64" y="342" font-size="14" fill="#64748b">npm-safe gate enable 启用 · gate set-threshold 调整阈值 · npm-safe doctor 诊断包装器。</text>
+  </g>
+</svg>

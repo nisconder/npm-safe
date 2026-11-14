@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="380" viewBox="0 0 1280 380" role="img" aria-label="Install gate flow: npm or pnpm or yarn install is checked first, scores below the threshold require confirmation, then the real package manager runs">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="380" rx="20" fill="#0b1220"/>
+  <rect x="0.5" y="0.5" width="1279" height="379" rx="19.5" fill="none" stroke="#1e293b"/>
+  <g font-family="-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif">
+    <text x="64" y="64" font-size="24" font-weight="700" fill="#f1f5f9">Install gate: check first, install second</text>
+    <text x="64" y="94" font-size="16" fill="#94a3b8">Opt-in, disabled by default. Wrappers keep your package manager and subcommand; the inspected version is the installed version.</text>
+  </g>
+  <g font-family="-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" font-size="16">
+    <g transform="translate(64,150)">
+      <rect width="230" height="130" rx="14" fill="#111a2e" stroke="#1e293b"/>
+      <text x="22" y="42" font-weight="700" fill="#f1f5f9">Your install</text>
+      <text x="22" y="72" font-size="14" fill="#94a3b8" font-family="'SF Mono',Consolas,monospace">npm install axios</text>
+      <text x="22" y="96" font-size="14" fill="#94a3b8" font-family="'SF Mono',Consolas,monospace">pnpm add · yarn add</text>
+    </g>
+    <line x1="298" y1="215" x2="356" y2="215" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(360,150)">
+      <rect width="230" height="130" rx="14" fill="#13233f" stroke="#1d4ed8"/>
+      <text x="22" y="42" font-weight="700" fill="#60a5fa">npm-safe check</text>
+      <text x="22" y="72" font-size="14" fill="#94a3b8">exact published version</text>
+      <text x="22" y="96" font-size="14" fill="#94a3b8">score + findings</text>
+    </g>
+    <line x1="594" y1="215" x2="652" y2="215" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(656,150)">
+      <path d="M115 0 L230 65 L115 130 L0 65 Z" fill="#2a2111" stroke="#92400e"/>
+      <text x="115" y="58" font-weight="700" fill="#fbbf24" text-anchor="middle" font-size="15">score ≥ 85?</text>
+      <text x="115" y="84" fill="#d97706" text-anchor="middle" font-size="13">threshold configurable</text>
+    </g>
+    <line x1="890" y1="185" x2="960" y2="185" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="898" y="172" font-size="13" fill="#34d399">yes</text>
+    <line x1="890" y1="245" x2="960" y2="245" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="898" y="232" font-size="13" fill="#fbbf24">no → confirm</text>
+    <g transform="translate(964,130)">
+      <rect width="252" height="80" rx="14" fill="#0e2a22" stroke="#065f46"/>
+      <text x="22" y="34" font-weight="700" fill="#34d399">Install proceeds</text>
+      <text x="22" y="60" font-size="14" fill="#94a3b8">real package manager runs</text>
+    </g>
+    <g transform="translate(964,230)">
+      <rect width="252" height="80" rx="14" fill="#2a1518" stroke="#7f1d1d"/>
+      <text x="22" y="34" font-weight="700" fill="#f87171">Declined → exit 3</text>
+      <text x="22" y="60" font-size="14" fill="#94a3b8">nothing is installed</text>
+    </g>
+    <text x="64" y="342" font-size="14" fill="#64748b">Enable with npm-safe gate enable · raise the bar with gate set-threshold · diagnose wrappers with npm-safe doctor.</text>
+  </g>
+</svg>

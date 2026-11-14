@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="npm-safe — 先扫描，再安装">
+  <defs>
+    <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="320" rx="20" fill="#0b1220"/>
+  <rect x="0.5" y="0.5" width="1279" height="319" rx="19.5" fill="none" stroke="#1e293b"/>
+  <g transform="translate(96,64)">
+    <path d="M96 0 L176 28 V104 C176 158 140 190 96 204 C52 190 16 158 16 104 V28 Z" fill="url(#shield)"/>
+    <path d="M60 100 L88 128 L136 72" fill="none" stroke="#0b1220" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g font-family="-apple-system,'Segoe UI','Microsoft YaHei','PingFang SC','Noto Sans SC',sans-serif">
+    <text x="336" y="150" font-size="72" font-weight="700" fill="#f1f5f9" letter-spacing="-1">npm-safe</text>
+    <text x="338" y="204" font-size="30" fill="#94a3b8">先扫描，再安装。</text>
+    <text x="338" y="248" font-size="17" fill="#64748b">本地优先的 npm 供应链扫描器 · 命令行 · CI · 桌面端 · AI 助手</text>
+  </g>
+  <g transform="translate(920,96)" font-family="'SF Mono',Consolas,'Courier New',monospace" font-size="16">
+    <rect width="280" height="128" rx="12" fill="#111a2e" stroke="#1e293b"/>
+    <circle cx="24" cy="24" r="5" fill="#f87171"/>
+    <circle cx="42" cy="24" r="5" fill="#fbbf24"/>
+    <circle cx="60" cy="24" r="5" fill="#34d399"/>
+    <text x="24" y="66" fill="#94a3b8">$ npm-safe check lodash</text>
+    <text x="24" y="98" fill="#34d399" font-weight="700">safe · 97/100</text>
+  </g>
+</svg>
