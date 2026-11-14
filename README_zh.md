@@ -235,9 +235,12 @@ npm-safe report --batch
 - **规则 / LLM / 设置**：开关规则与严重性、配置提供方并测试连接、读写引擎设置（含安装门禁）。
 - **风险卡**：npm 包与公开 GitHub 仓库的红/黄/绿安装风险；自动区分普通包与 DSH 插件（可手动覆盖）。npm tarball 做完整性校验；DSH 插件另做 bundle、随附补丁、宿主依赖与 peer 检查。生成锁定版本或 commit 的命令而**不执行**。
 
-<a href="docs/assets/npm-safe-desktop.png"><img src="docs/assets/npm-safe-desktop.png" alt="桌面端真实复核 @npm-safe/core 2.0.1，本次提供的源码证据复核完成且未发现恶意行为" width="880"></a>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/desktop-zh-dark.svg">
+  <img alt="桌面界面示意：@npm-safe/core 2.0.1 源码复核完成，结论为 benign，两次模型调用与受限证据覆盖" src="docs/assets/desktop-zh-light.svg" width="880">
+</picture>
 
-<sub>桌面端真实截图：对 @npm-safe/core@2.0.1 发起 LLM 源码复核，展示完成状态、模型调用次数与受限证据覆盖。此页面不会执行安装。</sub>
+<sub>与 README 视觉风格一致的界面示意图；此页面不会执行安装。仍可查看真实桌面端<a href="docs/assets/npm-safe-desktop.png">源码复核截图</a>。</sub>
 
 > **Windows 首次运行：** 若 WebView2 窗口因 loopback 错误无法加载，请在管理员 PowerShell 中执行一次：
 > `CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"`。
